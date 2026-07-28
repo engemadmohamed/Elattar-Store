@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
 import { ArrowLeft, Plus, X, Upload, QrCode } from "lucide-react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
@@ -63,6 +63,7 @@ export default function AddProduct() {
   const { id } = useParams<{ id?: string }>();
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const qc = useQueryClient();
   const isEdit = !!id;
 
   const [form, setForm] = useState({
@@ -201,14 +202,22 @@ export default function AddProduct() {
         salePrice: data.salePrice ? parseFloat(data.salePrice) : undefined,
         stock: parseInt(data.stock),
       };
-      return apiRequest<{ _id: string }>(
+      return apiRequest<ExistingProduct>(
         isEdit ? "PUT" : "POST",
         isEdit ? `/api/products/${id}` : "/api/products",
         payload,
       );
     },
-    onSuccess: (data) => {
-      setSavedProductId(data._id);
+    onSuccess: (updatedProduct) => {
+      // Invalidate the list view for admin products page
+      qc.invalidateQueries({ queryKey: ["/api/products/admin/all"] });
+
+      if (isEdit) {
+        // Manually update the cache for the product detail page to ensure it's fresh
+        qc.setQueryData(["/api/products", id], updatedProduct);
+      }
+
+      setSavedProductId(updatedProduct._id);
       toast({
         title: isEdit ? "تم تحديث المنتج ✓" : "تم إضافة المنتج ✓",
         description: "يمكنك الآن طباعة QR Code",

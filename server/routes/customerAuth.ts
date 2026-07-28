@@ -27,7 +27,14 @@ router.post("/signup", async (req: Request, res: Response) => {
 
     return res.status(201).json({
       token,
-      customer: { id: customer._id, name: customer.name, email: customer.email, phone: customer.phone },
+      customer: {
+        id: customer._id,
+        name: customer.name,
+        email: customer.email,
+        phone: customer.phone,
+        libraryName: customer.libraryName,
+        libraryLocation: customer.libraryLocation,
+      },
     });
   } catch (error) {
     console.error(error);
@@ -53,7 +60,14 @@ router.post("/login", async (req: Request, res: Response) => {
 
     return res.json({
       token,
-      customer: { id: customer._id, name: customer.name, email: customer.email, phone: customer.phone },
+      customer: {
+        id: customer._id,
+        name: customer.name,
+        email: customer.email,
+        phone: customer.phone,
+        libraryName: customer.libraryName,
+        libraryLocation: customer.libraryLocation,
+      },
     });
   } catch (error) {
     console.error(error);
@@ -67,26 +81,28 @@ router.get("/me", requireCustomerAuth, async (req: CustomerAuthRequest, res: Res
     const customer = await Customer.findById(req.customerId).select("-password");
     if (!customer) return res.status(404).json({ message: "الحساب غير موجود" });
     return res.json(customer);
-  } catch {
+  } catch (error) {
+    console.error("Error fetching current customer:", error);
     return res.status(500).json({ message: "حدث خطأ في الخادم" });
   }
 });
 
-// Update profile (name/phone only — email stays fixed to avoid login mixups)
+// Update profile
 router.put("/me", requireCustomerAuth, async (req: CustomerAuthRequest, res: Response) => {
   try {
-    const { name, phone } = req.body;
+    const { name, phone, libraryName, libraryLocation } = req.body;
     if (!name || !phone) {
       return res.status(400).json({ message: "الاسم ورقم الهاتف مطلوبان" });
     }
     const customer = await Customer.findByIdAndUpdate(
       req.customerId,
-      { name, phone },
+      { name, phone, libraryName, libraryLocation },
       { new: true, runValidators: true }
     ).select("-password");
     if (!customer) return res.status(404).json({ message: "الحساب غير موجود" });
     return res.json(customer);
-  } catch {
+  } catch (error) {
+    console.error("Error updating profile:", error);
     return res.status(500).json({ message: "حدث خطأ في الخادم" });
   }
 });
