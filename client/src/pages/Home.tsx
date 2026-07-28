@@ -93,11 +93,8 @@ export default function Home() {
                   .slice(0, 6)
                   .map((cat) => (
                     <Link key={cat._id} href={`/shop?category=${cat.slug}`}>
-                      <Card className="group hover:shadow-lg hover:-translate-y-1 hover:border-primary/50 transition-all duration-300 cursor-pointer">
-                        <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
-                          <span className="text-3xl inline-block transition-transform duration-300 group-hover:scale-125 group-hover:-rotate-6">
-                            {cat.icon}
-                          </span>
+                      <Card className="group hover:shadow-lg hover:-translate-y-1 hover:border-primary/50 transition-all duration-300 cursor-pointer h-24">
+                        <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full">
                           <p className="text-xs font-medium leading-tight">
                             {cat.nameAr}
                           </p>

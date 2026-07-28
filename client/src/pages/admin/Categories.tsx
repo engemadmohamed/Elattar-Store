@@ -1,6 +1,6 @@
  import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2, Edit, CornerDownRight, X } from "lucide-react";
+import { Plus, Trash2, Edit, ChevronRight, X } from "lucide-react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,32 +30,12 @@ interface Category {
   parentId: string | null;
 }
 
-const ICONS = [
-  "📦",
-  "✒️",
-  "📓",
-  "🎨",
-  "📎",
-  "🎒",
-  "🧮",
-  "📐",
-  "✂️",
-  "📌",
-  "🖊️",
-  "📏",
-  "🖍️",
-  "📋",
-  "🗂️",
-  "💼",
-  "🖨️",
-  "📱",
-];
-
 export default function AdminCategories() {
   const qc = useQueryClient();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [form, setForm] = useState({
     name: "",
     nameAr: "",
@@ -171,6 +151,10 @@ export default function AdminCategories() {
     }
   };
 
+  const handleToggle = (id: string) => {
+    setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
   const getSubcategories = (parentId: string) => categories?.filter((c) => c.parentId === parentId) || [];
   const getDescendants = (catId: string): string[] => {
     if (!categories) return [];
@@ -196,9 +180,7 @@ export default function AdminCategories() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-1">
-            {categories && (
-              <CategoryTree categories={categories} parentId={null} onEdit={handleEditClick} onDelete={handleDeleteClick} />
-            )}
+            {categories && <CategoryTree categories={categories} parentId={null} onEdit={handleEditClick} onDelete={handleDeleteClick} expanded={expanded} onToggle={handleToggle} />}
             {(!categories || categories.length === 0) && (
               <p className="text-center text-muted-foreground py-4">
                 لا توجد فئات
@@ -229,43 +211,19 @@ export default function AdminCategories() {
                 onChange={(e) => {
                   const val = e.target.value;
                   set("nameAr", val);
-                  set("name", val);
-                  if (!form.slug) set("slug", autoSlug(val));
+                  set("name", val); // Keep for compatibility
+                  set("slug", autoSlug(val));
                 }}
                 required
               />
             </div>
-            <div>
-              <Label>Slug (الرابط) *</Label>
-              <Input
-                value={form.slug}
-                onChange={(e) => set("slug", e.target.value)}
-                placeholder="pens-writing"
-                required
-              />
-            </div>
-            <div>
-              <Label>الأيقونة</Label>
-              <div className="flex flex-wrap gap-2 mt-1">
-                {ICONS.map((icon) => (
-                  <button
-                    key={icon}
-                    type="button"
-                    onClick={() => set("icon", icon)}
-                    className={`text-xl p-1 rounded ${form.icon === icon ? "bg-primary/20 ring-1 ring-primary" : "hover:bg-muted"}`}
-                  >
-                    {icon}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {/* Slug and Icon fields removed as per request */}
             <div>
               <Label>الفئة الأم (اختياري)</Label>
               <div className="relative">
                 <Select
                   value={form.parentId}
                   onValueChange={(v) => set("parentId", v)}
-                  disabled={!!(editingCategory && getSubcategories(editingCategory._id).length > 0)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="فئة رئيسية" />
@@ -273,8 +231,9 @@ export default function AdminCategories() {
                   <SelectContent>
                     {categories?.filter(c => {
                       if (!editingCategory) return true;
-                      const descendants = getDescendants(editingCategory._id);
-                      return c._id !== editingCategory._id && !descendants.includes(c._id);
+                      // Prevent a category from being its own descendant
+                      const descendants = getDescendants(editingCategory._id); // Get all children, grandchildren, etc.
+                      return c._id !== editingCategory._id && !descendants.includes(c._id); // Can't be itself or one of its children
                     }).map((c) => (
                       <SelectItem key={c._id} value={c._id}>
                         {c.nameAr}
@@ -310,23 +269,39 @@ interface CategoryTreeProps {
   parentId: string | null;
   onEdit: (category: Category) => void;
   onDelete: (id: string) => void;
+  expanded: Record<string, boolean>;
+  onToggle: (id: string) => void;
 }
 
-function CategoryTree({ categories, parentId, onEdit, onDelete }: CategoryTreeProps) {
+function CategoryTree({ categories, parentId, onEdit, onDelete, expanded, onToggle }: CategoryTreeProps) {
   const children = categories.filter(c => c.parentId === parentId);
+  if (!children.length) return null;
+
   return (
-    <>
+    <div className={parentId ? "pl-4 border-l ml-4" : ""}>
       {children.map(cat => (
-        <div key={cat._id}>
-          <CategoryItem category={cat} onEdit={onEdit} onDelete={onDelete} isSub={!!parentId} />
-          {categories.some(c => c.parentId === cat._id) && (
-            <div className="pr-6">
-              <CategoryTree categories={categories} parentId={cat._id} onEdit={onEdit} onDelete={onDelete} />
-            </div>
+        <div key={cat._id} className="my-1">
+          <CategoryItem
+            category={cat}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            hasChildren={categories.some(c => c.parentId === cat._id)}
+            isExpanded={!!expanded[cat._id]}
+            onToggle={() => onToggle(cat._id)}
+          />
+          {expanded[cat._id] && (
+            <CategoryTree
+              categories={categories}
+              parentId={cat._id}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              expanded={expanded}
+              onToggle={onToggle}
+            />
           )}
         </div>
       ))}
-    </>
+    </div>
   );
 }
 
@@ -334,20 +309,24 @@ interface CategoryItemProps {
   category: Category;
   onEdit: (category: Category) => void;
   onDelete: (id: string) => void;
-  isSub?: boolean;
+  hasChildren: boolean;
+  isExpanded: boolean;
+  onToggle: () => void;
 }
 
-function CategoryItem({ category, onEdit, onDelete, isSub }: CategoryItemProps) {
+function CategoryItem({ category, onEdit, onDelete, hasChildren, isExpanded, onToggle }: CategoryItemProps) {
   return (
-    <div className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/30 transition-colors">
-      <div className="flex items-center gap-3">
-        {isSub && <CornerDownRight className="h-4 w-4 text-muted-foreground" />}
-        <span className="text-2xl">{category.icon}</span>
+    <div className="flex items-center justify-between p-2 rounded-lg border bg-background hover:bg-muted/50 transition-colors">
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onToggle} disabled={!hasChildren}>
+          {hasChildren ? (
+            <ChevronRight className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+          ) : (
+            <span className="w-4" /> // Placeholder for alignment
+          )}
+        </Button>
         <div>
           <p className="font-medium text-sm">{category.nameAr}</p>
-          <p className="text-xs text-muted-foreground">
-            {category.slug}
-          </p>
         </div>
       </div>
       <div className="flex items-center">

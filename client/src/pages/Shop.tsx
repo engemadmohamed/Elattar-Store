@@ -108,7 +108,7 @@ export default function Shop() {
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              {selectedCategory?.icon} {title}
+              {title}
             </h1>
             {data && !showSubcategories && (
               <p className="text-sm text-muted-foreground mt-1">
@@ -170,7 +170,7 @@ export default function Shop() {
                 .map((cat) => (
                   <Link key={cat._id} href={`/shop?category=${cat.slug}`}>
                     <Button variant="outline" size="sm">
-                      {cat.icon} {cat.nameAr}
+                      {cat.nameAr}
                     </Button>
                   </Link>
                 ))
@@ -184,10 +184,7 @@ export default function Shop() {
             {subcategories.map((cat) => (
               <Link key={cat._id} href={`/shop?category=${cat.slug}`}>
                 <Card className="group hover:shadow-lg hover:-translate-y-1 hover:border-primary/50 transition-all duration-300 cursor-pointer h-full">
-                  <CardContent className="p-4 flex flex-col items-center justify-center gap-2 text-center h-full">
-                    <span className="text-4xl inline-block transition-transform duration-300 group-hover:scale-125 group-hover:-rotate-6">
-                      {cat.icon}
-                    </span>
+                  <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full min-h-[100px]">
                     <p className="text-sm font-medium leading-tight">
                       {cat.nameAr}
                     </p>

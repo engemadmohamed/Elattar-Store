@@ -10,7 +10,6 @@ export interface IProduct extends Document {
   stock: number;
   images: string[];
   categoryId: mongoose.Types.ObjectId;
-  subcategoryId?: mongoose.Types.ObjectId;
   sku: string;
   barcode?: string;
   qrCode?: string;
@@ -36,8 +35,7 @@ const ProductSchema = new Schema<IProduct>(
     salePrice: { type: Number, min: 0 },
     stock: { type: Number, required: true, default: 0 },
     images: [{ type: String }],
-    categoryId: { type: Schema.Types.ObjectId, ref: "Category", required: true },
-    subcategoryId: { type: Schema.Types.ObjectId, ref: "Category" },
+    categoryId: { type: Schema.Types.ObjectId, ref: "Category", required: true, index: true },
     sku: { type: String, required: true, unique: true },
     barcode: { type: String },
     qrCode: { type: String },
@@ -58,7 +56,6 @@ const ProductSchema = new Schema<IProduct>(
 );
 
 ProductSchema.index({ name: "text", nameAr: "text", description: "text" });
-ProductSchema.index({ categoryId: 1 });
 ProductSchema.index({ isActive: 1 });
 
 export const Product = mongoose.model<IProduct>("Product", ProductSchema);
