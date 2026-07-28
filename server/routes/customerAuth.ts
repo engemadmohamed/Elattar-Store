@@ -9,8 +9,8 @@ const router = Router();
 router.post("/signup", async (req: Request, res: Response) => {
   try {
     const JWT_SECRET = process.env.JWT_SECRET as string;
-    const { name, email, phone, password } = req.body;
-    if (!name || !email || !phone || !password) {
+    const { name, email, phone, password, libraryName, libraryLocation } = req.body;
+    if (!name || !email || !phone || !password || !libraryName || !libraryLocation) {
       return res.status(400).json({ message: "الرجاء ملء جميع الحقول" });
     }
     if (password.length < 6) {
@@ -22,7 +22,7 @@ router.post("/signup", async (req: Request, res: Response) => {
       return res.status(409).json({ message: "هذا البريد الإلكتروني مسجل بالفعل" });
     }
 
-    const customer = await Customer.create({ name, email, phone, password });
+    const customer = await Customer.create({ name, email, phone, password, libraryName, libraryLocation });
     const token = jwt.sign({ id: customer._id }, JWT_SECRET, { expiresIn: "30d" });
 
     return res.status(201).json({

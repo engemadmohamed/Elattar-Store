@@ -40,7 +40,7 @@ interface ExistingProduct {
   price: number;
   salePrice?: number;
   stock: number;
-  categoryId: string;
+  categoryId: { _id: string; name: string; nameAr: string; slug: string };
   sku: string;
   brand?: string;
   tags: string[];
@@ -115,10 +115,7 @@ export default function AddProduct() {
   useEffect(() => {
     if (!existingProduct || !categories) return;
 
-    const productCategoryId =
-      (existingProduct.categoryId as { _id: string })?._id ??
-      (existingProduct.categoryId as string);
-
+    const productCategoryId = existingProduct.categoryId._id;
     // Reconstruct the category path from the product's category ID
     const path = getCategoryAncestors(productCategoryId, categories);
     setCategoryPath(path);

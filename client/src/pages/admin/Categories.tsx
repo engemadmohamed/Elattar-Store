@@ -171,8 +171,12 @@ export default function AdminCategories() {
     }
   };
 
-  const mainCategories = categories?.filter((c) => !c.parentId) || [];
   const getSubcategories = (parentId: string) => categories?.filter((c) => c.parentId === parentId) || [];
+  const getDescendants = (catId: string): string[] => {
+    if (!categories) return [];
+    const children = getSubcategories(catId).map(c => c._id);
+    return [...children, ...children.flatMap(getDescendants)];
+  };
 
   return (
     <div className="flex min-h-screen">
@@ -192,16 +196,9 @@ export default function AdminCategories() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-1">
-            {mainCategories.map((cat) => (
-              <div key={cat._id}>
-                <CategoryItem category={cat} onEdit={handleEditClick} onDelete={handleDeleteClick} />
-                {getSubcategories(cat._id).map((subCat) => (
-                  <div key={subCat._id} className="pr-6">
-                    <CategoryItem category={subCat} onEdit={handleEditClick} onDelete={handleDeleteClick} isSub />
-                  </div>
-                ))}
-              </div>
-            ))}
+            {categories && (
+              <CategoryTree categories={categories} parentId={null} onEdit={handleEditClick} onDelete={handleDeleteClick} />
+            )}
             {(!categories || categories.length === 0) && (
               <p className="text-center text-muted-foreground py-4">
                 لا توجد فئات
@@ -274,7 +271,11 @@ export default function AdminCategories() {
                     <SelectValue placeholder="فئة رئيسية" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mainCategories.filter(c => c._id !== editingCategory?._id).map((c) => (
+                    {categories?.filter(c => {
+                      if (!editingCategory) return true;
+                      const descendants = getDescendants(editingCategory._id);
+                      return c._id !== editingCategory._id && !descendants.includes(c._id);
+                    }).map((c) => (
                       <SelectItem key={c._id} value={c._id}>
                         {c.nameAr}
                       </SelectItem>
@@ -301,6 +302,31 @@ export default function AdminCategories() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+interface CategoryTreeProps {
+  categories: Category[];
+  parentId: string | null;
+  onEdit: (category: Category) => void;
+  onDelete: (id: string) => void;
+}
+
+function CategoryTree({ categories, parentId, onEdit, onDelete }: CategoryTreeProps) {
+  const children = categories.filter(c => c.parentId === parentId);
+  return (
+    <>
+      {children.map(cat => (
+        <div key={cat._id}>
+          <CategoryItem category={cat} onEdit={onEdit} onDelete={onDelete} isSub={!!parentId} />
+          {categories.some(c => c.parentId === cat._id) && (
+            <div className="pr-6">
+              <CategoryTree categories={categories} parentId={cat._id} onEdit={onEdit} onDelete={onDelete} />
+            </div>
+          )}
+        </div>
+      ))}
+    </>
   );
 }
 
