@@ -32,13 +32,29 @@ router.get("/", async (req: Request, res: Response) => {
       // Find the category by slug to get its ID
       const parentCategory = await Category.findOne({ slug: category as string });
       if (parentCategory) {
-        // Find all descendant categories including the parent itself
-        const allCategories = await Category.find({});
-        const getDescendants = (catId: mongoose.Types.ObjectId): mongoose.Types.ObjectId[] => {
-          const children = allCategories.filter(c => String(c.parentId) === String(catId));
-          return [catId, ...children.flatMap(c => getDescendants(c._id))];
+        // Find all descendant categories including the parent itself.
+        // This is an iterative approach to avoid stack overflows on deep or cyclical category trees.
+        const allCategories = await Category.find({}).lean();
+        const getDescendantIds = (rootId: mongoose.Types.ObjectId): mongoose.Types.ObjectId[] => {
+          const ids: mongoose.Types.ObjectId[] = [rootId];
+          const queue: string[] = [rootId.toString()];
+          const visited = new Set<string>(queue);
+
+          while (queue.length > 0) {
+            const currentId = queue.shift()!;
+            const children = allCategories.filter(c => c.parentId?.toString() === currentId);
+            for (const child of children) {
+              const childIdStr = child._id.toString();
+              if (!visited.has(childIdStr)) {
+                visited.add(childIdStr);
+                ids.push(child._id);
+                queue.push(childIdStr);
+              }
+            }
+          }
+          return ids;
         };
-        const categoryIds = getDescendants(parentCategory._id);
+        const categoryIds = getDescendantIds(parentCategory._id);
         filter.categoryId = { $in: categoryIds };
       } else {
         // If slug is not found, return no products for this category filter
@@ -160,7 +176,11 @@ router.post("/", requireAuth, async (req: Request, res: Response) => {
     return res.status(201).json(product);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Server error" });
+    if (error instanceof mongoose.Error.ValidationError) {
+      const messages = Object.values(error.errors).map(e => e.message);
+      return res.status(400).json({ message: `خطأ في البيانات: ${messages.join(', ')}` });
+    }
+    return res.status(500).json({ message: "فشل حفظ المنتج. تأكد من أن كل البيانات صحيحة.", error: String(error) });
   }
 });
 
@@ -171,7 +191,12 @@ router.put("/:id", requireAuth, async (req: Request, res: Response) => {
     if (!product) return res.status(404).json({ message: "Product not found" });
     return res.json(product);
   } catch (error) {
-    return res.status(500).json({ message: "Server error" });
+    console.error(error);
+    if (error instanceof mongoose.Error.ValidationError) {
+      const messages = Object.values(error.errors).map(e => e.message);
+      return res.status(400).json({ message: `خطأ في البيانات: ${messages.join(', ')}` });
+    }
+    return res.status(500).json({ message: "فشل تحديث المنتج. تأكد من أن كل البيانات صحيحة.", error: String(error) });
   }
 });
 

@@ -20,7 +20,8 @@ router.get("/:id", async (req: Request, res: Response) => {
     const category = await Category.findById(req.params.id);
     if (!category) return res.status(404).json({ message: "Category not found" });
     return res.json(category);
-  } catch {
+  } catch (error) {
+    console.error(error);
     return res.status(500).json({ message: "Server error" });
   }
 });
@@ -52,7 +53,8 @@ router.put("/:id", requireAuth, async (req: Request, res: Response) => {
     const category = await Category.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!category) return res.status(404).json({ message: "Category not found" });
     return res.json(category);
-  } catch {
+  } catch (error) {
+    console.error(error);
     return res.status(500).json({ message: "Server error" });
   }
 });
@@ -61,12 +63,31 @@ router.put("/:id", requireAuth, async (req: Request, res: Response) => {
 router.delete("/:id", requireAuth, async (req: Request, res: Response) => {
   try {
     const categoryId = req.params.id;
-    // Also delete subcategories that belong to this category
-    await Category.deleteMany({ parentId: categoryId });
-    // Then delete the category itself
-    await Category.findByIdAndDelete(categoryId);
-    return res.json({ message: "Category deleted" });
-  } catch {
+
+    // To recursively delete, we need to find all descendants first.
+    const allCategories = await Category.find().lean();
+
+    const idsToDelete: string[] = [categoryId];
+    const queue: string[] = [categoryId];
+    const visited = new Set<string>([categoryId]);
+
+    while (queue.length > 0) {
+      const currentId = queue.shift()!;
+      const children = allCategories.filter(c => c.parentId?.toString() === currentId);
+      for (const child of children) {
+        const childIdStr = child._id.toString();
+        if (!visited.has(childIdStr)) {
+          visited.add(childIdStr);
+          idsToDelete.push(childIdStr);
+          queue.push(childIdStr);
+        }
+      }
+    }
+
+    await Category.deleteMany({ _id: { $in: idsToDelete } });
+    return res.json({ message: "Category and all subcategories deleted" });
+  } catch (error) {
+    console.error("Error deleting category:", error);
     return res.status(500).json({ message: "Server error" });
   }
 });
