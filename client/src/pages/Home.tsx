@@ -53,7 +53,7 @@ export default function Home() {
             <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4 leading-tight">
               <span className="text-primary">El Attar</span>
               <br />
-              كل ما تحتاجه في مكان واحد
+             نصنع الجودة.......ونكسب الثقة
             </h1>
             <p className="text-muted-foreground text-lg mb-6">
             أقلام أدوات رسم، مستلزمات مكتبية وخردوات. جودة عالية وأسعار تنافسية.
