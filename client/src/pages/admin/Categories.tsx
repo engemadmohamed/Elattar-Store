@@ -1,6 +1,6 @@
-import { useState } from "react";
+ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2, Edit } from "lucide-react";
+import { Plus, Trash2, Edit, X } from "lucide-react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -205,7 +205,7 @@ export default function AdminCategories() {
                     <div>
                       <p className="font-medium text-sm">{cat.nameAr}</p>
                       <p className="text-xs text-muted-foreground">
-                        {cat.name} · {cat.slug}
+                        {cat.slug}
                       </p>
                     </div>
                   </div>
@@ -306,26 +306,18 @@ export default function AdminCategories() {
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>الاسم بالعربية *</Label>
-                <Input
-                  value={form.nameAr}
-                  onChange={(e) => {
-                    set("nameAr", e.target.value);
-                    if (!form.slug) set("slug", autoSlug(e.target.value));
-                  }}
-                  required
-                />
-              </div>
-              <div>
-                <Label>الاسم بالإنجليزية *</Label>
-                <Input
-                  value={form.name}
-                  onChange={(e) => set("name", e.target.value)}
-                  required
-                />
-              </div>
+            <div>
+              <Label>الاسم بالعربية *</Label>
+              <Input
+                value={form.nameAr}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  set("nameAr", val);
+                  set("name", val);
+                  if (!form.slug) set("slug", autoSlug(val));
+                }}
+                required
+              />
             </div>
             <div>
               <Label>Slug (الرابط) *</Label>
@@ -353,29 +345,39 @@ export default function AdminCategories() {
             </div>
             <div>
               <Label>الفئة الأم (اختياري)</Label>
-              <Select
-                value={form.parentId}
-                onValueChange={(v) => set("parentId", v === "none" ? "" : v)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="فئة رئيسية (بدون أب)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">فئة رئيسية</SelectItem>
-                  {mainCategories.map((c) => (
-                    <SelectItem key={c._id} value={c._id}>
-                      {c.nameAr}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="relative">
+                <Select
+                  value={form.parentId}
+                  onValueChange={(v) => set("parentId", v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="فئة رئيسية" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {mainCategories.map((c) => (
+                      <SelectItem key={c._id} value={c._id}>
+                        {c.nameAr}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {form.parentId && (
+                  <Button type="button" variant="ghost" size="icon" className="absolute top-0 left-1 h-9 w-9" onClick={() => set("parentId", "")}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </div>
             <Button
               type="submit"
               className="w-full"
-              disabled={createMutation.isPending}
+              disabled={createMutation.isPending || updateMutation.isPending}
             >
-              {createMutation.isPending ? "جاري الإضافة..." : "إضافة الفئة"}
+              {createMutation.isPending || updateMutation.isPending
+                ? "جاري الحفظ..."
+                : editingCategory
+                  ? "حفظ التعديلات"
+                  : "إضافة الفئة"}
             </Button>
           </form>
         </DialogContent>
