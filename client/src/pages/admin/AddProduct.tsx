@@ -286,7 +286,11 @@ export default function AddProduct() {
                       <Label>اسم المنتج *</Label>
                       <Input
                         value={form.nameAr}
-                        onChange={(e) => set("nameAr", e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          set("nameAr", val);
+                          set("name", val); // Also set english name for backend requirement
+                        }}
                         placeholder="مثال: قلم بيك أزرق"
                         required
                       />

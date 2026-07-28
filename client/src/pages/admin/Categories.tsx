@@ -1,4 +1,4 @@
- import { useState } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2, Edit, ChevronRight, X } from "lucide-react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
-  SelectContent, SelectItem,
+  SelectContent,
+  SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -158,14 +159,30 @@ export default function AdminCategories() {
   };
 
   const handleToggle = (id: string) => {
-    setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
+    setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const getSubcategories = (parentId: string) => categories?.filter((c) => c.parentId === parentId) || [];
+  const getSubcategories = (parentId: string) =>
+    categories?.filter((c) => c.parentId === parentId) || [];
   const getDescendants = (catId: string): string[] => {
+    // Made iterative to prevent stack overflow from cycles
     if (!categories) return [];
-    const children = getSubcategories(catId).map(c => c._id);
-    return [...children, ...children.flatMap(getDescendants)];
+    const descendants: string[] = [];
+    const queue: string[] = [catId];
+    const visited = new Set<string>(); // Use a set to track visited nodes to break cycles
+
+    while (queue.length > 0) {
+      const currentId = queue.shift()!;
+      const children = categories.filter((c) => c.parentId === currentId);
+      for (const child of children) {
+        if (!visited.has(child._id)) {
+          visited.add(child._id);
+          descendants.push(child._id);
+          queue.push(child._id);
+        }
+      }
+    }
+    return descendants;
   };
 
   return (
@@ -186,7 +203,17 @@ export default function AdminCategories() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-1">
-            {categories && <CategoryTree categories={categories} parentId={null} onEdit={handleEditClick} onDelete={handleDeleteClick} onAddSub={handleAddSubcategoryClick} expanded={expanded} onToggle={handleToggle} />}
+            {categories && (
+              <CategoryTree
+                categories={categories}
+                parentId={null}
+                onEdit={handleEditClick}
+                onDelete={handleDeleteClick}
+                onAddSub={handleAddSubcategoryClick}
+                expanded={expanded}
+                onToggle={handleToggle}
+              />
+            )}
             {(!categories || categories.length === 0) && (
               <p className="text-center text-muted-foreground py-4">
                 لا توجد فئات
@@ -235,20 +262,33 @@ export default function AdminCategories() {
                     <SelectValue placeholder="فئة رئيسية" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories?.filter(c => {
-                      if (!editingCategory) return true;
-                      // Prevent a category from being its own descendant
-                      const descendants = getDescendants(editingCategory._id); // Get all children, grandchildren, etc.
-                      return c._id !== editingCategory._id && !descendants.includes(c._id); // Can't be itself or one of its children
-                    }).map((c) => (
-                      <SelectItem key={c._id} value={c._id}>
-                        {c.nameAr}
-                      </SelectItem>
-                    ))}
+                    {categories
+                      ?.filter((c) => {
+                        if (!editingCategory) return true;
+                        // Prevent a category from being its own descendant
+                        const descendants = getDescendants(editingCategory._id); // Get all children, grandchildren, etc.
+                        return (
+                          c._id !== editingCategory._id &&
+                          !descendants.includes(c._id)
+                        ); // Can't be itself or one of its children
+                      })
+                      .map((c) => (
+                        <SelectItem key={c._id} value={c._id}>
+                          {c.nameAr}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
                 {form.parentId && (
-                  <Button type="button" variant="ghost" size="icon" className="absolute top-0 left-1 h-9 w-9" onClick={() => set("parentId", "")}><X className="h-4 w-4" /></Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-0 left-1 h-9 w-9"
+                    onClick={() => set("parentId", "")}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 )}
               </div>
             </div>
@@ -278,38 +318,65 @@ interface CategoryTreeProps {
   onAddSub: (parentId: string) => void;
   expanded: Record<string, boolean>;
   onToggle: (id: string) => void;
+  path?: Set<string>; // To detect circular dependencies
 }
 
-function CategoryTree({ categories, parentId, onEdit, onDelete, onAddSub, expanded, onToggle }: CategoryTreeProps) {
-  const children = categories.filter(c => c.parentId === parentId);
+function CategoryTree({
+  categories,
+  parentId,
+  onEdit,
+  onDelete,
+  onAddSub,
+  expanded,
+  onToggle,
+  path = new Set(),
+}: CategoryTreeProps) {
+  const children = categories.filter((c) => c.parentId === parentId);
   if (!children.length) return null;
 
   return (
     <div className={parentId ? "pl-4 border-l ml-4" : ""}>
-      {children.map(cat => (
-        <div key={cat._id} className="my-1">
-          <CategoryItem
-            category={cat}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onAddSub={onAddSub}
-            hasChildren={categories.some(c => c.parentId === cat._id)}
-            isExpanded={!!expanded[cat._id]}
-            onToggle={() => onToggle(cat._id)}
-          />
-          {expanded[cat._id] && (
-            <CategoryTree
-              categories={categories}
-              parentId={cat._id}
+      {children.map((cat) => {
+        if (path.has(cat._id)) {
+          console.error(
+            "Circular dependency detected in categories for ID:",
+            cat._id,
+          );
+          return (
+            <div key={cat._id} className="text-destructive text-xs pl-4">
+              Error: Circular reference detected.
+            </div>
+          );
+        }
+        const newPath = new Set(path);
+        newPath.add(cat._id);
+
+        return (
+          <div key={cat._id} className="my-1">
+            <CategoryItem
+              category={cat}
               onEdit={onEdit}
               onDelete={onDelete}
               onAddSub={onAddSub}
-              expanded={expanded}
-              onToggle={onToggle}
+              hasChildren={categories.some((c) => c.parentId === cat._id)}
+              isExpanded={!!expanded[cat._id]}
+              onToggle={() => onToggle(cat._id)}
             />
-          )}
-        </div>
-      ))}
+            {expanded[cat._id] && (
+              <CategoryTree
+                categories={categories}
+                parentId={cat._id}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onAddSub={onAddSub}
+                expanded={expanded}
+                onToggle={onToggle}
+                path={newPath}
+              />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -324,13 +391,29 @@ interface CategoryItemProps {
   onToggle: () => void;
 }
 
-function CategoryItem({ category, onEdit, onDelete, onAddSub, hasChildren, isExpanded, onToggle }: CategoryItemProps) {
+function CategoryItem({
+  category,
+  onEdit,
+  onDelete,
+  onAddSub,
+  hasChildren,
+  isExpanded,
+  onToggle,
+}: CategoryItemProps) {
   return (
     <div className="flex items-center justify-between p-2 rounded-lg border bg-background hover:bg-muted/50 transition-colors">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onToggle} disabled={!hasChildren}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          onClick={onToggle}
+          disabled={!hasChildren}
+        >
           {hasChildren ? (
-            <ChevronRight className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+            <ChevronRight
+              className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+            />
           ) : (
             <span className="w-4" /> // Placeholder for alignment
           )}
