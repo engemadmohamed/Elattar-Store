@@ -151,6 +151,12 @@ export default function AdminCategories() {
     }
   };
 
+  const handleAddSubcategoryClick = (parentId: string) => {
+    resetFormAndState();
+    set("parentId", parentId);
+    setOpen(true);
+  };
+
   const handleToggle = (id: string) => {
     setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
   };
@@ -180,7 +186,7 @@ export default function AdminCategories() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-1">
-            {categories && <CategoryTree categories={categories} parentId={null} onEdit={handleEditClick} onDelete={handleDeleteClick} expanded={expanded} onToggle={handleToggle} />}
+            {categories && <CategoryTree categories={categories} parentId={null} onEdit={handleEditClick} onDelete={handleDeleteClick} onAddSub={handleAddSubcategoryClick} expanded={expanded} onToggle={handleToggle} />}
             {(!categories || categories.length === 0) && (
               <p className="text-center text-muted-foreground py-4">
                 لا توجد فئات
@@ -269,11 +275,12 @@ interface CategoryTreeProps {
   parentId: string | null;
   onEdit: (category: Category) => void;
   onDelete: (id: string) => void;
+  onAddSub: (parentId: string) => void;
   expanded: Record<string, boolean>;
   onToggle: (id: string) => void;
 }
 
-function CategoryTree({ categories, parentId, onEdit, onDelete, expanded, onToggle }: CategoryTreeProps) {
+function CategoryTree({ categories, parentId, onEdit, onDelete, onAddSub, expanded, onToggle }: CategoryTreeProps) {
   const children = categories.filter(c => c.parentId === parentId);
   if (!children.length) return null;
 
@@ -285,6 +292,7 @@ function CategoryTree({ categories, parentId, onEdit, onDelete, expanded, onTogg
             category={cat}
             onEdit={onEdit}
             onDelete={onDelete}
+            onAddSub={onAddSub}
             hasChildren={categories.some(c => c.parentId === cat._id)}
             isExpanded={!!expanded[cat._id]}
             onToggle={() => onToggle(cat._id)}
@@ -295,6 +303,7 @@ function CategoryTree({ categories, parentId, onEdit, onDelete, expanded, onTogg
               parentId={cat._id}
               onEdit={onEdit}
               onDelete={onDelete}
+              onAddSub={onAddSub}
               expanded={expanded}
               onToggle={onToggle}
             />
@@ -309,12 +318,14 @@ interface CategoryItemProps {
   category: Category;
   onEdit: (category: Category) => void;
   onDelete: (id: string) => void;
+  onAddSub: (parentId: string) => void;
   hasChildren: boolean;
   isExpanded: boolean;
   onToggle: () => void;
 }
 
 function CategoryItem({ category, onEdit, onDelete, hasChildren, isExpanded, onToggle }: CategoryItemProps) {
+function CategoryItem({ category, onEdit, onDelete, onAddSub, hasChildren, isExpanded, onToggle }: CategoryItemProps) {
   return (
     <div className="flex items-center justify-between p-2 rounded-lg border bg-background hover:bg-muted/50 transition-colors">
       <div className="flex items-center gap-2">
@@ -330,6 +341,15 @@ function CategoryItem({ category, onEdit, onDelete, hasChildren, isExpanded, onT
         </div>
       </div>
       <div className="flex items-center">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          title="إضافة فئة فرعية"
+          onClick={() => onAddSub(category._id)}
+        >
+          <Plus className="h-4 w-4 text-green-600" />
+        </Button>
         <Button
           variant="ghost"
           size="icon"
