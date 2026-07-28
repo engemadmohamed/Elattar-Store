@@ -181,7 +181,7 @@ export default function Shop() {
 
         {/* Products Grid */}
         {showSubcategories ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-12 gap-3">
             {subcategories.map((cat) => (
               <Link key={cat._id} href={`/shop?category=${cat.slug}`}>
                 <Card className="group hover:shadow-lg hover:-translate-y-1 hover:border-primary/50 transition-all duration-300 cursor-pointer h-full">

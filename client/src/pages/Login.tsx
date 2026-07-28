@@ -4,7 +4,13 @@ import { useCustomerAuth } from "@/lib/customer-auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 
 export default function CustomerLogin() {
@@ -21,7 +27,11 @@ export default function CustomerLogin() {
       await login(form.email, form.password);
       navigate("/");
     } catch (error) {
-      toast({ title: "فشل تسجيل الدخول", description: error instanceof Error ? error.message : undefined, variant: "destructive" });
+      toast({
+        title: "فشل تسجيل الدخول",
+        description: error instanceof Error ? error.message : undefined,
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -31,9 +41,13 @@ export default function CustomerLogin() {
     <div className="min-h-[80vh] flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-2xl mx-auto mb-3">E</div>
+          <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-2xl mx-auto mb-3">
+            A
+          </div>
           <CardTitle className="text-2xl">تسجيل الدخول</CardTitle>
-          <CardDescription>سجل دخولك لمتابعة طلباتك وتسهيل الشراء</CardDescription>
+          <CardDescription>
+            سجل دخولك لمتابعة طلباتك وتسهيل الشراء
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -64,7 +78,10 @@ export default function CustomerLogin() {
           </form>
           <p className="text-sm text-center text-muted-foreground mt-4">
             ليس لديك حساب؟{" "}
-            <Link href="/signup" className="text-primary font-medium hover:underline">
+            <Link
+              href="/signup"
+              className="text-primary font-medium hover:underline"
+            >
               إنشاء حساب جديد
             </Link>
           </p>

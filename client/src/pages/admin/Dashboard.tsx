@@ -12,12 +12,27 @@ import { ADMIN_BASE } from "@/lib/admin-path";
 export default function AdminDashboard() {
   const { data: productsData } = useQuery({
     queryKey: ["/api/products/admin/all"],
-    queryFn: () => apiRequest<{ products: unknown[]; total: number }>("GET", "/api/products/admin/all"),
+    queryFn: () =>
+      apiRequest<{ products: unknown[]; total: number }>(
+        "GET",
+        "/api/products/admin/all",
+      ),
   });
 
   const { data: ordersData } = useQuery({
     queryKey: ["/api/orders"],
-    queryFn: () => apiRequest<{ orders: Array<{ _id: string; orderNumber: string; customerName: string; total: number; status: string; createdAt: string }>; total: number }>("GET", "/api/orders?limit=5"),
+    queryFn: () =>
+      apiRequest<{
+        orders: Array<{
+          _id: string;
+          orderNumber: string;
+          customerName: string;
+          total: number;
+          status: string;
+          createdAt: string;
+        }>;
+        total: number;
+      }>("GET", "/api/orders?limit=5"),
   });
 
   const { data: categories } = useQuery({
@@ -25,7 +40,8 @@ export default function AdminDashboard() {
     queryFn: () => apiRequest<unknown[]>("GET", "/api/categories"),
   });
 
-  const pendingOrders = ordersData?.orders?.filter((o) => o.status === "pending").length || 0;
+  const pendingOrders =
+    ordersData?.orders?.filter((o) => o.status === "pending").length || 0;
 
   const statusColors: Record<string, string> = {
     pending: "bg-yellow-100 text-yellow-800",
@@ -50,16 +66,42 @@ export default function AdminDashboard() {
       <main className="flex-1 p-6 overflow-auto">
         <div className="mb-6">
           <h1 className="text-2xl font-bold">لوحة التحكم</h1>
-          <p className="text-muted-foreground text-sm mt-1">مرحباً بك في إدارة El Attar</p>
+          <p className="text-muted-foreground text-sm mt-1">
+            مرحباً بك في إدارة Al Attar
+          </p>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {[
-            { title: "المنتجات", value: productsData?.total, icon: Package, color: "text-blue-500", sub: "منتج نشط" },
-            { title: "الطلبات", value: ordersData?.total, icon: ShoppingBag, color: "text-green-500", sub: "إجمالي الطلبات" },
-            { title: "قيد الانتظار", value: pendingOrders, icon: TrendingUp, color: "text-yellow-500", sub: "طلب جديد" },
-            { title: "الفئات", value: categories?.length, icon: Tags, color: "text-purple-500", sub: "فئة منتج" },
+            {
+              title: "المنتجات",
+              value: productsData?.total,
+              icon: Package,
+              color: "text-blue-500",
+              sub: "منتج نشط",
+            },
+            {
+              title: "الطلبات",
+              value: ordersData?.total,
+              icon: ShoppingBag,
+              color: "text-green-500",
+              sub: "إجمالي الطلبات",
+            },
+            {
+              title: "قيد الانتظار",
+              value: pendingOrders,
+              icon: TrendingUp,
+              color: "text-yellow-500",
+              sub: "طلب جديد",
+            },
+            {
+              title: "الفئات",
+              value: categories?.length,
+              icon: Tags,
+              color: "text-purple-500",
+              sub: "فئة منتج",
+            },
           ].map((stat) => (
             <Card key={stat.title}>
               <CardContent className="p-4">
@@ -83,25 +125,38 @@ export default function AdminDashboard() {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base">آخر الطلبات</CardTitle>
             <Link href={`${ADMIN_BASE}/orders`}>
-              <button className="text-xs text-primary hover:underline">عرض الكل</button>
+              <button className="text-xs text-primary hover:underline">
+                عرض الكل
+              </button>
             </Link>
           </CardHeader>
           <CardContent>
             {ordersData?.orders?.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">لا توجد طلبات بعد</p>
+              <p className="text-center text-muted-foreground py-8">
+                لا توجد طلبات بعد
+              </p>
             ) : (
               <div className="space-y-3">
                 {ordersData?.orders?.map((order) => (
-                  <div key={order._id} className="flex items-center justify-between py-2 border-b last:border-0">
+                  <div
+                    key={order._id}
+                    className="flex items-center justify-between py-2 border-b last:border-0"
+                  >
                     <div>
                       <p className="text-sm font-medium">{order.orderNumber}</p>
-                      <p className="text-xs text-muted-foreground">{order.customerName} · {formatDate(order.createdAt)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {order.customerName} · {formatDate(order.createdAt)}
+                      </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[order.status]}`}>
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[order.status]}`}
+                      >
                         {statusLabels[order.status]}
                       </span>
-                      <p className="text-sm font-bold text-primary">{formatPrice(order.total)}</p>
+                      <p className="text-sm font-bold text-primary">
+                        {formatPrice(order.total)}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -120,7 +175,9 @@ export default function AdminDashboard() {
                 </div>
                 <div>
                   <p className="font-medium text-sm">إضافة منتج</p>
-                  <p className="text-xs text-muted-foreground">أضف منتجاً جديداً</p>
+                  <p className="text-xs text-muted-foreground">
+                    أضف منتجاً جديداً
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -133,7 +190,9 @@ export default function AdminDashboard() {
                 </div>
                 <div>
                   <p className="font-medium text-sm">إدارة الطلبات</p>
-                  <p className="text-xs text-muted-foreground">متابعة وتحديث الطلبات</p>
+                  <p className="text-xs text-muted-foreground">
+                    متابعة وتحديث الطلبات
+                  </p>
                 </div>
               </CardContent>
             </Card>

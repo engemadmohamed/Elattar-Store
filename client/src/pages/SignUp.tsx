@@ -57,7 +57,7 @@ export default function SignUp() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-2xl mx-auto mb-3">
-            E
+            A
           </div>
           <CardTitle className="text-2xl">إنشاء حساب جديد</CardTitle>
           <CardDescription>

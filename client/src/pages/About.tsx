@@ -3,10 +3,15 @@ import InfoPageLayout from "@/components/InfoPageLayout";
 
 export default function About() {
   return (
-    <InfoPageLayout icon={Store} title="من نحن" subtitle="El Attar | العطار للأدوات المكتبية">
+    <InfoPageLayout
+      icon={Store}
+      title="من نحن"
+      subtitle="Al Attar | العطار للأدوات المكتبية"
+    >
       <p>
-        El Attar متجر متخصص في بيع الأدوات المكتبية والقلمية، بيوفر تشكيلة واسعة من
-        الأقلام والدفاتر وأدوات الرسم ومستلزمات المكتب بجودة عالية وأسعار تناسب الجميع.
+        Al Attar متجر متخصص في بيع الأدوات المكتبية والقلمية، بيوفر تشكيلة واسعة
+        من الأقلام والدفاتر وأدوات الرسم ومستلزمات المكتب بجودة عالية وأسعار
+        تناسب الجميع.
       </p>
       <p>
         بنحرص على توفير تجربة تسوق سهلة وسريعة، مع خدمة توصيل لكل محافظات مصر

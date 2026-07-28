@@ -4,7 +4,13 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ADMIN_BASE } from "@/lib/admin-path";
 
@@ -22,7 +28,11 @@ export default function AdminLogin() {
       await login(form.email, form.password);
       navigate(`${ADMIN_BASE}/dashboard`);
     } catch (error) {
-      toast({ title: "فشل تسجيل الدخول", description: "البريد الإلكتروني أو كلمة المرور غير صحيحة", variant: "destructive" });
+      toast({
+        title: "فشل تسجيل الدخول",
+        description: "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -32,8 +42,10 @@ export default function AdminLogin() {
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-2xl mx-auto mb-3">E</div>
-          <CardTitle className="text-2xl">El Attar Admin</CardTitle>
+          <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-2xl mx-auto mb-3">
+            A
+          </div>
+          <CardTitle className="text-2xl">Al Attar Admin</CardTitle>
           <CardDescription>تسجيل الدخول للوحة الإدارة</CardDescription>
         </CardHeader>
         <CardContent>

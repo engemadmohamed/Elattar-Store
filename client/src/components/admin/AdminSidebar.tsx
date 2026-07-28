@@ -1,6 +1,13 @@
 import { Link, useLocation } from "wouter";
 import {
-  LayoutDashboard, Package, Tags, ShoppingBag, LogOut, Store, Settings, Receipt,
+  LayoutDashboard,
+  Package,
+  Tags,
+  ShoppingBag,
+  LogOut,
+  Store,
+  Settings,
+  Receipt,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -28,9 +35,11 @@ export default function AdminSidebar() {
       {/* Header */}
       <div className="p-4 border-b">
         <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">E</div>
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
+            A
+          </div>
           <div>
-            <p className="font-bold text-sm">El Attar</p>
+            <p className="font-bold text-sm">Al Attar</p>
             <p className="text-xs text-muted-foreground">لوحة الإدارة</p>
           </div>
         </Link>
@@ -65,10 +74,17 @@ export default function AdminSidebar() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">{admin?.name}</p>
-            <p className="text-xs text-muted-foreground truncate">{admin?.email}</p>
+            <p className="text-xs text-muted-foreground truncate">
+              {admin?.email}
+            </p>
           </div>
         </div>
-        <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-destructive" onClick={handleLogout}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start gap-2 text-destructive"
+          onClick={handleLogout}
+        >
           <LogOut className="h-4 w-4" /> تسجيل الخروج
         </Button>
       </div>
