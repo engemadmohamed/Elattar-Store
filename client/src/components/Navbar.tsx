@@ -195,25 +195,6 @@ export default function Navbar() {
               </div>
             </div>
           </div>
-
-          {/* Category Nav */}
-          <div className="flex items-center gap-1 pb-2 overflow-x-auto scrollbar-hide">
-            {[
-              { label: "الكل", href: "/shop" },
-              { label: "✒️ أقلام", href: "/shop?category=pens-writing" },
-              { label: "📓 دفاتر", href: "/shop?category=notebooks-paper" },
-              { label: "🎨 رسم", href: "/shop?category=art-supplies" },
-              { label: "📎 مكتبية", href: "/shop?category=office-supplies" },
-              { label: "🎒 حقائب", href: "/shop?category=school-bags" },
-              { label: "🧮 حاسبات", href: "/shop?category=calculators" },
-            ].map((item) => (
-              <Link key={item.href} href={item.href}>
-                <button className="whitespace-nowrap px-3 py-1 rounded-full text-xs font-medium border hover:bg-accent transition-colors">
-                  {item.label}
-                </button>
-              </Link>
-            ))}
-          </div>
         </div>
       </nav>
 
