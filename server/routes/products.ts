@@ -7,17 +7,18 @@ import { requireAuth } from "../middleware/auth.js";
 const router = Router();
 
 function getBaseUrl(req: Request): string {
-  // In dev, the browser talks to the Vite server (port 5000) which proxies
-  // /api requests to this API server (port 3001) — that proxy rewrites the
-  // Host header, so req.get("host") would incorrectly return the API's own
-  // port. APP_BASE_URL (set in .env) is the reliable source of truth for
-  // the public-facing shop URL that QR codes should point to.
+  // APP_BASE_URL is the most reliable source — set it in your .env / Vercel
+  // environment variables to the public-facing shop URL (e.g. https://elattarstore.vercel.app).
   if (process.env.APP_BASE_URL) {
     return process.env.APP_BASE_URL.replace(/\/+$/, "");
   }
+  // Vercel (and most reverse proxies) terminate TLS before the Node process,
+  // so req.secure is always false. Use x-forwarded-proto instead.
+  const proto =
+    req.get("x-forwarded-proto")?.split(",")[0].trim() ||
+    (req.secure ? "https" : "http");
   const host = req.get("host") || "localhost:5000";
-  const protocol = req.secure ? "https" : "http";
-  return `${protocol}://${host}`;
+  return `${proto}://${host}`;
 }
 
 // Get all products (public)
@@ -156,6 +157,28 @@ router.put("/:id", requireAuth, async (req: Request, res: Response) => {
     return res.json(product);
   } catch (error) {
     return res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Regenerate QR codes for ALL products using the current APP_BASE_URL (admin only)
+// Useful after deploying to a new domain — call once to fix any localhost URLs
+// stored in the database.
+router.post("/admin/regenerate-qr", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const products = await Product.find({});
+    const base = getBaseUrl(req);
+    let updated = 0;
+    for (const product of products) {
+      const productUrl = `${base}/product/${product._id}`;
+      const qrDataUrl = await QRCode.toDataURL(productUrl, { width: 300, margin: 2 });
+      product.qrCode = qrDataUrl;
+      await product.save();
+      updated++;
+    }
+    return res.json({ message: `تم تحديث ${updated} منتج بنجاح`, updated, base });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "فشل إعادة توليد QR Codes" });
   }
 });
 
