@@ -93,6 +93,8 @@ export default function Checkout() {
         },
         paymentMethod: form.paymentMethod,
         notes: form.notes,
+        customerLibraryName: customer?.libraryName,
+        customerLibraryLocation: customer?.libraryLocation,
       };
 
       const order = await apiRequest<{ orderNumber: string }>("POST", "/api/orders", orderData);

@@ -43,7 +43,7 @@ interface ExistingProduct {
   categoryId: { _id: string; name: string; nameAr: string; slug: string };
   sku: string;
   brand?: string;
-  tags: string[];
+  saleUnit?: string;
   images: string[];
   isActive: boolean;
 }
@@ -76,11 +76,10 @@ export default function AddProduct() {
     categoryId: "", // This will be the ID of the most specific category
     sku: generateSku(),
     brand: "",
-    tags: [] as string[],
+    saleUnit: "piece",
     images: [] as string[],
     isActive: true,
   });
-  const [tagInput, setTagInput] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [savedProductId, setSavedProductId] = useState<string | null>(null);
   const [categoryPath, setCategoryPath] = useState<string[]>([]);
@@ -133,7 +132,7 @@ export default function AddProduct() {
       categoryId: productCategoryId,
       sku: existingProduct.sku,
       brand: existingProduct.brand || "",
-      tags: existingProduct.tags || [],
+      saleUnit: existingProduct.saleUnit || "piece",
       images: existingProduct.images || [],
       isActive: existingProduct.isActive,
     });
@@ -148,13 +147,6 @@ export default function AddProduct() {
 
   const set = (key: string, val: unknown) =>
     setForm((f) => ({ ...f, [key]: val as any }));
-
-  const addTag = () => {
-    if (tagInput.trim() && !form.tags.includes(tagInput.trim())) {
-      set("tags", [...form.tags, tagInput.trim()]);
-      setTagInput("");
-    }
-  };
 
   const addImageUrl = () => {
     if (imageUrl.trim()) {
@@ -376,6 +368,24 @@ export default function AddProduct() {
                         />
                       </div>
                     </div>
+                    <div>
+                      <Label>وحدة البيع</Label>
+                      <Select
+                        value={form.saleUnit}
+                        onValueChange={(v) => set("saleUnit", v)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="piece">قطعة</SelectItem>
+                          <SelectItem value="box">علبة</SelectItem>
+                          <SelectItem value="jar">برطمان</SelectItem>
+                          <SelectItem value="stand">استاند</SelectItem>
+                          <SelectItem value="carton">كرتونة</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </CardContent>
                 </Card>
 
@@ -470,58 +480,6 @@ export default function AddProduct() {
                         onPathChange={setCategoryPath}
                       />
                     </div>
-                  </CardContent>
-                </Card>
-
-                {/* Tags */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">
-                      الكلمات المفتاحية
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex gap-2">
-                      <Input
-                        value={tagInput}
-                        onChange={(e) => setTagInput(e.target.value)}
-                        placeholder="أضف كلمة..."
-                        onKeyDown={(e) =>
-                          e.key === "Enter" && (e.preventDefault(), addTag())
-                        }
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={addTag}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    {form.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {form.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary text-xs px-2 py-0.5"
-                          >
-                            {tag}
-                            <button
-                              type="button"
-                              onClick={() =>
-                                set(
-                                  "tags",
-                                  form.tags.filter((t) => t !== tag),
-                                )
-                              }
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
                   </CardContent>
                 </Card>
 

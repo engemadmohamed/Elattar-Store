@@ -1,10 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams, Link, useLocation } from "wouter";
-import { ShoppingCart, ArrowLeft, Package, Star, Share2 } from "lucide-react";
+import {
+  ShoppingCart,
+  ArrowLeft,
+  Package,
+  Star,
+  Share2,
+  QrCode,
+} from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCart } from "@/lib/cart-context";
 import { useCustomerAuth } from "@/lib/customer-auth-context";
@@ -26,9 +39,18 @@ interface Product {
   images: string[];
   brand?: string;
   sku: string;
-  tags: string[];
+  saleUnit?: string;
+  qrCode?: string;
   categoryId?: { name: string; nameAr: string };
 }
+
+const saleUnitMap: Record<string, string> = {
+  piece: "قطعة",
+  box: "علبة",
+  jar: "برطمان",
+  stand: "استاند",
+  carton: "كرتونة",
+};
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
@@ -38,6 +60,7 @@ export default function ProductDetail() {
   const { toast } = useToast();
   const [selectedImg, setSelectedImg] = useState(0);
   const [qty, setQty] = useState(1);
+  const [showQR, setShowQR] = useState(false);
 
   const { data: product, isLoading } = useQuery<Product>({
     queryKey: ["/api/products", id],
@@ -116,7 +139,7 @@ export default function ProductDetail() {
   };
 
   return (
-    <div className="min-h-screen py-8 px-4">
+    <div className="min-h-screen py-8 px-4 animate-in fade-in duration-500">
       <div className="mx-auto max-w-5xl">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
@@ -192,9 +215,14 @@ export default function ProductDetail() {
 
             {/* Price */}
             <div className="flex items-center gap-3">
-              <span className="text-3xl font-bold text-primary">
-                {formatPrice(price)}
-              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold text-primary">
+                  {formatPrice(price)}
+                </span>
+                <span className="text-base text-muted-foreground">
+                  / {saleUnitMap[product.saleUnit || "piece"]}
+                </span>
+              </div>
               {hasDiscount && (
                 <span className="text-lg text-muted-foreground line-through">
                   {formatPrice(product.price)}
@@ -257,6 +285,17 @@ export default function ProductDetail() {
                 <Button className="flex-1 gap-2 h-11" onClick={handleAddToCart}>
                   <ShoppingCart className="h-4 w-4" /> إضافة للسلة
                 </Button>
+                {product.qrCode && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-11 w-11"
+                    onClick={() => setShowQR(true)}
+                    title="عرض QR Code"
+                  >
+                    <QrCode className="h-4 w-4" />
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   size="icon"
@@ -272,17 +311,6 @@ export default function ProductDetail() {
             <p className="text-xs text-muted-foreground">
               رمز المنتج (SKU): {product.sku}
             </p>
-
-            {/* Tags */}
-            {product.tags?.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {product.tags.map((tag) => (
-                  <Badge key={tag} variant="outline" className="text-xs">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-            )}
           </div>
         </div>
 
@@ -296,6 +324,23 @@ export default function ProductDetail() {
           <RelatedProducts productId={product._id} />
         </div>
       </div>
+
+      {product.qrCode && showQR && (
+        <Dialog open={showQR} onOpenChange={setShowQR}>
+          <DialogContent className="sm:max-w-xs">
+            <DialogHeader>
+              <DialogTitle>امسح الكود ضوئيًا</DialogTitle>
+            </DialogHeader>
+            <div className="flex items-center justify-center p-4">
+              <img
+                src={product.qrCode}
+                alt={`QR Code for ${product.nameAr}`}
+                className="w-full h-full rounded-md"
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
