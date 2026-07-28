@@ -8,6 +8,15 @@ import ProductCard from "@/components/ProductCard";
 import ProductSection from "@/components/ProductSection";
 import { apiRequest } from "@/lib/queryClient";
 
+interface Category {
+  _id: string;
+  name: string;
+  nameAr: string;
+  icon: string;
+  slug: string;
+  parentId: string | null;
+}
+
 interface Product {
   _id: string;
   name: string;
@@ -20,6 +29,11 @@ interface Product {
 }
 
 export default function Home() {
+  const { data: categories } = useQuery<Category[]>({
+    queryKey: ["/api/categories"],
+    queryFn: () => apiRequest("GET", "/api/categories"),
+  });
+
   const { data: productsData } = useQuery<{ products: Product[] }>({
     queryKey: ["/api/products", "featured"],
     queryFn: () => apiRequest("GET", "/api/products?limit=8&sort=newest"),
@@ -87,6 +101,42 @@ export default function Home() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Categories */}
+      <section className="py-12 px-4">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold">تسوق بالفئة</h2>
+            <Link href="/shop">
+              <Button variant="ghost" size="sm" className="gap-1">
+                الكل <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+            {categories ? (
+              categories
+                .filter((c) => !c.parentId)
+                .slice(0, 6)
+                .map((cat) => (
+                  <Link key={cat._id} href={`/shop?category=${cat.slug}`}>
+                    <Card className="group hover:shadow-lg hover:-translate-y-1 hover:border-primary/50 transition-all duration-300 cursor-pointer">
+                      <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
+                        <span className="text-3xl inline-block transition-transform duration-300 group-hover:scale-125 group-hover:-rotate-6">{cat.icon}</span>
+                        <p className="text-xs font-medium leading-tight">{cat.nameAr}</p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))
+            ) : (
+              Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-24 rounded-xl" />
+              ))
+            )}
           </div>
         </div>
       </section>
