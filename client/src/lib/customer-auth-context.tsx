@@ -11,7 +11,7 @@ interface CustomerAuthContextType {
   customer: Customer | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  signup: (name: string, email: string, phone: string, password: string) => Promise<void>;
+  signup: (formData: Record<string, string>) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
@@ -27,9 +27,15 @@ const CustomerAuthContext = createContext<CustomerAuthContextType>({
   logout: () => {},
 });
 
-async function customerRequest<T>(method: string, url: string, data?: unknown): Promise<T> {
+async function customerRequest<T>(
+  method: string,
+  url: string,
+  data?: unknown,
+): Promise<T> {
   const token = localStorage.getItem(TOKEN_KEY);
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
   if (token) headers["X-Customer-Token"] = token;
 
   const res = await fetch(url, {
@@ -45,24 +51,31 @@ async function customerRequest<T>(method: string, url: string, data?: unknown): 
   return res.json();
 }
 
-export function CustomerAuthProvider({ children }: { children: React.ReactNode }) {
+export function CustomerAuthProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem(TOKEN_KEY);
-    if (!token) { setIsLoading(false); return; }
+    if (!token) {
+      setIsLoading(false);
+      return;
+    }
     customerRequest<Customer>("GET", "/api/customer-auth/me")
       .then((data) => setCustomer(data))
       .catch(() => localStorage.removeItem(TOKEN_KEY))
       .finally(() => setIsLoading(false));
   }, []);
 
-  const signup = async (name: string, email: string, phone: string, password: string) => {
+  const signup = async (formData: Record<string, string>) => {
     const data = await customerRequest<{ token: string; customer: Customer }>(
       "POST",
       "/api/customer-auth/signup",
-      { name, email, phone, password }
+      formData,
     );
     localStorage.setItem(TOKEN_KEY, data.token);
     setCustomer(data.customer);
@@ -72,7 +85,7 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
     const data = await customerRequest<{ token: string; customer: Customer }>(
       "POST",
       "/api/customer-auth/login",
-      { email, password }
+      { email, password },
     );
     localStorage.setItem(TOKEN_KEY, data.token);
     setCustomer(data.customer);
@@ -85,7 +98,14 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
 
   return (
     <CustomerAuthContext.Provider
-      value={{ customer, isAuthenticated: !!customer, isLoading, signup, login, logout }}
+      value={{
+        customer,
+        isAuthenticated: !!customer,
+        isLoading,
+        signup,
+        login,
+        logout,
+      }}
     >
       {children}
     </CustomerAuthContext.Provider>

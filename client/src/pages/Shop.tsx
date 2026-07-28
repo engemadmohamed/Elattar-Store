@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { useLocation, useSearch, Link } from "wouter";
+import { useSearch, Link } from "wouter";
 import { SlidersHorizontal, X } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,8 +16,8 @@ interface Product {
   salePrice?: number;
   stock: number;
   images: string[];
-  brand?: string;
-  categoryId?: { name: string; nameAr: string };
+  brand?: string; 
+  categoryId?: { _id: string; name: string; nameAr: string; slug: string };
 }
 
 interface Category {
@@ -44,14 +44,20 @@ export default function Shop() {
     queryFn: () => apiRequest("GET", "/api/categories"),
   });
 
-  // Find category id from slug
+  // Find category and its children/parents
   const selectedCategory = categories?.find((c) => c.slug === categorySlug);
+  const subcategories = useMemo(() => {
+    if (!categories || !selectedCategory) return [];
+    return categories.filter(c => c.parentId === selectedCategory._id);
+  }, [categories, selectedCategory]);
+
+  const showSubcategories = subcategories && subcategories.length > 0;
 
   const queryParams = new URLSearchParams({
     limit: "24",
     page: String(page),
     sort,
-    ...(selectedCategory?._id ? { category: selectedCategory._id } : {}),
+    ...(categorySlug ? { category: categorySlug } : {}),
     ...(searchParam ? { search: searchParam } : {}),
     ...(onSale ? { onSale: "true" } : {}),
   });
@@ -59,15 +65,29 @@ export default function Shop() {
   const { data, isLoading } = useQuery<{ products: Product[]; total: number; totalPages: number }>({
     queryKey: ["/api/products", categorySlug, searchParam, sort, page, onSale],
     queryFn: () => apiRequest("GET", `/api/products?${queryParams}`),
+    // Only fetch products if we are not showing subcategories
+    enabled: !showSubcategories,
   });
 
-  useEffect(() => { setPage(1); }, [categorySlug, searchParam, sort]);
+  useEffect(() => { setPage(1); }, [categorySlug, searchParam, sort, onSale]);
 
   const title = searchParam
     ? `نتائج البحث: "${searchParam}"`
     : selectedCategory
-    ? `${selectedCategory.icon} ${selectedCategory.nameAr}`
+    ? selectedCategory.nameAr
     : "جميع المنتجات";
+
+  // Breadcrumbs
+  const breadcrumbs = useMemo(() => {
+    if (!selectedCategory || !categories) return [];
+    const crumbs: Category[] = [];
+    let current: Category | undefined = selectedCategory;
+    while (current) {
+      crumbs.unshift(current);
+      current = categories.find(c => c._id === current!.parentId);
+    }
+    return crumbs;
+  }, [categories, selectedCategory]);
 
   return (
     <div className="min-h-screen py-8 px-4">
@@ -75,14 +95,14 @@ export default function Shop() {
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold">{title}</h1>
-            {data && (
+            <h1 className="text-2xl font-bold flex items-center gap-2">{selectedCategory?.icon} {title}</h1>
+            {data && !showSubcategories && (
               <p className="text-sm text-muted-foreground mt-1">
                 {data.total} منتج
               </p>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          {!showSubcategories && <div className="flex items-center gap-2">
             <Select value={sort} onValueChange={setSort}>
               <SelectTrigger className="w-40">
                 <SlidersHorizontal className="h-4 w-4 mr-2" />
@@ -97,29 +117,56 @@ export default function Shop() {
                 <SelectItem value="top_rated">الأعلى تقييمًا</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </div>}
         </div>
 
         {/* Category Pills */}
-        {categories && (
+        {categories && !searchParam && (
           <div className="flex flex-wrap gap-2 mb-6">
-            <Link href="/shop">
-              <Button variant={!categorySlug ? "default" : "outline"} size="sm">
-                الكل
-              </Button>
-            </Link>
-            {categories.filter((c) => !c.parentId).map((cat) => (
-              <Link key={cat._id} href={`/shop?category=${cat.slug}`}>
-                <Button variant={categorySlug === cat.slug ? "default" : "outline"} size="sm">
-                  {cat.icon} {cat.nameAr}
+            {breadcrumbs.length > 0 ? (
+              <>
+                <Link href="/shop">
+                  <Button variant="outline" size="sm">الكل</Button>
+                </Link>
+                {breadcrumbs.map((crumb, index) => (
+                  <span key={crumb._id} className="flex items-center gap-2">
+                    <span className="text-muted-foreground">/</span>
+                    <Link href={`/shop?category=${crumb.slug}`}>
+                      <Button variant={index === breadcrumbs.length - 1 ? "default" : "outline"} size="sm">
+                        {crumb.nameAr}
+                      </Button>
+                    </Link>
+                  </span>
+                ))}
+              </>
+            ) : (
+              categories.filter((c) => !c.parentId).map((cat) => (
+                <Link key={cat._id} href={`/shop?category=${cat.slug}`}>
+                  <Button variant="outline" size="sm">
+                    {cat.icon} {cat.nameAr}
+                  </Button>
                 </Button>
               </Link>
-            ))}
+              ))
+            )}
           </div>
         )}
 
         {/* Products Grid */}
-        {isLoading ? (
+        {showSubcategories ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {subcategories.map(cat => (
+              <Link key={cat._id} href={`/shop?category=${cat.slug}`}>
+                <Card className="group hover:shadow-lg hover:-translate-y-1 hover:border-primary/50 transition-all duration-300 cursor-pointer h-full">
+                  <CardContent className="p-4 flex flex-col items-center justify-center gap-2 text-center h-full">
+                    <span className="text-4xl inline-block transition-transform duration-300 group-hover:scale-125 group-hover:-rotate-6">{cat.icon}</span>
+                    <p className="text-sm font-medium leading-tight">{cat.nameAr}</p>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        ) : isLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
             {Array.from({ length: 12 }).map((_, i) => (
               <Skeleton key={i} className="aspect-square rounded-xl" />

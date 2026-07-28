@@ -3,33 +3,48 @@ import QRCode from "qrcode";
 import mongoose from "mongoose";
 import { Product } from "../models/Product.js";
 import { requireAuth } from "../middleware/auth.js";
+import { Category } from "../models/Category.js";
 
 const router = Router();
 
 function getBaseUrl(req: Request): string {
-  // APP_BASE_URL is the most reliable source — set it in your .env / Vercel
-  // environment variables to the public-facing shop URL (e.g. https://elattarstore.vercel.app).
+  // In dev, the browser talks to the Vite server (port 5000) which proxies
+  // /api requests to this API server (port 3001) — that proxy rewrites the
+  // Host header, so req.get("host") would incorrectly return the API's own
+  // port. APP_BASE_URL (set in .env) is the reliable source of truth for
+  // the public-facing shop URL that QR codes should point to.
   if (process.env.APP_BASE_URL) {
     return process.env.APP_BASE_URL.replace(/\/+$/, "");
   }
-  // Vercel (and most reverse proxies) terminate TLS before the Node process,
-  // so req.secure is always false. Use x-forwarded-proto instead.
-  const proto =
-    req.get("x-forwarded-proto")?.split(",")[0].trim() ||
-    (req.secure ? "https" : "http");
   const host = req.get("host") || "localhost:5000";
-  return `${proto}://${host}`;
+  const protocol = req.secure ? "https" : "http";
+  return `${protocol}://${host}`;
 }
 
 // Get all products (public)
 router.get("/", async (req: Request, res: Response) => {
   try {
-    const { category, subcategory, search, minPrice, maxPrice, sort, onSale, page = 1, limit = 24 } = req.query;
+    const { category, search, minPrice, maxPrice, sort, onSale, page = 1, limit = 24 } = req.query;
 
     const filter: Record<string, unknown> = { isActive: true };
 
-    if (category) filter.categoryId = category;
-    if (subcategory) filter.subcategoryId = subcategory;
+    if (category) {
+      // Find the category by slug to get its ID
+      const parentCategory = await Category.findOne({ slug: category as string });
+      if (parentCategory) {
+        // Find all descendant categories including the parent itself
+        const allCategories = await Category.find({});
+        const getDescendants = (catId: mongoose.Types.ObjectId): mongoose.Types.ObjectId[] => {
+          const children = allCategories.filter(c => String(c.parentId) === String(catId));
+          return [catId, ...children.flatMap(c => getDescendants(c._id))];
+        };
+        const categoryIds = getDescendants(parentCategory._id);
+        filter.categoryId = { $in: categoryIds };
+      } else {
+        // If slug is not found, return no products for this category filter
+        filter.categoryId = new mongoose.Types.ObjectId();
+      }
+    }
     if (minPrice || maxPrice) {
       filter.price = {};
       if (minPrice) (filter.price as Record<string, number>).$gte = Number(minPrice);
@@ -95,7 +110,7 @@ router.get("/:id", async (req: Request, res: Response) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(404).json({ message: "Product not found" });
     }
-    const product = await Product.findById(req.params.id).populate("categoryId", "name nameAr").populate("subcategoryId", "name nameAr");
+    const product = await Product.findById(req.params.id).populate("categoryId", "name nameAr slug");
     if (!product) return res.status(404).json({ message: "Product not found" });
     return res.json(product);
   } catch (error) {
@@ -160,28 +175,6 @@ router.put("/:id", requireAuth, async (req: Request, res: Response) => {
   }
 });
 
-// Regenerate QR codes for ALL products using the current APP_BASE_URL (admin only)
-// Useful after deploying to a new domain — call once to fix any localhost URLs
-// stored in the database.
-router.post("/admin/regenerate-qr", requireAuth, async (req: Request, res: Response) => {
-  try {
-    const products = await Product.find({});
-    const base = getBaseUrl(req);
-    let updated = 0;
-    for (const product of products) {
-      const productUrl = `${base}/product/${product._id}`;
-      const qrDataUrl = await QRCode.toDataURL(productUrl, { width: 300, margin: 2 });
-      product.qrCode = qrDataUrl;
-      await product.save();
-      updated++;
-    }
-    return res.json({ message: `تم تحديث ${updated} منتج بنجاح`, updated, base });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "فشل إعادة توليد QR Codes" });
-  }
-});
-
 // Delete product (admin only)
 router.delete("/:id", requireAuth, async (req: Request, res: Response) => {
   try {
@@ -204,10 +197,7 @@ router.get("/:id/related", async (req: Request, res: Response) => {
     const related = await Product.find({
       _id: { $ne: product._id },
       isActive: true,
-      $or: [
-        { categoryId: product.categoryId },
-        ...(product.subcategoryId ? [{ subcategoryId: product.subcategoryId }] : []),
-      ],
+      categoryId: product.categoryId,
     })
       .sort({ soldCount: -1, createdAt: -1 })
       .limit(8)

@@ -40,8 +40,7 @@ interface ExistingProduct {
   price: number;
   salePrice?: number;
   stock: number;
-  categoryId: { _id: string } | string;
-  subcategoryId?: { _id: string } | string;
+  categoryId: string;
   sku: string;
   brand?: string;
   tags: string[];
@@ -74,8 +73,7 @@ export default function AddProduct() {
     price: "",
     salePrice: "",
     stock: "0",
-    categoryId: "",
-    subcategoryId: "",
+    categoryId: "", // This will be the ID of the most specific category
     sku: generateSku(),
     brand: "",
     tags: [] as string[],
@@ -85,6 +83,7 @@ export default function AddProduct() {
   const [tagInput, setTagInput] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [savedProductId, setSavedProductId] = useState<string | null>(null);
+  const [categoryPath, setCategoryPath] = useState<string[]>([]);
   const [showQR, setShowQR] = useState(false);
 
   const { data: categories } = useQuery<Category[]>({
@@ -99,37 +98,30 @@ export default function AddProduct() {
       enabled: isEdit,
     });
 
+  // Helper to find all ancestors of a category
+  const getCategoryAncestors = (
+    catId: string,
+    allCats: Category[],
+  ): string[] => {
+    const path: string[] = [];
+    let current = allCats.find((c) => c._id === catId);
+    while (current) {
+      path.unshift(current._id);
+      current = allCats.find((c) => c._id === current.parentId);
+    }
+    return path;
+  };
+
   useEffect(() => {
     if (!existingProduct || !categories) return;
 
-    const subCatId =
-      (existingProduct.subcategoryId as { _id: string })?._id ??
-      (existingProduct.subcategoryId as string);
-    const mainCatIdFromProduct =
+    const productCategoryId =
       (existingProduct.categoryId as { _id: string })?._id ??
       (existingProduct.categoryId as string);
 
-    // هذا المنطق الجديد يحدد الفئة الرئيسية والفرعية بشكل صحيح
-    // ويتعامل مع أي عدم اتساق في بيانات المنتجات القديمة.
-    let finalMainId = "";
-    let finalSubId = "";
-
-    // نبدأ بأكثر فئة تحديدًا للمنتج (الفرعية إن وجدت، وإلا فالرئيسية)
-    const mostSpecificId = subCatId || mainCatIdFromProduct;
-
-    if (mostSpecificId) {
-      const categoryDetails = categories.find((c) => c._id === mostSpecificId);
-      if (categoryDetails) {
-        if (categoryDetails.parentId) {
-          // هذه فئة فرعية، لذا نحدد "الأم" الخاصة بها كفئة رئيسية
-          finalMainId = categoryDetails.parentId;
-          finalSubId = categoryDetails._id;
-        } else {
-          // هذه فئة رئيسية
-          finalMainId = categoryDetails._id;
-        }
-      }
-    }
+    // Reconstruct the category path from the product's category ID
+    const path = getCategoryAncestors(productCategoryId, categories);
+    setCategoryPath(path);
 
     setForm({
       name: existingProduct.name,
@@ -141,8 +133,7 @@ export default function AddProduct() {
         ? String(existingProduct.salePrice)
         : "",
       stock: String(existingProduct.stock),
-      categoryId: finalMainId,
-      subcategoryId: finalSubId,
+      categoryId: productCategoryId,
       sku: existingProduct.sku,
       brand: existingProduct.brand || "",
       tags: existingProduct.tags || [],
@@ -151,12 +142,15 @@ export default function AddProduct() {
     });
   }, [existingProduct, categories]);
 
-  const mainCategories = categories?.filter((c) => !c.parentId) || [];
-  const subcategories =
-    categories?.filter((c) => c.parentId === form.categoryId) || [];
+  // Update the final categoryId in the form whenever the path changes
+  useEffect(() => {
+    const finalCategoryId =
+      categoryPath.length > 0 ? categoryPath[categoryPath.length - 1] : "";
+    set("categoryId", finalCategoryId);
+  }, [categoryPath]);
 
   const set = (key: string, val: unknown) =>
-    setForm((f) => ({ ...f, [key]: val }));
+    setForm((f) => ({ ...f, [key]: val as any }));
 
   const addTag = () => {
     if (tagInput.trim() && !form.tags.includes(tagInput.trim())) {
@@ -217,7 +211,6 @@ export default function AddProduct() {
         price: parseFloat(data.price),
         salePrice: data.salePrice ? parseFloat(data.salePrice) : undefined,
         stock: parseInt(data.stock),
-        subcategoryId: data.subcategoryId || undefined,
       };
       return apiRequest<{ _id: string }>(
         isEdit ? "PUT" : "POST",
@@ -470,46 +463,12 @@ export default function AddProduct() {
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div>
-                      <Label>الفئة الرئيسية *</Label>
-                      <Select
-                        value={form.categoryId}
-                        onValueChange={(v) => {
-                          set("categoryId", v);
-                          set("subcategoryId", "");
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="اختر الفئة" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {mainCategories.map((c) => (
-                            <SelectItem key={c._id} value={c._id}>
-                              {c.nameAr}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <CategorySelector
+                        categories={categories || []}
+                        path={categoryPath}
+                        onPathChange={setCategoryPath}
+                      />
                     </div>
-                    {subcategories.length > 0 && (
-                      <div>
-                        <Label>الفئة الفرعية</Label>
-                        <Select
-                          value={form.subcategoryId}
-                          onValueChange={(v) => set("subcategoryId", v)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="اختياري" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {subcategories.map((c) => (
-                              <SelectItem key={c._id} value={c._id}>
-                                {c.nameAr}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
                   </CardContent>
                 </Card>
 
@@ -617,6 +576,63 @@ export default function AddProduct() {
           price={parseFloat(form.salePrice || form.price)}
           open={showQR}
           onClose={() => setShowQR(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+interface CategorySelectorProps {
+  categories: Category[];
+  path: string[];
+  onPathChange: (newPath: string[]) => void;
+  level?: number;
+}
+
+function CategorySelector({
+  categories,
+  path,
+  onPathChange,
+  level = 0,
+}: CategorySelectorProps) {
+  const parentId = level === 0 ? null : path[level - 1];
+  const currentLevelCategories = categories.filter(
+    (c) => c.parentId === parentId,
+  );
+
+  if (currentLevelCategories.length === 0 && level > 0) {
+    return null;
+  }
+
+  const selectedValue = path[level] || "";
+
+  const handleValueChange = (value: string) => {
+    const newPath = [...path.slice(0, level), value];
+    onPathChange(newPath);
+  };
+
+  return (
+    <div className="space-y-3">
+      <Label>{level === 0 ? "الفئة الرئيسية *" : `فئة فرعية ${level}`}</Label>
+      <Select value={selectedValue} onValueChange={handleValueChange}>
+        <SelectTrigger>
+          <SelectValue placeholder={level === 0 ? "اختر الفئة" : "اختياري"} />
+        </SelectTrigger>
+        <SelectContent>
+          {currentLevelCategories.map((c) => (
+            <SelectItem key={c._id} value={c._id}>
+              {c.nameAr}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {selectedValue && (
+        <CategorySelector
+          categories={categories}
+          path={path}
+          onPathChange={onPathChange}
+          level={level + 1}
         />
       )}
     </div>
