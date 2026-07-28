@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Plus, Edit, Trash2, QrCode, Search, ToggleLeft, ToggleRight } from "lucide-react";
+import { Plus, Edit, Trash2, QrCode, Search, ToggleLeft, ToggleRight, RefreshCw } from "lucide-react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +54,12 @@ export default function AdminProducts() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/products/admin/all"] }),
   });
 
+  const regenerateQrMutation = useMutation({
+    mutationFn: () => apiRequest<{ message: string; updated: number }>("POST", "/api/products/admin/regenerate-qr"),
+    onSuccess: (data) => toast({ title: data.message }),
+    onError: () => toast({ title: "فشل إعادة توليد QR Codes", variant: "destructive" }),
+  });
+
   const handleDelete = (product: Product) => {
     if (!confirm(`هل أنت متأكد من حذف "${product.nameAr}"؟`)) return;
     deleteMutation.mutate(product._id);
@@ -68,9 +74,23 @@ export default function AdminProducts() {
             <h1 className="text-2xl font-bold">المنتجات</h1>
             <p className="text-sm text-muted-foreground mt-1">إجمالي: {data?.total || 0} منتج</p>
           </div>
-          <Link href={`${ADMIN_BASE}/products/add`}>
-            <Button className="gap-2"><Plus className="h-4 w-4" /> إضافة منتج</Button>
-          </Link>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => {
+                if (confirm("هتتم إعادة توليد QR Code لكل المنتجات بالرابط الصح — متابع؟"))
+                  regenerateQrMutation.mutate();
+              }}
+              disabled={regenerateQrMutation.isPending}
+            >
+              <RefreshCw className={`h-4 w-4 ${regenerateQrMutation.isPending ? "animate-spin" : ""}`} />
+              إصلاح QR Codes
+            </Button>
+            <Link href={`${ADMIN_BASE}/products/add`}>
+              <Button className="gap-2"><Plus className="h-4 w-4" /> إضافة منتج</Button>
+            </Link>
+          </div>
         </div>
 
         {/* Search */}
