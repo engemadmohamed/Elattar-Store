@@ -6,6 +6,8 @@ export interface ICustomer extends Document {
   email: string;
   phone: string;
   password: string;
+  libraryName: string;
+  libraryLocation: string;
   createdAt: Date;
   comparePassword(password: string): Promise<boolean>;
 }
@@ -16,6 +18,8 @@ const CustomerSchema = new Schema<ICustomer>(
     email: { type: String, required: true, unique: true, lowercase: true },
     phone: { type: String, required: true },
     password: { type: String, required: true },
+    libraryName: { type: String, required: true },
+    libraryLocation: { type: String, required: true },
   },
   { timestamps: true }
 );

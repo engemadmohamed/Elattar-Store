@@ -96,23 +96,25 @@ export default function SignUp() {
               />
             </div>
             <div>
-              <Label htmlFor="libraryName">اسم المكتبة (اختياري)</Label>
+              <Label htmlFor="libraryName">اسم المكتبة</Label>
               <Input
                 id="libraryName"
                 value={form.libraryName}
                 onChange={(e) =>
                   setForm({ ...form, libraryName: e.target.value })
                 }
+                required
               />
             </div>
             <div>
-              <Label htmlFor="libraryLocation">موقع المكتبة (اختياري)</Label>
+              <Label htmlFor="libraryLocation">موقع المكتبة</Label>
               <Input
                 id="libraryLocation"
                 value={form.libraryLocation}
                 onChange={(e) =>
                   setForm({ ...form, libraryLocation: e.target.value })
                 }
+                required
               />
             </div>
             <div>
