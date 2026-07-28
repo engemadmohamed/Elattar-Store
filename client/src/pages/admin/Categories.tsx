@@ -1,6 +1,6 @@
  import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2, Edit, X } from "lucide-react";
+import { Plus, Trash2, Edit } from "lucide-react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
-  SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -62,7 +61,6 @@ export default function AdminCategories() {
     nameAr: "",
     slug: "",
     icon: "📦",
-    parentId: "",
   });
 
   const { data: categories } = useQuery<Category[]>({
@@ -72,14 +70,14 @@ export default function AdminCategories() {
 
   const resetFormAndState = () => {
     setEditingCategory(null);
-    setForm({ name: "", nameAr: "", slug: "", icon: "📦", parentId: "" });
+    setForm({ name: "", nameAr: "", slug: "", icon: "📦" });
   };
 
   const createMutation = useMutation({
     mutationFn: (data: typeof form) =>
       apiRequest("POST", "/api/categories", {
         ...data,
-        parentId: data.parentId || null,
+        parentId: null,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["/api/categories"] });
@@ -99,7 +97,7 @@ export default function AdminCategories() {
     mutationFn: (data: typeof form) =>
       apiRequest("PUT", `/api/categories/${editingCategory?._id}`, {
         ...data,
-        parentId: data.parentId || null,
+        parentId: null,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["/api/categories"] });
@@ -148,7 +146,6 @@ export default function AdminCategories() {
       nameAr: category.nameAr,
       slug: category.slug,
       icon: category.icon,
-      parentId: category.parentId || "",
     });
     setOpen(true);
   };
@@ -172,9 +169,6 @@ export default function AdminCategories() {
     }
   };
 
-  const mainCategories = categories?.filter((c) => !c.parentId) || [];
-  const subcategories = categories?.filter((c) => c.parentId) || [];
-
   return (
     <div className="flex min-h-screen">
       <AdminSidebar />
@@ -186,16 +180,15 @@ export default function AdminCategories() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Main Categories */}
+        <div className="grid grid-cols-1 gap-6">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">
-                الفئات الرئيسية ({mainCategories.length})
+                الفئات ({categories?.length || 0})
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {mainCategories.map((cat) => (
+              {categories?.map((cat) => (
                 <div
                   key={cat._id}
                   className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/30 transition-colors"
@@ -229,62 +222,9 @@ export default function AdminCategories() {
                   </div>
                 </div>
               ))}
-              {mainCategories.length === 0 && (
+              {(!categories || categories.length === 0) && (
                 <p className="text-center text-muted-foreground py-4">
                   لا توجد فئات
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Subcategories */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">
-                الفئات الفرعية ({subcategories.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {subcategories.map((cat) => {
-                const parent = categories?.find((c) => c._id === cat.parentId);
-                return (
-                  <div
-                    key={cat._id}
-                    className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/30 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl">{cat.icon}</span>
-                      <div>
-                        <p className="font-medium text-sm">{cat.nameAr}</p>
-                        <p className="text-xs text-muted-foreground">
-                          تحت: {parent?.nameAr}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => handleEditClick(cat)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-destructive"
-                        onClick={() => handleDeleteClick(cat._id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
-              {subcategories.length === 0 && (
-                <p className="text-center text-muted-foreground py-4">
-                  لا توجد فئات فرعية
                 </p>
               )}
             </CardContent>
@@ -341,31 +281,6 @@ export default function AdminCategories() {
                     {icon}
                   </button>
                 ))}
-              </div>
-            </div>
-            <div>
-              <Label>الفئة الأم (اختياري)</Label>
-              <div className="relative">
-                <Select
-                  value={form.parentId}
-                  onValueChange={(v) => set("parentId", v)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="فئة رئيسية" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {mainCategories.map((c) => (
-                      <SelectItem key={c._id} value={c._id}>
-                        {c.nameAr}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {form.parentId && (
-                  <Button type="button" variant="ghost" size="icon" className="absolute top-0 left-1 h-9 w-9" onClick={() => set("parentId", "")}>
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
               </div>
             </div>
             <Button
