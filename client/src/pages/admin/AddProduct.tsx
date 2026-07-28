@@ -113,30 +113,33 @@ export default function AddProduct() {
   };
 
   useEffect(() => {
-    if (!existingProduct || !categories) return;
+    if (existingProduct && categories) {
+      const productCategoryId = existingProduct.categoryId._id;
+      // Reconstruct the category path from the product's category ID
+      const path = getCategoryAncestors(productCategoryId, categories);
+      setCategoryPath(path);
 
-    const productCategoryId = existingProduct.categoryId._id;
-    // Reconstruct the category path from the product's category ID
-    const path = getCategoryAncestors(productCategoryId, categories);
-    setCategoryPath(path);
-
-    setForm({
-      name: existingProduct.name,
-      nameAr: existingProduct.nameAr,
-      description: existingProduct.description,
-      descriptionAr: existingProduct.descriptionAr,
-      price: String(existingProduct.price),
-      salePrice: existingProduct.salePrice
-        ? String(existingProduct.salePrice)
-        : "",
-      stock: String(existingProduct.stock),
-      categoryId: productCategoryId,
-      sku: existingProduct.sku,
-      brand: existingProduct.brand || "",
-      saleUnit: existingProduct.saleUnit || "piece",
-      images: existingProduct.images || [],
-      isActive: existingProduct.isActive,
-    });
+      // This logic prevents form state from being overwritten by useQuery refetches.
+      // It only populates the form if the fetched product is different from the one in the form state.
+      setForm((currentForm) => {
+        if (currentForm.sku === existingProduct.sku) return currentForm; // Preserve user edits
+        return {
+          name: existingProduct.name,
+          nameAr: existingProduct.nameAr,
+          description: existingProduct.description,
+          descriptionAr: existingProduct.descriptionAr,
+          price: String(existingProduct.price),
+          salePrice: existingProduct.salePrice ? String(existingProduct.salePrice) : "",
+          stock: String(existingProduct.stock),
+          categoryId: productCategoryId,
+          sku: existingProduct.sku,
+          brand: existingProduct.brand || "",
+          saleUnit: existingProduct.saleUnit || "piece",
+          images: existingProduct.images || [],
+          isActive: existingProduct.isActive,
+        };
+      });
+    }
   }, [existingProduct, categories]);
 
   // Update the final categoryId in the form whenever the path changes
