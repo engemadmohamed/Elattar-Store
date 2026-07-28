@@ -54,7 +54,11 @@ router.put("/:id", requireAuth, async (req: Request, res: Response) => {
 // Delete category (admin only)
 router.delete("/:id", requireAuth, async (req: Request, res: Response) => {
   try {
-    await Category.findByIdAndDelete(req.params.id);
+    const categoryId = req.params.id;
+    // Also delete subcategories that belong to this category
+    await Category.deleteMany({ parentId: categoryId });
+    // Then delete the category itself
+    await Category.findByIdAndDelete(categoryId);
     return res.json({ message: "Category deleted" });
   } catch {
     return res.status(500).json({ message: "Server error" });

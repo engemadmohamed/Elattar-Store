@@ -56,7 +56,7 @@ export default function Home() {
               كل ما تحتاجه في مكان واحد
             </h1>
             <p className="text-muted-foreground text-lg mb-6">
-              أقلام، دفاتر، أدوات رسم، مستلزمات مكتبية وأكثر. جودة عالية وأسعار تناسب الجميع.
+            أقلام أدوات رسم، مستلزمات مكتبية وخردوات. جودة عالية وأسعار تنافسية.
             </p>
             <div className="flex items-center gap-3">
               <Link href="/shop">
@@ -81,7 +81,7 @@ export default function Home() {
             {[
               { icon: Truck, title: "توصيل سريع", desc: "خلال 2-3 أيام عمل" },
               { icon: Shield, title: "ضمان الجودة", desc: "منتجات أصلية 100%" },
-              { icon: RefreshCw, title: "إرجاع مجاني", desc: "خلال 14 يوم" },
+              { icon: RefreshCw, title: "إرجاع مجاني", desc: "خلال 7 أيام" },
               { icon: Star, title: "تقييم ممتاز", desc: "آلاف العملاء الراضين" },
             ].map((f) => (
               <div key={f.title} className="flex items-center gap-3 p-3 rounded-lg transition-colors hover:bg-background/60 group">
