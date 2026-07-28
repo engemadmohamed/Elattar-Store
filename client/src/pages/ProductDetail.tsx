@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useParams, Link } from "wouter";
+import { useParams, Link, useLocation } from "wouter";
 import { ShoppingCart, ArrowLeft, Package, Star, Share2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCart } from "@/lib/cart-context";
+import { useCustomerAuth } from "@/lib/customer-auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
@@ -32,6 +33,8 @@ interface Product {
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const { addItem } = useCart();
+  const { isAuthenticated } = useCustomerAuth();
+  const [, navigate] = useLocation();
   const { toast } = useToast();
   const [selectedImg, setSelectedImg] = useState(0);
   const [qty, setQty] = useState(1);
@@ -77,6 +80,11 @@ export default function ProductDetail() {
   const inStock = product.stock > 0;
 
   const handleAddToCart = () => {
+    if (!isAuthenticated) {
+      toast({ title: "سجّل دخولك أولاً", description: "يجب تسجيل الدخول قبل الإضافة للسلة", variant: "destructive" });
+      navigate("/login");
+      return;
+    }
     for (let i = 0; i < qty; i++) {
       addItem({
         productId: product._id,

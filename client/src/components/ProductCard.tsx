@@ -1,6 +1,7 @@
 import { ShoppingCart, Eye } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useCart } from "@/lib/cart-context";
+import { useCustomerAuth } from "@/lib/customer-auth-context";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
@@ -23,6 +24,8 @@ interface Product {
 
 export default function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();
+  const { isAuthenticated } = useCustomerAuth();
+  const [, navigate] = useLocation();
   const { toast } = useToast();
 
   const price = product.salePrice || product.price;
@@ -32,6 +35,11 @@ export default function ProductCard({ product }: { product: Product }) {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!inStock) return;
+    if (!isAuthenticated) {
+      toast({ title: "سجّل دخولك أولاً", description: "يجب تسجيل الدخول قبل الإضافة للسلة", variant: "destructive" });
+      navigate("/login");
+      return;
+    }
     addItem({
       productId: product._id,
       name: product.name,
