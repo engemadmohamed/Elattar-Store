@@ -29,10 +29,16 @@ router.get("/:id", async (req: Request, res: Response) => {
 router.post("/", requireAuth, async (req: Request, res: Response) => {
   try {
     const { name, nameAr, slug, icon, parentId, image } = req.body;
-    const exists = await Category.findOne({ slug });
-    if (exists) return res.status(400).json({ message: "Slug already exists" });
 
-    const category = new Category({ name, nameAr, slug, icon, parentId: parentId || null, image });
+    // Ensure slug is unique
+    let finalSlug = slug;
+    let counter = 2;
+    while (await Category.findOne({ slug: finalSlug })) {
+      finalSlug = `${slug}-${counter}`;
+      counter++;
+    }
+
+    const category = new Category({ name, nameAr, slug: finalSlug, icon, parentId: parentId || null, image });
     await category.save();
     return res.status(201).json(category);
   } catch (error) {

@@ -324,7 +324,6 @@ interface CategoryItemProps {
   onToggle: () => void;
 }
 
-function CategoryItem({ category, onEdit, onDelete, hasChildren, isExpanded, onToggle }: CategoryItemProps) {
 function CategoryItem({ category, onEdit, onDelete, onAddSub, hasChildren, isExpanded, onToggle }: CategoryItemProps) {
   return (
     <div className="flex items-center justify-between p-2 rounded-lg border bg-background hover:bg-muted/50 transition-colors">

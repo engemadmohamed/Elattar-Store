@@ -76,7 +76,7 @@ export default function Shop() {
     queryKey: ["/api/products", categorySlug, searchParam, sort, page, onSale],
     queryFn: () => apiRequest("GET", `/api/products?${queryParams}`),
     // Only fetch products if we are not showing subcategories
-    enabled: !showSubcategories,
+    enabled: !!categories && !showSubcategories,
   });
 
   useEffect(() => {
