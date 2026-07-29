@@ -160,6 +160,11 @@ router.post("/", requireAuth, async (req: Request, res: Response) => {
   try {
     const data = req.body;
 
+    // Auto-generate SKU if not provided
+    if (!data.sku) {
+      data.sku = "EL-" + Date.now().toString().slice(-6) + "-" + Math.floor(Math.random() * 100).toString().padStart(2, "0");
+    }
+
     // Check SKU uniqueness
     const existing = await Product.findOne({ sku: data.sku });
     if (existing) return res.status(400).json({ message: "SKU already exists" });

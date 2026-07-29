@@ -1,12 +1,27 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Plus, Edit, Trash2, QrCode, Search, ToggleLeft, ToggleRight, RefreshCw } from "lucide-react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  QrCode,
+  Search,
+  ToggleLeft,
+  ToggleRight,
+} from "lucide-react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ADMIN_BASE } from "@/lib/admin-path";
 import QRModal from "@/components/QRModal";
@@ -36,7 +51,11 @@ export default function AdminProducts() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["/api/products/admin/all", search],
-    queryFn: () => apiRequest<{ products: Product[]; total: number }>("GET", `/api/products/admin/all?search=${search}`),
+    queryFn: () =>
+      apiRequest<{ products: Product[]; total: number }>(
+        "GET",
+        `/api/products/admin/all?search=${search}`,
+      ),
   });
 
   const deleteMutation = useMutation({
@@ -51,13 +70,8 @@ export default function AdminProducts() {
   const toggleMutation = useMutation({
     mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
       apiRequest("PUT", `/api/products/${id}`, { isActive }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/products/admin/all"] }),
-  });
-
-  const regenerateQrMutation = useMutation({
-    mutationFn: () => apiRequest<{ message: string; updated: number }>("POST", "/api/products/admin/regenerate-qr"),
-    onSuccess: (data) => toast({ title: data.message }),
-    onError: () => toast({ title: "فشل إعادة توليد QR Codes", variant: "destructive" }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["/api/products/admin/all"] }),
   });
 
   const handleDelete = (product: Product) => {
@@ -72,23 +86,15 @@ export default function AdminProducts() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold">المنتجات</h1>
-            <p className="text-sm text-muted-foreground mt-1">إجمالي: {data?.total || 0} منتج</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              إجمالي: {data?.total || 0} منتج
+            </p>
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={() => {
-                if (confirm("هتتم إعادة توليد QR Code لكل المنتجات بالرابط الصح — متابع؟"))
-                  regenerateQrMutation.mutate();
-              }}
-              disabled={regenerateQrMutation.isPending}
-            >
-              <RefreshCw className={`h-4 w-4 ${regenerateQrMutation.isPending ? "animate-spin" : ""}`} />
-              إصلاح QR Codes
-            </Button>
             <Link href={`${ADMIN_BASE}/products/add`}>
-              <Button className="gap-2"><Plus className="h-4 w-4" /> إضافة منتج</Button>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" /> إضافة منتج
+              </Button>
             </Link>
           </div>
         </div>
@@ -97,7 +103,7 @@ export default function AdminProducts() {
         <div className="relative mb-4 max-w-xs">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="بحث بالاسم أو SKU..."
+            placeholder="بحث بالاسم..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -123,13 +129,18 @@ export default function AdminProducts() {
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
                     {Array.from({ length: 7 }).map((_, j) => (
-                      <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
+                      <TableCell key={j}>
+                        <Skeleton className="h-4 w-full" />
+                      </TableCell>
                     ))}
                   </TableRow>
                 ))
               ) : data?.products.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                  <TableCell
+                    colSpan={7}
+                    className="text-center py-12 text-muted-foreground"
+                  >
                     لا توجد منتجات
                   </TableCell>
                 </TableRow>
@@ -140,32 +151,62 @@ export default function AdminProducts() {
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-lg bg-muted overflow-hidden shrink-0">
                           {product.images[0] ? (
-                            <img src={product.images[0]} alt="" className="h-full w-full object-cover" />
+                            <img
+                              src={product.images[0]}
+                              alt=""
+                              className="h-full w-full object-cover"
+                            />
                           ) : (
-                            <div className="h-full w-full flex items-center justify-center text-lg">📦</div>
+                            <div className="h-full w-full flex items-center justify-center text-lg">
+                              📦
+                            </div>
                           )}
                         </div>
                         <div>
-                          <p className="font-medium text-sm">{product.nameAr}</p>
-                          <p className="text-xs text-muted-foreground">{product.brand || product.sku}</p>
+                          <p className="font-medium text-sm">
+                            {product.nameAr}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {product.brand || product.sku}
+                          </p>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-xs font-mono">{product.sku}</TableCell>
-                    <TableCell className="text-xs">{product.categoryId?.nameAr || "-"}</TableCell>
+                    <TableCell className="text-xs font-mono">
+                      {product.sku}
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      {product.categoryId?.nameAr || "-"}
+                    </TableCell>
                     <TableCell>
                       <div>
-                        <p className="text-sm font-semibold text-primary">{formatPrice(product.salePrice || product.price)}</p>
-                        {product.salePrice && <p className="text-xs text-muted-foreground line-through">{formatPrice(product.price)}</p>}
+                        <p className="text-sm font-semibold text-primary">
+                          {formatPrice(product.salePrice || product.price)}
+                        </p>
+                        {product.salePrice && (
+                          <p className="text-xs text-muted-foreground line-through">
+                            {formatPrice(product.price)}
+                          </p>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={product.stock > 0 ? "default" : "destructive"} className="text-xs">
+                      <Badge
+                        variant={product.stock > 0 ? "default" : "destructive"}
+                        className="text-xs"
+                      >
                         {product.stock} قطعة
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <button onClick={() => toggleMutation.mutate({ id: product._id, isActive: !product.isActive })}>
+                      <button
+                        onClick={() =>
+                          toggleMutation.mutate({
+                            id: product._id,
+                            isActive: !product.isActive,
+                          })
+                        }
+                      >
                         {product.isActive ? (
                           <ToggleRight className="h-5 w-5 text-green-500" />
                         ) : (
@@ -184,8 +225,14 @@ export default function AdminProducts() {
                         >
                           <QrCode className="h-4 w-4 text-primary" />
                         </Button>
-                        <Link href={`${ADMIN_BASE}/products/edit/${product._id}`}>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Link
+                          href={`${ADMIN_BASE}/products/edit/${product._id}`}
+                        >
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
                         </Link>

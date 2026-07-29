@@ -18,7 +18,10 @@ export default function Contact() {
     // Placeholder: no backend endpoint wired up yet — swap this for a real
     // contact-form submission once you have one.
     setTimeout(() => {
-      toast({ title: "تم استلام رسالتك ✓", description: "هنتواصل معاك في أقرب وقت" });
+      toast({
+        title: "تم استلام رسالتك ✓",
+        description: "هنتواصل معاك في أقرب وقت",
+      });
       setForm({ name: "", email: "", message: "" });
       setSending(false);
     }, 600);
@@ -28,7 +31,9 @@ export default function Contact() {
     <div className="min-h-[70vh] py-12 px-4">
       <div className="mx-auto max-w-4xl animate-in fade-in slide-in-from-bottom-2 duration-500">
         <h1 className="text-2xl font-bold mb-2">تواصل معنا</h1>
-        <p className="text-muted-foreground mb-8">عندك سؤال أو استفسار؟ ابعتلنا وهنرد عليك بأسرع وقت.</p>
+        <p className="text-muted-foreground mb-8">
+          عندك سؤال أو استفسار؟ ابعتلنا وهنرد عليك بأسرع وقت.
+        </p>
 
         <div className="grid md:grid-cols-5 gap-8">
           <div className="md:col-span-3">
@@ -37,18 +42,42 @@ export default function Contact() {
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
                     <Label htmlFor="name">الاسم</Label>
-                    <Input id="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                    <Input
+                      id="name"
+                      required
+                      value={form.name}
+                      onChange={(e) =>
+                        setForm({ ...form, name: e.target.value })
+                      }
+                    />
                   </div>
                   <div>
                     <Label htmlFor="email">البريد الإلكتروني</Label>
-                    <Input id="email" type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                    <Input
+                      id="email"
+                      type="email"
+                      required
+                      value={form.email}
+                      onChange={(e) =>
+                        setForm({ ...form, email: e.target.value })
+                      }
+                    />
                   </div>
                   <div>
                     <Label htmlFor="message">الرسالة</Label>
-                    <Textarea id="message" rows={5} required value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
+                    <Textarea
+                      id="message"
+                      rows={5}
+                      required
+                      value={form.message}
+                      onChange={(e) =>
+                        setForm({ ...form, message: e.target.value })
+                      }
+                    />
                   </div>
                   <Button type="submit" className="gap-2" disabled={sending}>
-                    <Send className="h-4 w-4" /> {sending ? "جاري الإرسال..." : "إرسال"}
+                    <Send className="h-4 w-4" />{" "}
+                    {sending ? "جاري الإرسال..." : "إرسال"}
                   </Button>
                 </form>
               </CardContent>
@@ -63,7 +92,9 @@ export default function Contact() {
                 </div>
                 <div>
                   <p className="text-sm font-medium">اتصل بنا</p>
-                  <p className="text-sm text-muted-foreground" dir="ltr">01000000000</p>
+                  <p className="text-sm text-muted-foreground" dir="ltr">
+                    +20 10 98154983
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -74,7 +105,9 @@ export default function Contact() {
                 </div>
                 <div>
                   <p className="text-sm font-medium">البريد الإلكتروني</p>
-                  <p className="text-sm text-muted-foreground">support@elattar.com</p>
+                  <p className="text-sm text-muted-foreground">
+                    support@elattar.com
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -85,7 +118,9 @@ export default function Contact() {
                 </div>
                 <div>
                   <p className="text-sm font-medium">واتساب</p>
-                  <p className="text-sm text-muted-foreground" dir="ltr">01000000000</p>
+                  <p className="text-sm text-muted-foreground" dir="ltr">
+                    +20 10 98154983
+                  </p>
                 </div>
               </CardContent>
             </Card>

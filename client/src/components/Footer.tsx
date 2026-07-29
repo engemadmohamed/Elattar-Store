@@ -90,7 +90,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-center gap-2">
                 <Phone className="h-3.5 w-3.5 shrink-0" />
-                <span dir="ltr">01000000000</span>
+                <span dir="ltr">+20 10 98154983</span>
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="h-3.5 w-3.5 shrink-0" />
@@ -101,7 +101,10 @@ export default function Footer() {
         </div>
 
         <div className="border-t mt-10 pt-6 text-center text-sm text-muted-foreground">
-          <p>El Attar | العطار — متجر الأدوات المكتبية والقلمية &copy; {new Date().getFullYear()}</p>
+          <p>
+            El Attar | العطار — متجر الأدوات المكتبية والقلمية &copy;{" "}
+            {new Date().getFullYear()}
+          </p>
         </div>
       </div>
     </footer>

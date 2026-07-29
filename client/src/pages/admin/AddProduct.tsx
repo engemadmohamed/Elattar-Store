@@ -48,17 +48,6 @@ interface ExistingProduct {
   isActive: boolean;
 }
 
-function generateSku() {
-  return (
-    "EL-" +
-    Date.now().toString().slice(-6) +
-    "-" +
-    Math.floor(Math.random() * 100)
-      .toString()
-      .padStart(2, "0")
-  );
-}
-
 export default function AddProduct() {
   const { id } = useParams<{ id?: string }>();
   const [, navigate] = useLocation();
@@ -75,7 +64,6 @@ export default function AddProduct() {
     salePrice: "",
     stock: "0",
     categoryId: "", // This will be the ID of the most specific category
-    sku: generateSku(),
     brand: "",
     saleUnit: "piece",
     images: [] as string[],
@@ -83,6 +71,7 @@ export default function AddProduct() {
   });
   const [imageUrl, setImageUrl] = useState("");
   const [savedProductId, setSavedProductId] = useState<string | null>(null);
+  const [savedProductSku, setSavedProductSku] = useState<string>("");
   const [categoryPath, setCategoryPath] = useState<string[]>([]);
   const [showQR, setShowQR] = useState(false);
   const [formPopulated, setFormPopulated] = useState(false);
@@ -105,10 +94,10 @@ export default function AddProduct() {
     allCats: Category[],
   ): string[] => {
     const path: string[] = [];
-    let current = allCats.find((c) => c._id === catId);
+    let current: Category | undefined = allCats.find((c) => c._id === catId);
     while (current) {
       path.unshift(current._id);
-      current = allCats.find((c) => c._id === current.parentId);
+      current = allCats.find((c) => c.parentId && c._id === current?.parentId);
     }
     return path;
   };
@@ -119,6 +108,7 @@ export default function AddProduct() {
       // Reconstruct the category path from the product's category ID
       const path = getCategoryAncestors(productCategoryId, categories);
       setCategoryPath(path);
+      setSavedProductSku(existingProduct.sku);
 
       setForm({
         name: existingProduct.name,
@@ -131,7 +121,6 @@ export default function AddProduct() {
           : "",
         stock: String(existingProduct.stock),
         categoryId: productCategoryId,
-        sku: existingProduct.sku,
         brand: existingProduct.brand || "",
         saleUnit: existingProduct.saleUnit || "piece",
         images: existingProduct.images || [],
@@ -220,6 +209,7 @@ export default function AddProduct() {
       }
 
       setSavedProductId(updatedProduct._id);
+      setSavedProductSku(updatedProduct.sku);
       toast({
         title: isEdit ? "تم تحديث المنتج ✓" : "تم إضافة المنتج ✓",
         description: "يمكنك الآن طباعة QR Code",
@@ -351,33 +341,13 @@ export default function AddProduct() {
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label>SKU *</Label>
-                        <div className="flex gap-2">
-                          <Input
-                            value={form.sku}
-                            onChange={(e) => set("sku", e.target.value)}
-                            required
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => set("sku", generateSku())}
-                          >
-                            جديد
-                          </Button>
-                        </div>
-                      </div>
-                      <div>
-                        <Label>الماركة / العلامة التجارية</Label>
-                        <Input
-                          value={form.brand}
-                          onChange={(e) => set("brand", e.target.value)}
-                          placeholder="مثال: Bic, Faber-Castell"
-                        />
-                      </div>
+                    <div>
+                      <Label>الماركة / العلامة التجارية</Label>
+                      <Input
+                        value={form.brand}
+                        onChange={(e) => set("brand", e.target.value)}
+                        placeholder="مثال: Bic, Faber-Castell"
+                      />
                     </div>
                     <div>
                       <Label>وحدة البيع</Label>
@@ -542,7 +512,7 @@ export default function AddProduct() {
         <QRModal
           productId={savedProductId}
           productName={form.nameAr}
-          productSku={form.sku}
+          productSku={savedProductSku}
           price={parseFloat(form.salePrice || form.price)}
           open={showQR}
           onClose={() => setShowQR(false)}
