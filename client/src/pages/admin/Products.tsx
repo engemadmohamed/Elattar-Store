@@ -32,6 +32,13 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ADMIN_BASE } from "@/lib/admin-path";
 import QRModal from "@/components/QRModal";
 import { apiRequest } from "@/lib/queryClient";
@@ -52,20 +59,38 @@ interface Product {
   categoryId?: { name: string; nameAr: string };
 }
 
+interface Category {
+  _id: string;
+  name: string;
+  nameAr: string;
+  slug: string;
+  parentId: string | null;
+}
+
 export default function AdminProducts() {
   const qc = useQueryClient();
   const { toast } = useToast();
   const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("all");
   const [qrProduct, setQrProduct] = useState<Product | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
 
+  const { data: categories } = useQuery<Category[]>({
+    queryKey: ["/api/categories"],
+    queryFn: () => apiRequest("GET", "/api/categories"),
+  });
+
   const { data, isLoading } = useQuery({
-    queryKey: ["/api/products/admin/all", search],
-    queryFn: () =>
-      apiRequest<{ products: Product[]; total: number }>(
+    queryKey: ["/api/products/admin/all", search, category],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      if (search) params.set("search", search);
+      if (category !== "all") params.set("category", category);
+      return apiRequest<{ products: Product[]; total: number }>(
         "GET",
-        `/api/products/admin/all?search=${search}`,
-      ),
+        `/api/products/admin/all?${params.toString()}`,
+      );
+    },
   });
 
   const deleteMutation = useMutation({
@@ -108,15 +133,30 @@ export default function AdminProducts() {
           </div>
         </div>
 
-        {/* Search */}
-        <div className="relative mb-4 max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="بحث بالاسم..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
+        {/* Search & Filter */}
+        <div className="flex gap-3 mb-4">
+          <div className="relative max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="بحث بالاسم..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="اختر الفئة" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">كل الفئات</SelectItem>
+              {categories?.map((cat) => (
+                <SelectItem key={cat._id} value={cat._id}>
+                  {cat.nameAr}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Table */}

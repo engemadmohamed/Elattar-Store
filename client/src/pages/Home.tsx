@@ -154,9 +154,6 @@ export default function Home() {
         limit={8}
         bgMuted
       />
-
-      {/* Top Rated */}
-      <ProductSection title="الأعلى تقييمًا" query="sort=top_rated" limit={8} />
     </div>
   );
 }
