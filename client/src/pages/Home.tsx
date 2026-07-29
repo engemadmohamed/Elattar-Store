@@ -55,7 +55,7 @@ export default function Home() {
               نصنع الجودة ونكسب الثقة{" "}
             </h1>
             <p className="text-muted-foreground text-lg mb-6">
-              أقلام أدوات رسم، مستلزمات مكتبية وخردوات. جودة عالية وأسعار
+              أقلام وأدوات رسم، مستلزمات مكتبية وخردوات. جودة عالية وأسعار
               تنافسية.
             </p>
             <div className="flex items-center gap-3">

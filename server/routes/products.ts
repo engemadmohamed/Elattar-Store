@@ -83,7 +83,6 @@ router.get("/", async (req: Request, res: Response) => {
     else if (sort === "price_desc") sortQuery = { price: -1 };
     else if (sort === "name") sortQuery = { name: 1 };
     else if (sort === "best_selling") sortQuery = { soldCount: -1 };
-    else if (sort === "top_rated") sortQuery = { ratingAverage: -1, ratingCount: -1 };
 
     const skip = (Number(page) - 1) * Number(limit);
     const [products, total] = await Promise.all([

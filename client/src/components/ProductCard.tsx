@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import StarRating from "@/components/StarRating";
 
 interface Product {
   _id: string;
@@ -18,8 +17,6 @@ interface Product {
   images: string[];
   brand?: string;
   categoryId?: { name: string; nameAr: string };
-  ratingAverage?: number;
-  ratingCount?: number;
 }
 
 export default function ProductCard({ product }: { product: Product }) {
@@ -36,7 +33,11 @@ export default function ProductCard({ product }: { product: Product }) {
     e.preventDefault();
     if (!inStock) return;
     if (!isAuthenticated) {
-      toast({ title: "سجّل دخولك أولاً", description: "يجب تسجيل الدخول قبل الإضافة للسلة", variant: "destructive" });
+      toast({
+        title: "سجّل دخولك أولاً",
+        description: "يجب تسجيل الدخول قبل الإضافة للسلة",
+        variant: "destructive",
+      });
       navigate("/login");
       return;
     }
@@ -62,7 +63,9 @@ export default function ProductCard({ product }: { product: Product }) {
               className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
-            <div className="h-full w-full flex items-center justify-center text-5xl">📦</div>
+            <div className="h-full w-full flex items-center justify-center text-5xl">
+              📦
+            </div>
           )}
           {hasDiscount && (
             <Badge className="absolute top-2 left-2 bg-destructive">
@@ -83,16 +86,18 @@ export default function ProductCard({ product }: { product: Product }) {
         {/* Info */}
         <div className="p-3">
           {product.brand && (
-            <p className="text-xs text-muted-foreground mb-1">{product.brand}</p>
+            <p className="text-xs text-muted-foreground mb-1">
+              {product.brand}
+            </p>
           )}
-          <h3 className="text-sm font-medium leading-snug line-clamp-2 mb-1">{product.nameAr}</h3>
-          <div className="flex items-center gap-1 mb-1.5">
-            <StarRating value={product.ratingAverage || 0} readOnly size={12} />
-            <span className="text-xs text-muted-foreground">({product.ratingCount || 0})</span>
-          </div>
+          <h3 className="text-sm font-medium leading-snug line-clamp-2 mb-1">
+            {product.nameAr}
+          </h3>
           <div className="flex items-center justify-between gap-2 mt-1">
             <div>
-              <span className="font-bold text-primary">{formatPrice(price)}</span>
+              <span className="font-bold text-primary">
+                {formatPrice(price)}
+              </span>
               {hasDiscount && (
                 <span className="text-xs text-muted-foreground line-through ml-1">
                   {formatPrice(product.price)}

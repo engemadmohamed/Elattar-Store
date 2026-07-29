@@ -15,8 +15,6 @@ interface Product {
   stock: number;
   images: string[];
   brand?: string;
-  ratingAverage?: number;
-  ratingCount?: number;
 }
 
 export default function ProductSection({

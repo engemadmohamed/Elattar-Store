@@ -138,177 +138,179 @@ export default function AdminProducts() {
 
         {/* Main Content */}
         <main className="p-6 overflow-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold">المنتجات</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              إجمالي: {data?.total || 0} منتج
-            </p>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-2xl font-bold">المنتجات</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                إجمالي: {data?.total || 0} منتج
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Link href={`${ADMIN_BASE}/products/add`}>
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" /> إضافة منتج
+                </Button>
+              </Link>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Link href={`${ADMIN_BASE}/products/add`}>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" /> إضافة منتج
-              </Button>
-            </Link>
-          </div>
-        </div>
 
-        {/* Search & Filter */}
-        <div className="mb-4">
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="بحث بالاسم أو SKU..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-            />
+          {/* Search & Filter */}
+          <div className="mb-4">
+            <div className="relative max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="بحث بالاسم أو SKU..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
           </div>
-        </div>
 
-        {/* Table */}
-        <div className="rounded-xl border overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>المنتج</TableHead>
-                <TableHead>SKU</TableHead>
-                <TableHead>الفئة</TableHead>
-                <TableHead>السعر</TableHead>
-                <TableHead>المخزون</TableHead>
-                <TableHead>الحالة</TableHead>
-                <TableHead className="text-right">إجراءات</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
-                    {Array.from({ length: 7 }).map((_, j) => (
-                      <TableCell key={j}>
-                        <Skeleton className="h-4 w-full" />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : data?.products.length === 0 ? (
+          {/* Table */}
+          <div className="rounded-xl border overflow-hidden">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell
-                    colSpan={7}
-                    className="text-center py-12 text-muted-foreground"
-                  >
-                    لا توجد منتجات
-                  </TableCell>
+                  <TableHead>المنتج</TableHead>
+                  <TableHead>SKU</TableHead>
+                  <TableHead>الفئة</TableHead>
+                  <TableHead>السعر</TableHead>
+                  <TableHead>المخزون</TableHead>
+                  <TableHead>الحالة</TableHead>
+                  <TableHead className="text-right">إجراءات</TableHead>
                 </TableRow>
-              ) : (
-                data?.products.map((product) => (
-                  <TableRow key={product._id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-muted overflow-hidden shrink-0">
-                          {product.images[0] ? (
-                            <img
-                              src={product.images[0]}
-                              alt=""
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <div className="h-full w-full flex items-center justify-center text-lg">
-                              📦
-                            </div>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      {Array.from({ length: 7 }).map((_, j) => (
+                        <TableCell key={j}>
+                          <Skeleton className="h-4 w-full" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : data?.products.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={7}
+                      className="text-center py-12 text-muted-foreground"
+                    >
+                      لا توجد منتجات
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  data?.products.map((product) => (
+                    <TableRow key={product._id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-lg bg-muted overflow-hidden shrink-0">
+                            {product.images[0] ? (
+                              <img
+                                src={product.images[0]}
+                                alt=""
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <div className="h-full w-full flex items-center justify-center text-lg">
+                                📦
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">
+                              {product.nameAr}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {product.brand || product.sku}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-xs font-mono">
+                        {product.sku}
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {product.categoryId?.nameAr || "-"}
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <p className="text-sm font-semibold text-primary">
+                            {formatPrice(product.salePrice || product.price)}
+                          </p>
+                          {product.salePrice && (
+                            <p className="text-xs text-muted-foreground line-through">
+                              {formatPrice(product.price)}
+                            </p>
                           )}
                         </div>
-                        <div>
-                          <p className="font-medium text-sm">
-                            {product.nameAr}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {product.brand || product.sku}
-                          </p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-xs font-mono">
-                      {product.sku}
-                    </TableCell>
-                    <TableCell className="text-xs">
-                      {product.categoryId?.nameAr || "-"}
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="text-sm font-semibold text-primary">
-                          {formatPrice(product.salePrice || product.price)}
-                        </p>
-                        {product.salePrice && (
-                          <p className="text-xs text-muted-foreground line-through">
-                            {formatPrice(product.price)}
-                          </p>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={product.stock > 0 ? "default" : "destructive"}
-                        className="text-xs"
-                      >
-                        {product.stock} قطعة
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <button
-                        onClick={() =>
-                          toggleMutation.mutate({
-                            id: product._id,
-                            isActive: !product.isActive,
-                          })
-                        }
-                      >
-                        {product.isActive ? (
-                          <ToggleRight className="h-5 w-5 text-green-500" />
-                        ) : (
-                          <ToggleLeft className="h-5 w-5 text-muted-foreground" />
-                        )}
-                      </button>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => setQrProduct(product)}
-                          title="QR Code"
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            product.stock > 0 ? "default" : "destructive"
+                          }
+                          className="text-xs"
                         >
-                          <QrCode className="h-4 w-4 text-primary" />
-                        </Button>
-                        <Link
-                          href={`${ADMIN_BASE}/products/edit/${product._id}`}
+                          {product.stock} قطعة
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <button
+                          onClick={() =>
+                            toggleMutation.mutate({
+                              id: product._id,
+                              isActive: !product.isActive,
+                            })
+                          }
                         >
+                          {product.isActive ? (
+                            <ToggleRight className="h-5 w-5 text-green-500" />
+                          ) : (
+                            <ToggleLeft className="h-5 w-5 text-muted-foreground" />
+                          )}
+                        </button>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-end gap-1">
                           <Button
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
+                            onClick={() => setQrProduct(product)}
+                            title="QR Code"
                           >
-                            <Edit className="h-4 w-4" />
+                            <QrCode className="h-4 w-4 text-primary" />
                           </Button>
-                        </Link>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive"
-                          onClick={() => handleDelete(product)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                          <Link
+                            href={`${ADMIN_BASE}/products/edit/${product._id}`}
+                          >
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive"
+                            onClick={() => handleDelete(product)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </main>
       </div>
       {/* Delete Confirmation Dialog */}
@@ -408,7 +410,12 @@ interface CategoryItemProps {
   level: number;
 }
 
-function CategoryItem({ category, categories, onSelect, selectedId }: CategoryItemProps) {
+function CategoryItem({
+  category,
+  categories,
+  onSelect,
+  selectedId,
+}: CategoryItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const hasChildren = categories.some((c) => c.parentId === category._id);
   const isSelected = selectedId === category._id;
@@ -416,12 +423,14 @@ function CategoryItem({ category, categories, onSelect, selectedId }: CategoryIt
   return (
     <div>
       <div
-        className={`flex items-center justify-between p-2 rounded-md cursor-pointer transition-colors ${
-          isSelected ? "bg-primary/10 text-primary" : "hover:bg-muted/50"
+        className={`flex items-center justify-between p-2 rounded-lg border cursor-pointer transition-colors ${
+          isSelected
+            ? "border-primary bg-primary/10 text-primary font-semibold"
+            : "bg-background hover:bg-muted/50"
         }`}
         onClick={() => onSelect(category._id)}
       >
-        <span className="text-sm font-medium">{category.nameAr}</span>
+        <span className="text-sm">{category.nameAr}</span>
         {hasChildren && (
           <ChevronRight
             className={`h-4 w-4 shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`}
@@ -433,7 +442,13 @@ function CategoryItem({ category, categories, onSelect, selectedId }: CategoryIt
         )}
       </div>
       {isExpanded && hasChildren && (
-        <CategoryTree categories={categories} parentId={category._id} onSelect={onSelect} selectedId={selectedId} level={1} />
+        <CategoryTree
+          categories={categories}
+          parentId={category._id}
+          onSelect={onSelect}
+          selectedId={selectedId}
+          level={level + 1}
+        />
       )}
     </div>
   );
