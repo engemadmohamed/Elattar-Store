@@ -187,7 +187,7 @@ router.post("/", requireAuth, async (req: Request, res: Response) => {
 // Update product (admin only)
 router.put("/:id", requireAuth, async (req: Request, res: Response) => {
   try {
-    const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }).populate("categoryId", "name nameAr slug");
     if (!product) return res.status(404).json({ message: "Product not found" });
     return res.json(product);
   } catch (error) {
