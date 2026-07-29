@@ -370,7 +370,7 @@ function CategoryTree({
   if (!children.length) return null;
 
   return (
-    <div className={parentId ? "pl-4 border-l ml-4" : ""}>
+    <div className={parentId ? "pl-4 border-l-2 border-primary/20 ml-4" : ""}>
       {children.map((cat) => {
         if (path.has(cat._id)) {
           console.error(
