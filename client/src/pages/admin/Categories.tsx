@@ -60,6 +60,7 @@ export default function AdminCategories() {
       apiRequest("POST", "/api/categories", {
         ...data,
         parentId: data.parentId || null,
+        icon: data.icon || "📦", // Ensure icon is not empty
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["/api/categories"] });
@@ -80,6 +81,7 @@ export default function AdminCategories() {
       apiRequest("PUT", `/api/categories/${editingCategory?._id}`, {
         ...data,
         parentId: data.parentId || null,
+        icon: data.icon || "📦", // Ensure icon is not empty
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["/api/categories"] });
@@ -290,6 +292,14 @@ export default function AdminCategories() {
                   set("slug", autoSlug(val));
                 }}
                 required
+              />
+            </div>
+            <div>
+              <Label>الأيقونة (اختياري)</Label>
+              <Input
+                value={form.icon}
+                onChange={(e) => set("icon", e.target.value)}
+                placeholder="ادخل رمز تعبيري (emoji) مثل 📦"
               />
             </div>
             {/* Show parent category selection only when editing an existing category */}
