@@ -46,7 +46,9 @@ export default function Shop() {
   const [sort, setSort] = useState(params.get("sort") || "newest");
   const [page, setPage] = useState(1);
 
-  const { data: categories } = useQuery<Category[]>({
+  const { data: categories, isLoading: isLoadingCategories } = useQuery<
+    Category[]
+  >({
     queryKey: ["/api/categories"],
     queryFn: () => apiRequest("GET", "/api/categories"),
   });
@@ -179,7 +181,13 @@ export default function Shop() {
         )}
 
         {/* Products Grid */}
-        {showSubcategories ? (
+        {isLoadingCategories ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <Skeleton key={i} className="aspect-square rounded-xl" />
+            ))}
+          </div>
+        ) : showSubcategories ? (
           <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-12 gap-3">
             {subcategories.map((cat) => (
               <Link key={cat._id} href={`/shop?category=${cat.slug}`}>
