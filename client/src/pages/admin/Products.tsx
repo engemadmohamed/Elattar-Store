@@ -10,6 +10,7 @@ import {
   ToggleLeft,
   ToggleRight,
   AlertTriangle,
+  ChevronRight,
 } from "lucide-react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { Button } from "@/components/ui/button";
@@ -32,13 +33,6 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { ADMIN_BASE } from "@/lib/admin-path";
 import QRModal from "@/components/QRModal";
 import { apiRequest } from "@/lib/queryClient";
@@ -116,7 +110,34 @@ export default function AdminProducts() {
   return (
     <div className="flex min-h-screen">
       <AdminSidebar />
-      <main className="flex-1 p-6 overflow-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] flex-1">
+        {/* Category Sidebar */}
+        <aside className="hidden lg:block border-r bg-muted/20 p-4 overflow-y-auto">
+          <h2 className="text-lg font-semibold mb-4 px-2">الفئات</h2>
+          <div className="space-y-1">
+            <div
+              className={`p-2 rounded-md cursor-pointer font-medium text-sm transition-colors ${
+                category === "all"
+                  ? "bg-primary/10 text-primary"
+                  : "hover:bg-muted/50"
+              }`}
+              onClick={() => setCategory("all")}
+            >
+              كل المنتجات
+            </div>
+            {categories && (
+              <CategoryTree
+                categories={categories}
+                parentId={null}
+                onSelect={setCategory}
+                selectedId={category}
+              />
+            )}
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <main className="p-6 overflow-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold">المنتجات</h1>
@@ -134,29 +155,16 @@ export default function AdminProducts() {
         </div>
 
         {/* Search & Filter */}
-        <div className="flex gap-3 mb-4">
-          <div className="relative max-w-xs">
+        <div className="mb-4">
+          <div className="relative max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="بحث بالاسم..."
+              placeholder="بحث بالاسم أو SKU..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
             />
           </div>
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="اختر الفئة" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">كل الفئات</SelectItem>
-              {categories?.map((cat) => (
-                <SelectItem key={cat._id} value={cat._id}>
-                  {cat.nameAr}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
 
         {/* Table */}
@@ -301,8 +309,8 @@ export default function AdminProducts() {
             </TableBody>
           </Table>
         </div>
-      </main>
-
+        </main>
+      </div>
       {/* Delete Confirmation Dialog */}
       <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
         <DialogContent className="max-w-sm">
@@ -351,6 +359,81 @@ export default function AdminProducts() {
           open={!!qrProduct}
           onClose={() => setQrProduct(null)}
         />
+      )}
+    </div>
+  );
+}
+
+// --- Category Tree Components ---
+
+interface CategoryTreeProps {
+  categories: Category[];
+  parentId: string | null;
+  onSelect: (id: string) => void;
+  selectedId: string;
+  level?: number;
+}
+
+function CategoryTree({
+  categories,
+  parentId,
+  onSelect,
+  selectedId,
+  level = 0,
+}: CategoryTreeProps) {
+  const children = categories.filter((c) => c.parentId === parentId);
+  if (!children.length) return null;
+
+  return (
+    <div className={level > 0 ? "pl-4" : ""}>
+      {children.map((cat) => (
+        <CategoryItem
+          key={cat._id}
+          category={cat}
+          categories={categories}
+          onSelect={onSelect}
+          selectedId={selectedId}
+          level={level}
+        />
+      ))}
+    </div>
+  );
+}
+
+interface CategoryItemProps {
+  category: Category;
+  categories: Category[];
+  onSelect: (id: string) => void;
+  selectedId: string;
+  level: number;
+}
+
+function CategoryItem({ category, categories, onSelect, selectedId }: CategoryItemProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const hasChildren = categories.some((c) => c.parentId === category._id);
+  const isSelected = selectedId === category._id;
+
+  return (
+    <div>
+      <div
+        className={`flex items-center justify-between p-2 rounded-md cursor-pointer transition-colors ${
+          isSelected ? "bg-primary/10 text-primary" : "hover:bg-muted/50"
+        }`}
+        onClick={() => onSelect(category._id)}
+      >
+        <span className="text-sm font-medium">{category.nameAr}</span>
+        {hasChildren && (
+          <ChevronRight
+            className={`h-4 w-4 shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsExpanded(!isExpanded);
+            }}
+          />
+        )}
+      </div>
+      {isExpanded && hasChildren && (
+        <CategoryTree categories={categories} parentId={category._id} onSelect={onSelect} selectedId={selectedId} level={1} />
       )}
     </div>
   );

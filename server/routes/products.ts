@@ -101,14 +101,42 @@ router.get("/", async (req: Request, res: Response) => {
 // Admin: get all products (including inactive) — must be before /:id
 router.get("/admin/all", requireAuth, async (req: Request, res: Response) => {
   try {
-    const { page = 1, limit = 50, search } = req.query;
+    const { page = 1, limit = 50, search, category } = req.query;
     const filter: Record<string, unknown> = {};
+
     if (search) {
       filter.$or = [
         { name: { $regex: search, $options: "i" } },
+        { nameAr: { $regex: search, $options: "i" } },
         { sku: { $regex: search, $options: "i" } },
       ];
     }
+
+    if (category && category !== "all") {
+      const allCategories = await Category.find({}).lean();
+      const getDescendantIds = (rootId: mongoose.Types.ObjectId): mongoose.Types.ObjectId[] => {
+        const ids: mongoose.Types.ObjectId[] = [rootId];
+        const queue: string[] = [rootId.toString()];
+        const visited = new Set<string>(queue);
+
+        while (queue.length > 0) {
+          const currentId = queue.shift()!;
+          const children = allCategories.filter(c => c.parentId?.toString() === currentId);
+          for (const child of children) {
+            const childIdStr = child._id.toString();
+            if (!visited.has(childIdStr)) {
+              visited.add(childIdStr);
+              ids.push(child._id);
+              queue.push(childIdStr);
+            }
+          }
+        }
+        return ids;
+      };
+      const categoryIds = getDescendantIds(new mongoose.Types.ObjectId(category as string));
+      filter.categoryId = { $in: categoryIds };
+    }
+
     const skip = (Number(page) - 1) * Number(limit);
     const [products, total] = await Promise.all([
       Product.find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).populate("categoryId", "name nameAr"),

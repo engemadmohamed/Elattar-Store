@@ -250,48 +250,6 @@ export default function AdminCategories() {
                 required
               />
             </div>
-            {/* Slug and Icon fields removed as per request */}
-            <div>
-              <Label>الفئة الأم (اختياري)</Label>
-              <div className="relative">
-                <Select
-                  value={form.parentId}
-                  onValueChange={(v) => set("parentId", v)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="فئة رئيسية" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories
-                      ?.filter((c) => {
-                        if (!editingCategory) return true;
-                        // Prevent a category from being its own descendant
-                        const descendants = getDescendants(editingCategory._id); // Get all children, grandchildren, etc.
-                        return (
-                          c._id !== editingCategory._id &&
-                          !descendants.includes(c._id)
-                        ); // Can't be itself or one of its children
-                      })
-                      .map((c) => (
-                        <SelectItem key={c._id} value={c._id}>
-                          {c.nameAr}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-                {form.parentId && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-0 left-1 h-9 w-9"
-                    onClick={() => set("parentId", "")}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </div>
             <Button
               type="submit"
               className="w-full"
