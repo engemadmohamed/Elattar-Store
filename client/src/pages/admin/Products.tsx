@@ -415,6 +415,7 @@ function CategoryItem({
   categories,
   onSelect,
   selectedId,
+  level,
 }: CategoryItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const hasChildren = categories.some((c) => c.parentId === category._id);

@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { useSearch, Link } from "wouter";
+import { useSearch, Link, useLocation } from "wouter";
 import { SlidersHorizontal, X } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -37,14 +37,24 @@ interface Category {
 }
 
 export default function Shop() {
+  const [, navigate] = useLocation();
   const search = useSearch();
   const params = new URLSearchParams(search);
   const searchParam = params.get("search") || "";
   const categorySlug = params.get("category") || "";
   const onSale = params.get("onSale") === "true";
+  const sort = params.get("sort") || "newest";
+  const page = Number(params.get("page") || "1");
 
-  const [sort, setSort] = useState(params.get("sort") || "newest");
-  const [page, setPage] = useState(1);
+  const handleQueryChange = (updates: Record<string, string | number>) => {
+    const newParams = new URLSearchParams(params);
+    Object.entries(updates).forEach(([key, value]) =>
+      newParams.set(key, String(value)),
+    );
+    // If a filter other than page changes, reset to page 1
+    if (!("page" in updates)) newParams.delete("page");
+    navigate(`/shop?${newParams.toString()}`);
+  };
 
   const { data: categories, isLoading: isLoadingCategories } = useQuery<
     Category[]
@@ -82,10 +92,6 @@ export default function Shop() {
     enabled: !!categories && !showSubcategories,
   });
 
-  useEffect(() => {
-    setPage(1);
-  }, [categorySlug, searchParam, sort, onSale]);
-
   const title = searchParam
     ? `نتائج البحث: "${searchParam}"`
     : selectedCategory
@@ -121,7 +127,12 @@ export default function Shop() {
           </div>
           {!showSubcategories && (
             <div className="flex items-center gap-2">
-              <Select value={sort} onValueChange={setSort}>
+              <Select
+                value={sort}
+                onValueChange={(newSort) =>
+                  handleQueryChange({ sort: newSort })
+                }
+              >
                 <SelectTrigger className="w-40">
                   <SlidersHorizontal className="h-4 w-4 mr-2" />
                   <SelectValue />
@@ -227,7 +238,7 @@ export default function Shop() {
                 <Button
                   variant="outline"
                   disabled={page <= 1}
-                  onClick={() => setPage((p) => p - 1)}
+                  onClick={() => handleQueryChange({ page: page - 1 })}
                 >
                   السابق
                 </Button>
@@ -237,7 +248,7 @@ export default function Shop() {
                 <Button
                   variant="outline"
                   disabled={page >= data.totalPages}
-                  onClick={() => setPage((p) => p + 1)}
+                  onClick={() => handleQueryChange({ page: page + 1 })}
                 >
                   التالي
                 </Button>
