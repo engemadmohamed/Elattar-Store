@@ -387,7 +387,13 @@ function CategoryTree({
   if (!children.length) return null;
 
   return (
-    <div className={level > 0 ? "pl-4" : ""}>
+    <div
+      className={
+        level > 0
+          ? "space-y-1 pl-4 border-l-2 border-primary/20 ml-4 mt-1"
+          : "space-y-1"
+      }
+    >
       {children.map((cat) => (
         <CategoryItem
           key={cat._id}
