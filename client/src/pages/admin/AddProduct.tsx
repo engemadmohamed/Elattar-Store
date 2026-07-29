@@ -48,26 +48,6 @@ interface ExistingProduct {
   isActive: boolean;
 }
 
-const buildCategoryOptions = (
-  categories: Category[],
-  parentId: string | null = null,
-  level = 0,
-): { value: string; label: string }[] => {
-  let options: { value: string; label: string }[] = [];
-  const children = categories.filter((c) => c.parentId === parentId);
-
-  for (const category of children) {
-    options.push({
-      value: category._id,
-      label: `${"— ".repeat(level)}${category.nameAr}`,
-    });
-    options = options.concat(
-      buildCategoryOptions(categories, category._id, level + 1),
-    );
-  }
-  return options;
-};
-
 export default function AddProduct() {
   const { id } = useParams<{ id?: string }>();
   const [, navigate] = useLocation();
@@ -89,6 +69,7 @@ export default function AddProduct() {
     images: [] as string[],
     isActive: true,
   });
+  const [selectedMainCategory, setSelectedMainCategory] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [savedProductId, setSavedProductId] = useState<string | null>(null);
   const [savedProductSku, setSavedProductSku] = useState<string>("");
@@ -107,12 +88,43 @@ export default function AddProduct() {
       enabled: isEdit,
     });
 
-  const categoryOptions = categories ? buildCategoryOptions(categories) : [];
+  // Get only root categories (parentId === null) for the main dropdown
+  const mainCategoryOptions = categories
+    ? categories
+        .filter((c) => c.parentId === null)
+        .map((c) => ({ value: c._id, label: c.nameAr }))
+    : [];
+
+  // Get subcategories of the selected main category
+  const subcategoryOptions =
+    categories && selectedMainCategory
+      ? categories
+          .filter((c) => c.parentId === selectedMainCategory)
+          .map((c) => ({ value: c._id, label: c.nameAr }))
+      : [];
+
+  // When the main category changes, clear the subcategory selection
+  const handleMainCategoryChange = (value: string) => {
+    setSelectedMainCategory(value);
+    set("categoryId", ""); // Clear subcategory selection
+  };
+
+  // Handle subcategory selection
+  const handleSubcategoryChange = (value: string) => {
+    set("categoryId", value);
+  };
 
   useEffect(() => {
     if (existingProduct && categories && !formPopulated) {
       const productCategoryId = existingProduct.categoryId._id;
       setSavedProductSku(existingProduct.sku);
+
+      // Find the selected category and its parent
+      const selectedCat = categories.find((c) => c._id === productCategoryId);
+      if (selectedCat && selectedCat.parentId) {
+        // It's a subcategory - pre-select the main category too
+        setSelectedMainCategory(selectedCat.parentId);
+      }
 
       setForm({
         name: existingProduct.name,
@@ -452,16 +464,16 @@ export default function AddProduct() {
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div>
-                      <Label>الفئة *</Label>
+                      <Label>الفئة الرئيسية *</Label>
                       <Select
-                        value={form.categoryId}
-                        onValueChange={(v) => set("categoryId", v)}
+                        value={selectedMainCategory}
+                        onValueChange={handleMainCategoryChange}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="اختر الفئة" />
+                          <SelectValue placeholder="اختر الفئة الرئيسية" />
                         </SelectTrigger>
                         <SelectContent>
-                          {categoryOptions.map((opt) => (
+                          {mainCategoryOptions.map((opt) => (
                             <SelectItem key={opt.value} value={opt.value}>
                               {opt.label}
                             </SelectItem>
@@ -469,6 +481,26 @@ export default function AddProduct() {
                         </SelectContent>
                       </Select>
                     </div>
+                    {selectedMainCategory && (
+                      <div>
+                        <Label>الفئة الفرعية *</Label>
+                        <Select
+                          value={form.categoryId}
+                          onValueChange={handleSubcategoryChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="اختر الفئة الفرعية" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {subcategoryOptions.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
