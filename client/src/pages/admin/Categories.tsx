@@ -22,6 +22,17 @@ import {
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
+// Auto-generate a URL-friendly slug from Arabic text
+function autoSlug(text: string): string {
+  return text
+    .trim()
+    .replace(/\s+/g, "-") // Replace spaces with hyphens
+    .replace(/[^\w\u0600-\u06FF-]/g, "") // Keep only word chars, Arabic, and hyphens
+    .replace(/-+/g, "-") // Collapse multiple hyphens
+    .replace(/^-|-$/g, "") // Trim hyphens from start/end
+    .toLowerCase();
+}
+
 interface Category {
   _id: string;
   name: string;
@@ -221,7 +232,7 @@ export default function AdminCategories() {
   };
 
   const categorySelectOptions = categories
-    ? buildCategorySelectOptions(categories, editingCategory?._id)
+    ? buildCategorySelectOptions(categories, editingCategory?._id ?? null)
     : [];
 
   return (
@@ -272,7 +283,11 @@ export default function AdminCategories() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingCategory ? "تعديل الفئة" : "إضافة فئة جديدة"}
+              {editingCategory
+                ? "تعديل الفئة"
+                : form.parentId
+                  ? "إضافة فئة فرعية"
+                  : "إضافة فئة جديدة"}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
