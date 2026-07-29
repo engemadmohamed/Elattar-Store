@@ -31,27 +31,6 @@ interface Category {
   parentId: string | null;
 }
 
-// Helper function to build category options for the Select, with indentation
-const buildCategoryOptions = (
-  allCategories: Category[],
-  parentId: string | null = null,
-  level = 0,
-): { value: string; label: string }[] => {
-  let options: { value: string; label: string }[] = [];
-  const children = allCategories.filter((c) => c.parentId === parentId);
-
-  for (const category of children) {
-    options.push({
-      value: category._id,
-      label: `${"— ".repeat(level)}${category.nameAr}`,
-    });
-    options = options.concat(
-      buildCategoryOptions(allCategories, category._id, level + 1),
-    );
-  }
-  return options;
-};
-
 interface ExistingProduct {
   _id: string;
   name: string;
@@ -90,6 +69,7 @@ export default function AddProduct() {
     images: [] as string[],
     isActive: true,
   });
+  const [selectedMainCategory, setSelectedMainCategory] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [savedProductId, setSavedProductId] = useState<string | null>(null);
   const [savedProductSku, setSavedProductSku] = useState<string>("");
@@ -108,14 +88,44 @@ export default function AddProduct() {
       enabled: isEdit,
     });
 
-  // Generate a single list of hierarchical category options
-  const categoryOptions = categories ? buildCategoryOptions(categories) : [];
+  // Get only root categories (parentId === null) for the main dropdown
+  const mainCategoryOptions = categories
+    ? categories
+        .filter((c) => c.parentId === null)
+        .map((c) => ({ value: c._id, label: c.nameAr }))
+    : [];
+
+  // Get subcategories of the selected main category
+  const subcategoryOptions =
+    categories && selectedMainCategory
+      ? categories
+          .filter((c) => c.parentId === selectedMainCategory)
+          .map((c) => ({ value: c._id, label: c.nameAr }))
+      : [];
+
+  // When the main category changes, clear the subcategory selection
+  const handleMainCategoryChange = (value: string) => {
+    setSelectedMainCategory(value);
+    set("categoryId", ""); // Clear subcategory selection
+  };
+
+  // Handle subcategory selection
+  const handleSubcategoryChange = (value: string) => {
+    set("categoryId", value);
+  };
 
   useEffect(() => {
-    if (existingProduct && !formPopulated) {
+    if (existingProduct && categories && !formPopulated) {
+      const productCategoryId = existingProduct.categoryId._id;
       setSavedProductSku(existingProduct.sku);
 
-      // No longer need to find parent category, just set the final categoryId
+      // Find the selected category and its parent
+      const selectedCat = categories.find((c) => c._id === productCategoryId);
+      if (selectedCat && selectedCat.parentId) {
+        // It's a subcategory - pre-select the main category too
+        setSelectedMainCategory(selectedCat.parentId);
+      }
+
       setForm({
         name: existingProduct.name,
         nameAr: existingProduct.nameAr,
@@ -126,7 +136,7 @@ export default function AddProduct() {
           ? String(existingProduct.salePrice)
           : "",
         stock: String(existingProduct.stock),
-        categoryId: existingProduct.categoryId._id,
+        categoryId: productCategoryId,
         brand: existingProduct.brand || "",
         saleUnit: existingProduct.saleUnit || "piece",
         images: existingProduct.images || [],
@@ -134,7 +144,7 @@ export default function AddProduct() {
       });
       setFormPopulated(true);
     }
-  }, [existingProduct, formPopulated]);
+  }, [existingProduct, categories, formPopulated]);
 
   const set = (key: string, val: unknown) =>
     setForm((f) => ({ ...f, [key]: val as any }));
@@ -452,18 +462,18 @@ export default function AddProduct() {
                   <CardHeader>
                     <CardTitle className="text-base">الفئة</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-3">
                     <div>
-                      <Label>الفئة *</Label>
+                      <Label>الفئة الرئيسية *</Label>
                       <Select
-                        value={form.categoryId}
-                        onValueChange={(v) => set("categoryId", v)}
+                        value={selectedMainCategory}
+                        onValueChange={handleMainCategoryChange}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="اختر فئة المنتج" />
+                          <SelectValue placeholder="اختر الفئة الرئيسية" />
                         </SelectTrigger>
                         <SelectContent>
-                          {categoryOptions.map((opt) => (
+                          {mainCategoryOptions.map((opt) => (
                             <SelectItem key={opt.value} value={opt.value}>
                               {opt.label}
                             </SelectItem>
@@ -471,6 +481,26 @@ export default function AddProduct() {
                         </SelectContent>
                       </Select>
                     </div>
+                    {selectedMainCategory && subcategoryOptions.length > 0 && (
+                      <div>
+                        <Label>الفئة الفرعية</Label>
+                        <Select
+                          value={form.categoryId}
+                          onValueChange={handleSubcategoryChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="اختر الفئة الفرعية" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {subcategoryOptions.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
