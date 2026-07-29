@@ -24,7 +24,6 @@ import { useCustomerAuth } from "@/lib/customer-auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
-import ProductReviews from "@/components/ProductReviews";
 import RelatedProducts from "@/components/RelatedProducts";
 
 interface Product {
@@ -320,11 +319,6 @@ export default function ProductDetail() {
               رمز المنتج (SKU): {product.sku}
             </p>
           </div>
-        </div>
-
-        {/* Reviews */}
-        <div className="mt-12 max-w-2xl">
-          <ProductReviews productId={product._id} />
         </div>
 
         {/* Related products */}

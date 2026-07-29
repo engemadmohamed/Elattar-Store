@@ -48,6 +48,26 @@ interface ExistingProduct {
   isActive: boolean;
 }
 
+const buildCategoryOptions = (
+  categories: Category[],
+  parentId: string | null = null,
+  level = 0,
+): { value: string; label: string }[] => {
+  let options: { value: string; label: string }[] = [];
+  const children = categories.filter((c) => c.parentId === parentId);
+
+  for (const category of children) {
+    options.push({
+      value: category._id,
+      label: `${"— ".repeat(level)}${category.nameAr}`,
+    });
+    options = options.concat(
+      buildCategoryOptions(categories, category._id, level + 1),
+    );
+  }
+  return options;
+};
+
 export default function AddProduct() {
   const { id } = useParams<{ id?: string }>();
   const [, navigate] = useLocation();
@@ -72,7 +92,6 @@ export default function AddProduct() {
   const [imageUrl, setImageUrl] = useState("");
   const [savedProductId, setSavedProductId] = useState<string | null>(null);
   const [savedProductSku, setSavedProductSku] = useState<string>("");
-  const [categoryPath, setCategoryPath] = useState<string[]>([]);
   const [showQR, setShowQR] = useState(false);
   const [formPopulated, setFormPopulated] = useState(false);
 
@@ -88,26 +107,11 @@ export default function AddProduct() {
       enabled: isEdit,
     });
 
-  // Helper to find all ancestors of a category
-  const getCategoryAncestors = (
-    catId: string,
-    allCats: Category[],
-  ): string[] => {
-    const path: string[] = [];
-    let current: Category | undefined = allCats.find((c) => c._id === catId);
-    while (current) {
-      path.unshift(current._id);
-      current = allCats.find((c) => c.parentId && c._id === current?.parentId);
-    }
-    return path;
-  };
+  const categoryOptions = categories ? buildCategoryOptions(categories) : [];
 
   useEffect(() => {
     if (existingProduct && categories && !formPopulated) {
       const productCategoryId = existingProduct.categoryId._id;
-      // Reconstruct the category path from the product's category ID
-      const path = getCategoryAncestors(productCategoryId, categories);
-      setCategoryPath(path);
       setSavedProductSku(existingProduct.sku);
 
       setForm({
@@ -129,13 +133,6 @@ export default function AddProduct() {
       setFormPopulated(true);
     }
   }, [existingProduct, categories, formPopulated]);
-
-  // Update the final categoryId in the form whenever the path changes
-  useEffect(() => {
-    const finalCategoryId =
-      categoryPath.length > 0 ? categoryPath[categoryPath.length - 1] : "";
-    set("categoryId", finalCategoryId);
-  }, [categoryPath]);
 
   const set = (key: string, val: unknown) =>
     setForm((f) => ({ ...f, [key]: val as any }));
@@ -455,11 +452,22 @@ export default function AddProduct() {
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div>
-                      <CategorySelector
-                        categories={categories || []}
-                        path={categoryPath}
-                        onPathChange={setCategoryPath}
-                      />
+                      <Label>الفئة *</Label>
+                      <Select
+                        value={form.categoryId}
+                        onValueChange={(v) => set("categoryId", v)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر الفئة" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categoryOptions.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </CardContent>
                 </Card>
@@ -516,63 +524,6 @@ export default function AddProduct() {
           price={parseFloat(form.salePrice || form.price)}
           open={showQR}
           onClose={() => setShowQR(false)}
-        />
-      )}
-    </div>
-  );
-}
-
-interface CategorySelectorProps {
-  categories: Category[];
-  path: string[];
-  onPathChange: (newPath: string[]) => void;
-  level?: number;
-}
-
-function CategorySelector({
-  categories,
-  path,
-  onPathChange,
-  level = 0,
-}: CategorySelectorProps) {
-  const parentId = level === 0 ? null : path[level - 1];
-  const currentLevelCategories = categories.filter(
-    (c) => c.parentId === parentId,
-  );
-
-  if (currentLevelCategories.length === 0 && level > 0) {
-    return null;
-  }
-
-  const selectedValue = path[level] || "";
-
-  const handleValueChange = (value: string) => {
-    const newPath = [...path.slice(0, level), value];
-    onPathChange(newPath);
-  };
-
-  return (
-    <div className="space-y-3">
-      <Label>{level === 0 ? "الفئة الرئيسية *" : `فئة فرعية ${level}`}</Label>
-      <Select value={selectedValue} onValueChange={handleValueChange}>
-        <SelectTrigger>
-          <SelectValue placeholder={level === 0 ? "اختر الفئة" : "اختياري"} />
-        </SelectTrigger>
-        <SelectContent>
-          {currentLevelCategories.map((c) => (
-            <SelectItem key={c._id} value={c._id}>
-              {c.nameAr}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      {selectedValue && (
-        <CategorySelector
-          categories={categories}
-          path={path}
-          onPathChange={onPathChange}
-          level={level + 1}
         />
       )}
     </div>

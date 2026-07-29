@@ -130,7 +130,6 @@ export default function Shop() {
                   <SelectItem value="price_desc">السعر: الأعلى</SelectItem>
                   <SelectItem value="name">الاسم</SelectItem>
                   <SelectItem value="best_selling">الأكثر مبيعًا</SelectItem>
-                  <SelectItem value="top_rated">الأعلى تقييمًا</SelectItem>
                 </SelectContent>
               </Select>
             </div>

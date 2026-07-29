@@ -4,16 +4,11 @@ export default function Features() {
   return (
     <section className="border-t py-12 px-4 bg-background">
       <div className="mx-auto max-w-7xl">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { icon: Truck, title: "توصيل سريع", desc: "خلال 2-3 أيام عمل" },
             { icon: Shield, title: "ضمان الجودة", desc: "منتجات أصلية 100%" },
             { icon: RefreshCw, title: "إرجاع مجاني", desc: "خلال 7 أيام" },
-            {
-              icon: Star,
-              title: "تقييم ممتاز",
-              desc: "آلاف العملاء الراضين",
-            },
           ].map((f) => (
             <div
               key={f.title}
