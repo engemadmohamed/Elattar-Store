@@ -92,9 +92,13 @@ export default function Contact() {
                 </div>
                 <div>
                   <p className="text-sm font-medium">اتصل بنا</p>
-                  <p className="text-sm text-muted-foreground" dir="ltr">
+                  <a
+                    href="tel:+201098154983"
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    dir="ltr"
+                  >
                     +20 10 98154983
-                  </p>
+                  </a>
                 </div>
               </CardContent>
             </Card>
@@ -118,9 +122,15 @@ export default function Contact() {
                 </div>
                 <div>
                   <p className="text-sm font-medium">واتساب</p>
-                  <p className="text-sm text-muted-foreground" dir="ltr">
+                  <a
+                    href="https://wa.me/201098154983"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    dir="ltr"
+                  >
                     +20 10 98154983
-                  </p>
+                  </a>
                 </div>
               </CardContent>
             </Card>

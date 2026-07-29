@@ -9,6 +9,7 @@ import {
   Search,
   ToggleLeft,
   ToggleRight,
+  AlertTriangle,
 } from "lucide-react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { ADMIN_BASE } from "@/lib/admin-path";
 import QRModal from "@/components/QRModal";
 import { apiRequest } from "@/lib/queryClient";
@@ -48,6 +57,7 @@ export default function AdminProducts() {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
   const [qrProduct, setQrProduct] = useState<Product | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["/api/products/admin/all", search],
@@ -75,8 +85,7 @@ export default function AdminProducts() {
   });
 
   const handleDelete = (product: Product) => {
-    if (!confirm(`هل أنت متأكد من حذف "${product.nameAr}"؟`)) return;
-    deleteMutation.mutate(product._id);
+    setDeleteTarget(product);
   };
 
   return (
@@ -253,6 +262,44 @@ export default function AdminProducts() {
           </Table>
         </div>
       </main>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" /> حذف المنتج
+            </DialogTitle>
+            <DialogDescription className="text-right pt-2">
+              هل أنت متأكد من حذف "<strong>{deleteTarget?.nameAr}</strong>"؟
+              <br />
+              هذا الإجراء لا يمكن التراجع عنه.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-row gap-2 sm:gap-2">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setDeleteTarget(null)}
+            >
+              إلغاء
+            </Button>
+            <Button
+              variant="destructive"
+              className="flex-1"
+              disabled={deleteMutation.isPending}
+              onClick={() => {
+                if (deleteTarget) {
+                  deleteMutation.mutate(deleteTarget._id);
+                  setDeleteTarget(null);
+                }
+              }}
+            >
+              {deleteMutation.isPending ? "جاري الحذف..." : "تأكيد الحذف"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* QR Modal */}
       {qrProduct && (

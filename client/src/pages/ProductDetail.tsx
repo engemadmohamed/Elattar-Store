@@ -114,6 +114,14 @@ export default function ProductDetail() {
       navigate("/login");
       return;
     }
+    if (!inStock) {
+      toast({
+        title: "المنتج غير متوفر",
+        description: "عذراً، هذا المنتج نفد من المخزون حالياً",
+        variant: "destructive",
+      });
+      return;
+    }
     for (let i = 0; i < qty; i++) {
       addItem({
         productId: product._id,

@@ -57,7 +57,9 @@ export default function Footer() {
                 <Instagram className="h-4 w-4" />
               </a>
               <a
-                href="#"
+                href="https://wa.me/201098154983"
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="واتساب"
                 className="h-8 w-8 rounded-full bg-background border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/50 hover:-translate-y-0.5 transition-all duration-200"
               >
@@ -90,7 +92,13 @@ export default function Footer() {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-center gap-2">
                 <Phone className="h-3.5 w-3.5 shrink-0" />
-                <span dir="ltr">+20 10 98154983</span>
+                <a
+                  href="tel:+201098154983"
+                  dir="ltr"
+                  className="hover:text-primary transition-colors"
+                >
+                  +20 10 98154983
+                </a>
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="h-3.5 w-3.5 shrink-0" />
