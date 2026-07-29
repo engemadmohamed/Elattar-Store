@@ -31,6 +31,26 @@ interface Category {
   parentId: string | null;
 }
 
+// Helper function to find the path to a category from root to child
+const findCategoryPath = (
+  allCategories: Category[],
+  categoryId: string,
+): string[] => {
+  const path: string[] = [];
+  let currentId: string | null = categoryId;
+
+  while (currentId) {
+    const category = allCategories.find((c) => c._id === currentId);
+    if (category) {
+      path.unshift(category._id);
+      currentId = category.parentId;
+    } else {
+      currentId = null; // Category not found, break loop
+    }
+  }
+  return path;
+};
+
 interface ExistingProduct {
   _id: string;
   name: string;
@@ -69,7 +89,7 @@ export default function AddProduct() {
     images: [] as string[],
     isActive: true,
   });
-  const [selectedMainCategory, setSelectedMainCategory] = useState("");
+  const [categoryChain, setCategoryChain] = useState<string[]>([]);
   const [imageUrl, setImageUrl] = useState("");
   const [savedProductId, setSavedProductId] = useState<string | null>(null);
   const [savedProductSku, setSavedProductSku] = useState<string>("");
@@ -88,30 +108,20 @@ export default function AddProduct() {
       enabled: isEdit,
     });
 
-  // Get only root categories (parentId === null) for the main dropdown
-  const mainCategoryOptions = categories
-    ? categories
-        .filter((c) => c.parentId === null)
-        .map((c) => ({ value: c._id, label: c.nameAr }))
-    : [];
+  const handleCategoryChange = (level: number, value: string) => {
+    // Truncate the chain at the current level
+    const newChain = categoryChain.slice(0, level);
+    // Add the new value if it's not empty
+    if (value) {
+      newChain.push(value);
+    }
+    setCategoryChain(newChain);
 
-  // Get subcategories of the selected main category
-  const subcategoryOptions =
-    categories && selectedMainCategory
-      ? categories
-          .filter((c) => c.parentId === selectedMainCategory)
-          .map((c) => ({ value: c._id, label: c.nameAr }))
-      : [];
-
-  // When the main category changes, clear the subcategory selection
-  const handleMainCategoryChange = (value: string) => {
-    setSelectedMainCategory(value);
-    set("categoryId", ""); // Clear subcategory selection
-  };
-
-  // Handle subcategory selection
-  const handleSubcategoryChange = (value: string) => {
-    set("categoryId", value);
+    // The form's categoryId is the last selected category in the chain.
+    // If the user selects the placeholder, the categoryId becomes the parent's ID.
+    const finalCategoryId =
+      newChain.length > 0 ? newChain[newChain.length - 1] : "";
+    set("categoryId", finalCategoryId);
   };
 
   useEffect(() => {
@@ -119,12 +129,9 @@ export default function AddProduct() {
       const productCategoryId = existingProduct.categoryId._id;
       setSavedProductSku(existingProduct.sku);
 
-      // Find the selected category and its parent
-      const selectedCat = categories.find((c) => c._id === productCategoryId);
-      if (selectedCat && selectedCat.parentId) {
-        // It's a subcategory - pre-select the main category too
-        setSelectedMainCategory(selectedCat.parentId);
-      }
+      // Find the full path for the category and set the chain
+      const path = findCategoryPath(categories, productCategoryId);
+      setCategoryChain(path);
 
       setForm({
         name: existingProduct.name,
@@ -463,44 +470,72 @@ export default function AddProduct() {
                     <CardTitle className="text-base">الفئة</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <div>
-                      <Label>الفئة الرئيسية *</Label>
-                      <Select
-                        value={selectedMainCategory}
-                        onValueChange={handleMainCategoryChange}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="اختر الفئة الرئيسية" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {mainCategoryOptions.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    {selectedMainCategory && subcategoryOptions.length > 0 && (
-                      <div>
-                        <Label>الفئة الفرعية</Label>
-                        <Select
-                          value={form.categoryId}
-                          onValueChange={handleSubcategoryChange}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="اختر الفئة الفرعية" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {subcategoryOptions.map((opt) => (
-                              <SelectItem key={opt.value} value={opt.value}>
-                                {opt.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
+                    {(() => {
+                      if (!categories)
+                        return <Skeleton className="h-10 w-full" />;
+
+                      const dropdowns = [];
+
+                      // Level 0 dropdown (root categories)
+                      const rootCategories = categories.filter(
+                        (c) => c.parentId === null,
+                      );
+                      dropdowns.push(
+                        <div key="level-0">
+                          <Label>الفئة الرئيسية *</Label>
+                          <Select
+                            value={categoryChain[0] || ""}
+                            onValueChange={(value) =>
+                              handleCategoryChange(0, value)
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="اختر الفئة الرئيسية" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {rootCategories.map((opt) => (
+                                <SelectItem key={opt._id} value={opt._id}>
+                                  {opt.nameAr}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>,
+                      );
+
+                      // Subsequent dropdowns for subcategories
+                      categoryChain.forEach((catId, i) => {
+                        const subcategories = categories.filter(
+                          (c) => c.parentId === catId,
+                        );
+                        if (subcategories.length > 0) {
+                          dropdowns.push(
+                            <div key={`level-${i + 1}`}>
+                              <Label>فئة فرعية</Label>
+                              <Select
+                                value={categoryChain[i + 1] || ""}
+                                onValueChange={(value) =>
+                                  handleCategoryChange(i + 1, value)
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="اختر فئة فرعية" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {subcategories.map((opt) => (
+                                    <SelectItem key={opt._id} value={opt._id}>
+                                      {opt.nameAr}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>,
+                          );
+                        }
+                      });
+
+                      return dropdowns;
+                    })()}
                   </CardContent>
                 </Card>
 
