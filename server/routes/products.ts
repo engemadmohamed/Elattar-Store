@@ -173,7 +173,10 @@ router.post("/", requireAuth, async (req: Request, res: Response) => {
     product.qrCode = qrDataUrl;
     await product.save();
 
-    return res.status(201).json(product);
+    // Repopulate to match the PUT/GET response structure for the client cache
+    const populatedProduct = await Product.findById(product._id).populate("categoryId", "name nameAr slug");
+
+    return res.status(201).json(populatedProduct);
   } catch (error) {
     console.error(error);
     if (error instanceof mongoose.Error.ValidationError) {
