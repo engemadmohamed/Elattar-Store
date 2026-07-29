@@ -40,7 +40,6 @@ export default function AdminCategories() {
   const [form, setForm] = useState({
     name: "",
     nameAr: "",
-    slug: "",
     icon: "📦",
     parentId: "",
   });
@@ -52,7 +51,7 @@ export default function AdminCategories() {
 
   const resetFormAndState = () => {
     setEditingCategory(null);
-    setForm({ name: "", nameAr: "", slug: "", icon: "📦", parentId: "" });
+    setForm({ name: "", nameAr: "", icon: "📦", parentId: "" });
   };
 
   const createMutation = useMutation({
@@ -112,11 +111,6 @@ export default function AdminCategories() {
   });
 
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
-  const autoSlug = (ar: string) =>
-    ar
-      .toLowerCase()
-      .replace(/\s+/g, "-")
-      .replace(/[^\w-]/g, "");
 
   const handleAddClick = () => {
     resetFormAndState();
@@ -128,7 +122,6 @@ export default function AdminCategories() {
     setForm({
       name: category.name,
       nameAr: category.nameAr,
-      slug: category.slug,
       icon: category.icon,
       parentId: category.parentId || "",
     });
@@ -289,17 +282,8 @@ export default function AdminCategories() {
                   const val = e.target.value;
                   set("nameAr", val);
                   set("name", val); // Keep for compatibility
-                  set("slug", autoSlug(val));
                 }}
                 required
-              />
-            </div>
-            <div>
-              <Label>الأيقونة (اختياري)</Label>
-              <Input
-                value={form.icon}
-                onChange={(e) => set("icon", e.target.value)}
-                placeholder="ادخل رمز تعبيري (emoji) مثل 📦"
               />
             </div>
             {/* Show parent category selection only when editing an existing category */}
