@@ -185,6 +185,41 @@ export default function AdminCategories() {
     return descendants;
   };
 
+  // Helper function to build category options for the Select,
+  // excluding the current category being edited and its descendants.
+  const buildCategorySelectOptions = (
+    allCategories: Category[],
+    excludeId: string | null, // The ID of the category being edited
+    parentId: string | null = null,
+    level = 0,
+  ): { value: string; label: string }[] => {
+    let options: { value: string; label: string }[] = [];
+    const children = allCategories.filter((c) => c.parentId === parentId);
+
+    // Get all IDs to exclude (the category itself and its descendants)
+    const excludedFromSelection = excludeId ? [excludeId, ...getDescendants(excludeId)] : [];
+
+    for (const category of children) {
+      // If this category is the one being edited or one of its descendants, skip it.
+      if (excludedFromSelection.includes(category._id)) {
+        continue;
+      }
+
+      options.push({
+        value: category._id,
+        label: `${"— ".repeat(level)}${category.nameAr}`,
+      });
+      options = options.concat(
+        buildCategorySelectOptions(allCategories, excludeId, category._id, level + 1),
+      );
+    }
+    return options;
+  };
+
+  const categorySelectOptions = categories
+    ? buildCategorySelectOptions(categories, editingCategory?._id)
+    : [];
+
   return (
     <div className="flex min-h-screen">
       <AdminSidebar />
@@ -249,6 +284,25 @@ export default function AdminCategories() {
                 }}
                 required
               />
+            </div>
+            <div>
+              <Label>الفئة الأم (اختياري)</Label>
+              <Select
+                value={form.parentId}
+                onValueChange={(v) => set("parentId", v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="فئة رئيسية" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">فئة رئيسية</SelectItem> {/* Option for top-level category */}
+                  {categorySelectOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <Button
               type="submit"
