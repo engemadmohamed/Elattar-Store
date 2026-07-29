@@ -40,7 +40,8 @@ export default function AdminCategories() {
   const [form, setForm] = useState({
     name: "",
     nameAr: "",
-    icon: "📦",
+    slug: "", // Add slug to form state
+    icon: "📦", // Keep icon in form state with default, but not in UI
     parentId: "",
   });
 
@@ -51,7 +52,7 @@ export default function AdminCategories() {
 
   const resetFormAndState = () => {
     setEditingCategory(null);
-    setForm({ name: "", nameAr: "", icon: "📦", parentId: "" });
+    setForm({ name: "", nameAr: "", slug: "", icon: "📦", parentId: "" }); // Reset slug
   };
 
   const createMutation = useMutation({
@@ -122,6 +123,7 @@ export default function AdminCategories() {
     setForm({
       name: category.name,
       nameAr: category.nameAr,
+      slug: category.slug, // Populate slug when editing
       icon: category.icon,
       parentId: category.parentId || "",
     });
@@ -282,6 +284,7 @@ export default function AdminCategories() {
                   const val = e.target.value;
                   set("nameAr", val);
                   set("name", val); // Keep for compatibility
+                  set("slug", autoSlug(val)); // Generate slug
                 }}
                 required
               />
