@@ -160,11 +160,6 @@ router.post("/", requireAuth, async (req: Request, res: Response) => {
   try {
     const data = req.body;
 
-    // --- DEBUG LOGGING START ---
-    console.log("Received create product request with data:");
-    console.log(data);
-    // --- DEBUG LOGGING END ---
-
     // Check SKU uniqueness
     const existing = await Product.findOne({ sku: data.sku });
     if (existing) return res.status(400).json({ message: "SKU already exists" });
@@ -177,8 +172,6 @@ router.post("/", requireAuth, async (req: Request, res: Response) => {
     const qrDataUrl = await QRCode.toDataURL(productUrl, { width: 300, margin: 2 });
     product.qrCode = qrDataUrl;
     await product.save();
-
-    console.log("Saved new product to DB:", product); // --- DEBUG LOGGING
 
     // Repopulate to match the PUT/GET response structure for the client cache
     const populatedProduct = await Product.findById(product._id).populate("categoryId", "name nameAr slug");
@@ -197,16 +190,8 @@ router.post("/", requireAuth, async (req: Request, res: Response) => {
 // Update product (admin only)
 router.put("/:id", requireAuth, async (req: Request, res: Response) => {
   try {
-    // --- DEBUG LOGGING START ---
-    console.log("Received update request for product:", req.params.id);
-    console.log("Request body:", req.body);
-    // --- DEBUG LOGGING END ---
-
     const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }).populate("categoryId", "name nameAr slug");
     if (!product) return res.status(404).json({ message: "Product not found" });
-
-    console.log("Updated product from DB:", product); // --- DEBUG LOGGING
-
     return res.json(product);
   } catch (error) {
     console.error(error);
