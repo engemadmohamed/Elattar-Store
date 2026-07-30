@@ -13,7 +13,6 @@ interface InvoiceOrder {
   orderNumber: string;
   customerName: string;
   customerPhone: string;
-  customerEmail: string;
   customerEmail?: string;
   items: Array<{ nameAr: string; price: number; quantity: number }>;
   subtotal: number;
