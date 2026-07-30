@@ -120,7 +120,7 @@ router.get("/customers/summary", requireAuth, async (req: Request, res: Response
     const summary = await Order.aggregate([
       {
         $group: {
-          _id: "$customerEmail",
+          _id: "$customerPhone",
           customerName: { $last: "$customerName" },
           customerPhone: { $last: "$customerPhone" },
           ordersCount: { $sum: 1 },
@@ -137,10 +137,10 @@ router.get("/customers/summary", requireAuth, async (req: Request, res: Response
   }
 });
 
-// Admin: all orders (invoices) for one customer, by email
-router.get("/customers/:email", requireAuth, async (req: Request, res: Response) => {
+// Admin: all orders (invoices) for one customer, by phone
+router.get("/customers/:phone", requireAuth, async (req: Request, res: Response) => {
   try {
-    const orders = await Order.find({ customerEmail: req.params.email }).sort({ createdAt: -1 });
+    const orders = await Order.find({ customerPhone: req.params.phone }).sort({ createdAt: -1 });
     return res.json(orders);
   } catch (error) {
     console.error(error);
@@ -154,8 +154,8 @@ router.put("/my-orders/:id/cancel", requireCustomerAuth, async (req: CustomerAut
     const order = await Order.findOne({ _id: req.params.id, customerId: req.customerId });
     if (!order) return res.status(404).json({ message: "الطلب غير موجود" });
 
-    if (["shipped", "delivered", "cancelled"].includes(order.status)) {
-      return res.status(400).json({ message: "لا يمكن إلغاء الطلب بعد شحنه أو تسليمه" });
+    if (["delivered", "cancelled"].includes(order.status)) {
+      return res.status(400).json({ message: "لا يمكن إلغاء هذا الطلب حالياً" });
     }
 
     // Restock items
@@ -164,6 +164,7 @@ router.put("/my-orders/:id/cancel", requireCustomerAuth, async (req: CustomerAut
     }
 
     order.status = "cancelled";
+    (order as any).cancelledBy = "customer";
     await order.save();
     return res.json(order);
   } catch (error) {
@@ -192,10 +193,32 @@ router.put("/:id/status", requireAuth, async (req: Request, res: Response) => {
     if (paymentStatus) update.paymentStatus = paymentStatus;
     if (trackingNumber) update["shipping.trackingNumber"] = trackingNumber;
 
+    if (status === "cancelled") {
+      update.cancelledBy = "admin";
+    }
+
     const order = await Order.findByIdAndUpdate(req.params.id, update, { new: true });
     if (!order) return res.status(404).json({ message: "Order not found" });
     return res.json(order);
-  } catch {
+  } catch (error) {
+    console.error("Error updating order status:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Admin: Mark an order as refunded (admin only)
+router.put("/:id/refund", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { refundScreenshotUrl } = req.body;
+    if (!refundScreenshotUrl) {
+      return res.status(400).json({ message: "صورة إثبات التحويل مطلوبة" });
+    }
+    const update = { refundStatus: "refunded", refundScreenshotUrl };
+    const order = await Order.findByIdAndUpdate(req.params.id, update, { new: true });
+    if (!order) return res.status(404).json({ message: "Order not found" });
+    return res.json(order);
+  } catch (error) {
+    console.error("Error refunding order:", error);
     return res.status(500).json({ message: "Server error" });
   }
 });

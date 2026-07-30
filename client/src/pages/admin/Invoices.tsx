@@ -21,7 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import InvoicePrint from "@/components/InvoicePrint";
 
 interface CustomerSummary {
-  _id: string; // email
+  _id: string; // phone number
   customerName: string;
   customerPhone: string;
   ordersCount: number;
@@ -70,7 +70,7 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function AdminInvoices() {
-  const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
+  const [selectedPhone, setSelectedPhone] = useState<string | null>(null);
   const [invoiceOrder, setInvoiceOrder] = useState<Order | null>(null);
   const [orderSearch, setOrderSearch] = useState("");
   const { toast } = useToast();
@@ -81,13 +81,13 @@ export default function AdminInvoices() {
   });
 
   const { data: customerOrders, isLoading: ordersLoading } = useQuery<Order[]>({
-    queryKey: ["/api/orders/customers", selectedEmail],
+    queryKey: ["/api/orders/customers", selectedPhone],
     queryFn: () =>
       apiRequest(
         "GET",
-        `/api/orders/customers/${encodeURIComponent(selectedEmail!)}`,
+        `/api/orders/customers/${encodeURIComponent(selectedPhone!)}`,
       ),
-    enabled: !!selectedEmail,
+    enabled: !!selectedPhone,
   });
 
   const searchMutation = useMutation({
@@ -113,31 +113,31 @@ export default function AdminInvoices() {
     if (orderSearch.trim()) searchMutation.mutate(orderSearch.trim());
   };
 
-  const selectedCustomer = customers?.find((c) => c._id === selectedEmail);
+  const selectedCustomer = customers?.find((c) => c._id === selectedPhone);
 
   return (
     <div className="flex min-h-screen">
       <AdminSidebar />
       <main className="flex-1 p-6 overflow-auto">
         <div className="flex items-center gap-3 mb-6">
-          {selectedEmail && (
+          {selectedPhone && (
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setSelectedEmail(null)}
+              onClick={() => setSelectedPhone(null)}
             >
               <ArrowRight className="h-4 w-4" />
             </Button>
           )}
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Receipt className="h-5 w-5" />
-            {selectedEmail
-              ? `فواتير ${selectedCustomer?.customerName || selectedCustomer?.customerPhone}`
+            {selectedPhone
+              ? `فواتير ${selectedCustomer?.customerName || selectedPhone}`
               : "فواتير العملاء"}
           </h1>
         </div>
 
-        {!selectedEmail ? (
+        {!selectedPhone ? (
           <>
             <form
               onSubmit={handleSearch}
@@ -180,7 +180,7 @@ export default function AdminInvoices() {
                         <TableRow
                           key={c._id}
                           className="cursor-pointer"
-                          onClick={() => setSelectedEmail(c._id)}
+                          onClick={() => setSelectedPhone(c._id)}
                         >
                           <TableCell>
                             <p className="font-medium text-sm">
