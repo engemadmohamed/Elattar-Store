@@ -414,8 +414,8 @@ export default function AdminCategories() {
             <DialogDescription className="text-right pt-2">
               هل أنت متأكد من حذف "<strong>{deleteTarget?.nameAr}</strong>"؟
               <br />
-              سيتم حذف أي فئات فرعية تابعة لها أيضًا. هذا الإجراء لا يمكن
-              التراجع عنه.
+              سيتم حذف جميع الفئات الفرعية و **جميع المنتجات** داخل هذه الفئة
+              والفئات الفرعية. هذا الإجراء لا يمكن التراجع عنه.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-row gap-2 sm:gap-2">
