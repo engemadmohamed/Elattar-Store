@@ -16,7 +16,7 @@ function generateOrderNumber(): string {
 // Create order (public - customer checkout, optionally linked to a logged-in customer)
 router.post("/", attachCustomerIfPresent, async (req: CustomerAuthRequest, res: Response) => {
   try {
-    const { customerName, customerEmail, customerPhone, items, shipping, paymentMethod, notes } = req.body;
+    const { customerName, customerEmail, customerPhone, items, shipping, paymentMethod, notes, customerLibraryName, customerLibraryLocation, transferScreenshotUrl } = req.body;
 
     if (!items || items.length === 0) {
       return res.status(400).json({ message: "Order must have at least one item" });
@@ -59,11 +59,14 @@ router.post("/", attachCustomerIfPresent, async (req: CustomerAuthRequest, res: 
       customerName,
       customerEmail,
       customerPhone,
+      customerLibraryName,
+      customerLibraryLocation,
       items: orderItems,
       subtotal,
       shippingCost,
       total,
       paymentMethod: paymentMethod || "cash_on_delivery",
+      transferScreenshotUrl,
       shipping,
       notes,
     });

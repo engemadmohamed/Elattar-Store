@@ -60,6 +60,8 @@ interface Order {
     trackingNumber?: string;
   };
   createdAt: string;
+  customerLibraryName?: string;
+  customerLibraryLocation?: string;
 }
 
 const statusLabels: Record<string, string> = {

@@ -1,9 +1,29 @@
 import { Router, Request, Response, NextFunction } from "express";
 import multer from "multer";
-import { requireAuth } from "../middleware/auth.js";
+import jwt from "jsonwebtoken";
 import { cloudinary, configureCloudinary, isCloudinaryConfigured } from "../lib/cloudinary.js";
 
 const router = Router();
+
+const checkAuth = (req: Request, res: Response, next: NextFunction) => {
+  const adminToken = req.headers.authorization?.split(" ")[1];
+  const customerToken = req.headers["x-customer-token"] as string;
+  const JWT_SECRET = process.env.JWT_SECRET;
+
+  if (!JWT_SECRET) {
+    return res.status(500).json({ message: "JWT Secret not configured" });
+  }
+
+  try {
+    if (adminToken) jwt.verify(adminToken, JWT_SECRET);
+    else if (customerToken) jwt.verify(customerToken, JWT_SECRET);
+    else return res.status(401).json({ message: "Unauthorized: No token provided" });
+
+    return next();
+  } catch (e) {
+    return res.status(401).json({ message: "Unauthorized: Invalid token" });
+  }
+};
 
 // Images are uploaded to memory first, then streamed straight to Cloudinary
 // (or, if Cloudinary isn't configured, saved to local disk as a fallback —
@@ -47,7 +67,7 @@ function uploadErrorHandler(err: unknown, _req: Request, res: Response, next: Ne
   next(err);
 }
 
-router.post("/image", requireAuth, upload.single("image"), uploadErrorHandler, async (req: Request, res: Response) => {
+router.post("/image", checkAuth, upload.single("image"), uploadErrorHandler, async (req: Request, res: Response) => {
   if (!req.file) {
     return res.status(400).json({ message: "لم يتم إرسال أي صورة" });
   }
