@@ -47,10 +47,10 @@ export default function Home() {
           <div className="max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="inline-flex items-center gap-2 rounded-full border bg-background/80 px-3 py-1 text-sm text-primary mb-4 shadow-sm">
               <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-              شركة العطار للأدوات المكتبية
+              شركة المهندس للأدوات المكتبية
             </div>
             <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4 leading-tight">
-              <span className="text-primary">Al Attar</span>
+              <span className="text-primary">Al Mohandes</span>
               <br />
               نصنع الجودة ونكسب الثقة{" "}
             </h1>

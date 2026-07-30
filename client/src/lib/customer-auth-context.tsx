@@ -16,7 +16,7 @@ interface CustomerAuthContextType {
   logout: () => void;
 }
 
-const TOKEN_KEY = "el-attar-customer-token";
+const TOKEN_KEY = "al-mohandes-customer-token";
 
 const CustomerAuthContext = createContext<CustomerAuthContextType>({
   customer: null,

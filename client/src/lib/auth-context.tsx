@@ -29,22 +29,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("el-attar-token");
+    const token = localStorage.getItem("al-mohandes-token");
     if (!token) { setIsLoading(false); return; }
     apiRequest<Admin>("GET", "/api/auth/me")
       .then((data) => setAdmin(data))
-      .catch(() => localStorage.removeItem("el-attar-token"))
+      .catch(() => localStorage.removeItem("al-mohandes-token"))
       .finally(() => setIsLoading(false));
   }, []);
 
   const login = async (email: string, password: string) => {
     const data = await apiRequest<{ token: string; admin: Admin }>("POST", "/api/auth/login", { email, password });
-    localStorage.setItem("el-attar-token", data.token);
+    localStorage.setItem("al-mohandes-token", data.token);
     setAdmin(data.admin);
   };
 
   const logout = () => {
-    localStorage.removeItem("el-attar-token");
+    localStorage.removeItem("al-mohandes-token");
     setAdmin(null);
   };
 

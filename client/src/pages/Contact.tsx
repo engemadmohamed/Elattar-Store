@@ -110,7 +110,7 @@ export default function Contact() {
                 <div>
                   <p className="text-sm font-medium">البريد الإلكتروني</p>
                   <p className="text-sm text-muted-foreground">
-                    support@elattar.com
+                    support@almohandes.com
                   </p>
                 </div>
               </CardContent>

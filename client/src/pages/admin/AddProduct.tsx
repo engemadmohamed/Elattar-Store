@@ -171,7 +171,7 @@ export default function AddProduct() {
     setUploading(true);
     const formData = new FormData();
     formData.append("image", file);
-    const token = localStorage.getItem("el-attar-token");
+    const token = localStorage.getItem("al-mohandes-token");
     try {
       const res = await fetch("/api/upload/image", {
         method: "POST",

@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
 import { Printer, Download, X, QrCode } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 interface Props {
@@ -12,14 +17,23 @@ interface Props {
   onClose: () => void;
 }
 
-export default function QRModal({ productId, productName, productSku, price, open, onClose }: Props) {
-  const [qrData, setQrData] = useState<{ qrCode: string; url: string } | null>(null);
+export default function QRModal({
+  productId,
+  productName,
+  productSku,
+  price,
+  open,
+  onClose,
+}: Props) {
+  const [qrData, setQrData] = useState<{ qrCode: string; url: string } | null>(
+    null,
+  );
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!open || !productId) return;
     setLoading(true);
-    const token = localStorage.getItem("el-attar-token");
+    const token = localStorage.getItem("al-mohandes-token");
     fetch(`/api/products/${productId}/qr`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
@@ -50,7 +64,7 @@ export default function QRModal({ productId, productName, productSku, price, ope
       </head>
       <body>
         <div class="label">
-          <div class="store">El Attar | العطار</div>
+          <div class="store">Al Mohandes | المهندس</div>
           <img src="${qrData.qrCode}" alt="QR Code" />
           <div class="product-name">${productName}</div>
           <div class="sku">SKU: ${productSku}</div>
@@ -62,7 +76,10 @@ export default function QRModal({ productId, productName, productSku, price, ope
     `);
     printWindow.document.close();
     printWindow.focus();
-    setTimeout(() => { printWindow.print(); printWindow.close(); }, 500);
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 500);
   };
 
   const handleDownload = () => {
@@ -93,19 +110,28 @@ export default function QRModal({ productId, productName, productSku, price, ope
               </div>
               <div className="text-center space-y-1">
                 <p className="text-sm font-medium">{productName}</p>
-                <p className="text-xs text-muted-foreground">SKU: {productSku}</p>
-                <p className="text-xs text-muted-foreground break-all">{qrData.url}</p>
+                <p className="text-xs text-muted-foreground">
+                  SKU: {productSku}
+                </p>
+                <p className="text-xs text-muted-foreground break-all">
+                  {qrData.url}
+                </p>
               </div>
               <div className="flex gap-2 w-full">
                 <Button onClick={handlePrint} className="flex-1 gap-2">
                   <Printer className="h-4 w-4" /> طباعة
                 </Button>
-                <Button variant="outline" onClick={handleDownload} className="flex-1 gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleDownload}
+                  className="flex-1 gap-2"
+                >
                   <Download className="h-4 w-4" /> تحميل
                 </Button>
               </div>
               <p className="text-xs text-center text-muted-foreground">
-                ضع هذا الكود على كرتونة المنتج. عند مسحه سيفتح صفحة المنتج للشراء.
+                ضع هذا الكود على كرتونة المنتج. عند مسحه سيفتح صفحة المنتج
+                للشراء.
               </p>
             </>
           ) : (

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useSearch, Link, useLocation } from "wouter";
-import { SlidersHorizontal, X } from "lucide-react";
+import { SlidersHorizontal, Lock } from "lucide-react";
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +33,7 @@ interface Category {
   nameAr: string;
   slug: string;
   icon: string;
+  isActive: boolean;
   parentId: string | null;
 }
 
@@ -89,7 +90,10 @@ export default function Shop() {
     queryKey: ["/api/products", categorySlug, searchParam, sort, page, onSale],
     queryFn: () => apiRequest("GET", `/api/products?${queryParams}`),
     // Only fetch products if we are not showing subcategories
-    enabled: !!categories && !showSubcategories,
+    enabled:
+      !!categories &&
+      !showSubcategories &&
+      (selectedCategory ? selectedCategory.isActive : true),
   });
 
   const title = searchParam
@@ -170,7 +174,17 @@ export default function Shop() {
                             : "outline"
                         }
                         size="sm"
+                        disabled={
+                          index === breadcrumbs.length - 1 && !crumb.isActive
+                        }
+                        className={
+                          index === breadcrumbs.length - 1 && !crumb.isActive
+                            ? "opacity-50"
+                            : ""
+                        }
                       >
+                        {index === breadcrumbs.length - 1 &&
+                          !crumb.isActive && <Lock className="h-3 w-3 ml-1" />}
                         {crumb.nameAr}
                       </Button>
                     </Link>
@@ -180,13 +194,25 @@ export default function Shop() {
             ) : (
               categories
                 .filter((c) => !c.parentId)
-                .map((cat) => (
-                  <Link key={cat._id} href={`/shop?category=${cat.slug}`}>
-                    <Button variant="outline" size="sm">
-                      {cat.nameAr}
+                .map((cat) =>
+                  cat.isActive ? (
+                    <Link key={cat._id} href={`/shop?category=${cat.slug}`}>
+                      <Button variant="outline" size="sm">
+                        {cat.nameAr}
+                      </Button>
+                    </Link>
+                  ) : (
+                    <Button
+                      key={cat._id}
+                      variant="outline"
+                      size="sm"
+                      disabled
+                      className="opacity-50 pointer-events-none"
+                    >
+                      <Lock className="h-3 w-3 ml-1" /> {cat.nameAr}
                     </Button>
-                  </Link>
-                ))
+                  ),
+                )
             )}
           </div>
         )}
@@ -200,17 +226,36 @@ export default function Shop() {
           </div>
         ) : showSubcategories ? (
           <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-12 gap-3">
-            {subcategories.map((cat) => (
-              <Link key={cat._id} href={`/shop?category=${cat.slug}`}>
-                <Card className="group hover:shadow-lg hover:-translate-y-1 hover:border-primary/50 transition-all duration-300 cursor-pointer h-full">
-                  <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full min-h-[100px]">
+            {subcategories.map((cat) => {
+              const cardContent = (
+                <Card
+                  className={`group transition-all duration-300 h-full ${
+                    cat.isActive
+                      ? "hover:shadow-lg hover:-translate-y-1 hover:border-primary/50 cursor-pointer"
+                      : "opacity-50 bg-muted/50"
+                  }`}
+                >
+                  <CardContent className="relative p-4 flex flex-col items-center justify-center text-center h-full min-h-[100px]">
+                    {!cat.isActive && (
+                      <Lock className="absolute top-2 right-2 h-3.5 w-3.5 text-muted-foreground" />
+                    )}
                     <p className="text-sm font-medium leading-tight">
                       {cat.nameAr}
                     </p>
                   </CardContent>
                 </Card>
-              </Link>
-            ))}
+              );
+
+              return cat.isActive ? (
+                <Link key={cat._id} href={`/shop?category=${cat.slug}`}>
+                  {cardContent}
+                </Link>
+              ) : (
+                <div key={cat._id} className="pointer-events-none">
+                  {cardContent}
+                </div>
+              );
+            })}
           </div>
         ) : isLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">

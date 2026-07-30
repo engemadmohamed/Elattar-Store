@@ -413,27 +413,6 @@ export default function AdminOrders() {
                 </div>
               </div>
               <Separator />
-              <div>
-                <p className="text-sm font-medium mb-2">رقم التتبع (اختياري)</p>
-                <div className="flex gap-2">
-                  <Input
-                    value={trackingNumber}
-                    onChange={(e) => setTrackingNumber(e.target.value)}
-                    placeholder="أدخل رقم التتبع..."
-                  />
-                  <Button
-                    onClick={() => {
-                      updateMutation.mutate({
-                        id: selectedOrder._id,
-                        trackingNumber,
-                      });
-                      setSelectedOrder(null);
-                    }}
-                  >
-                    حفظ
-                  </Button>
-                </div>
-              </div>
             </div>
           )}
         </DialogContent>

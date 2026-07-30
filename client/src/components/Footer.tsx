@@ -36,7 +36,7 @@ export default function Footer() {
           <div className="col-span-2 sm:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-3 group w-fit">
               <Logo className="h-9 w-9 rounded-lg transition-transform duration-200 group-hover:scale-105" />
-              <span className="font-bold">El Attar</span>
+              <span className="font-bold">Al Mohandes</span>
             </Link>
             <p className="text-sm text-muted-foreground mb-4">
               متجرك الموثوق للأدوات المكتبية والقلمية بجودة عالية وأسعار مناسبة.
@@ -102,7 +102,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="h-3.5 w-3.5 shrink-0" />
-                <span>support@elattar.com</span>
+                <span>support@almohandes.com</span>
               </li>
             </ul>
           </div>
@@ -110,7 +110,7 @@ export default function Footer() {
 
         <div className="border-t mt-10 pt-6 text-center text-sm text-muted-foreground">
           <p>
-            El Attar | العطار — متجر الأدوات المكتبية والقلمية &copy;{" "}
+            Al Mohandes | المهندس — متجر الأدوات المكتبية والقلمية &copy;{" "}
             {new Date().getFullYear()}
           </p>
         </div>

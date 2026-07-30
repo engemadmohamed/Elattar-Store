@@ -76,7 +76,7 @@ async function customerRequest<T>(
   url: string,
   data?: unknown,
 ): Promise<T> {
-  const token = localStorage.getItem("el-attar-customer-token");
+  const token = localStorage.getItem("al-mohandes-customer-token");
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };

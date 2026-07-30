@@ -4,7 +4,7 @@ import InfoPageLayout from "@/components/InfoPageLayout";
 export default function Privacy() {
   return (
     <InfoPageLayout icon={ShieldCheck} title="سياسة الخصوصية">
-      <p>نحن في Al Attar نحترم خصوصيتك ونلتزم بحماية بياناتك الشخصية.</p>
+      <p>نحن في Al Mohandes نحترم خصوصيتك ونلتزم بحماية بياناتك الشخصية.</p>
       <p>
         بنجمع بس البيانات اللازمة لإتمام طلبك (الاسم، الهاتف، العنوان، البريد
         الإلكتروني).
