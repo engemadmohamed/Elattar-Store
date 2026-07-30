@@ -81,7 +81,7 @@ export default function Navbar() {
               <Logo className="h-9 w-9 shadow-sm rounded-lg transition-transform duration-200 group-hover:scale-105" />
               <div className="hidden sm:flex flex-col">
                 <span className="font-bold text-base leading-none">
-                  Al Mohandes
+                  المهندس
                 </span>
                 <span className="text-xs text-muted-foreground leading-none">
                   أدوات مكتبية

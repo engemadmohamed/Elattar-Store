@@ -64,7 +64,7 @@ export default function QRModal({
       </head>
       <body>
         <div class="label">
-          <div class="store">Al Mohandes | المهندس</div>
+          <div class="store">المهندس</div>
           <img src="${qrData.qrCode}" alt="QR Code" />
           <div class="product-name">${productName}</div>
           <div class="sku">SKU: ${productSku}</div>

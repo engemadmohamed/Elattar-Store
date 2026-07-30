@@ -121,7 +121,7 @@ function printInvoice(order: InvoiceOrder) {
 <body>
   <div class="header">
     <div>
-      <div class="brand">Al Mohandes | المهندس</div>
+      <div class="brand">المهندس</div>
       <div class="brand-sub">فاتورة مبيعات</div>
     </div>
     <div class="meta">
@@ -168,7 +168,7 @@ function printInvoice(order: InvoiceOrder) {
 
   ${paymentLabel ? `<p style="font-size:13px;color:#666">طريقة الدفع: ${escapeHtml(paymentLabel)}</p>` : ""}
 
-  <div class="footer">شكرًا لتسوقك من Al Mohandes</div>
+  <div class="footer">شكرًا لتسوقك من المهندس</div>
 </body>
 </html>`;
 

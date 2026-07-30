@@ -47,7 +47,7 @@ export default function AdminSidebar() {
             A
           </div>
           <div>
-            <p className="font-bold text-sm">Al Attar</p>
+            <p className="font-bold text-sm">المهندس</p>
             <p className="text-xs text-muted-foreground">لوحة الإدارة</p>
           </div>
         </Link>

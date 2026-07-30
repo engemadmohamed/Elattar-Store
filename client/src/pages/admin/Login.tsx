@@ -45,7 +45,7 @@ export default function AdminLogin() {
           <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-2xl mx-auto mb-3">
             A
           </div>
-          <CardTitle className="text-2xl">Al Mohandes Admin</CardTitle>
+          <CardTitle className="text-2xl">إدارة المهندس</CardTitle>
           <CardDescription>تسجيل الدخول للوحة الإدارة</CardDescription>
         </CardHeader>
         <CardContent>

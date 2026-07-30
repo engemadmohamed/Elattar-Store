@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { ArrowRight, Star, Truck, Shield, RefreshCw } from "lucide-react";
+import { ArrowRight, Lock, Star, Truck, Shield, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,6 +15,7 @@ interface Category {
   icon: string;
   slug: string;
   parentId: string | null;
+  isActive: boolean;
 }
 
 interface Product {
@@ -50,7 +51,7 @@ export default function Home() {
               شركة المهندس للأدوات المكتبية
             </div>
             <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4 leading-tight">
-              <span className="text-primary">Al Mohandes</span>
+              <span className="text-primary">المهندس</span>
               <br />
               نصنع الجودة ونكسب الثقة{" "}
             </h1>
@@ -89,27 +90,40 @@ export default function Home() {
           <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 xl:grid-cols-12 gap-3">
             {categories
               ? categories
-                  .filter((c) => !c.parentId && c.isActive)
-                  .map((cat) => (
-                    <Link
-                      key={cat._id}
-                      href={`/shop?category=${cat.slug}`}
-                    >
+                  .filter((c) => !c.parentId)
+                  .map((cat) => {
+                    const cardContent = (
                       <Card
-                        className="group hover:shadow-lg hover:-translate-y-1 hover:border-primary/50 transition-all duration-300 cursor-pointer h-full min-h-[96px]"
+                        className={`group transition-all duration-300 h-full min-h-[96px] ${
+                          cat.isActive
+                            ? "hover:shadow-lg hover:-translate-y-1 hover:border-primary/50 cursor-pointer"
+                            : "opacity-50 bg-muted/50"
+                        }`}
                       >
-                        <CardContent
-                          className="p-4 flex flex-col items-center justify-center text-center h-full"
-                        >
-                          <p
-                            className="text-xs font-medium leading-tight"
-                          >
+                        <CardContent className="relative p-4 flex flex-col items-center justify-center text-center h-full">
+                          {!cat.isActive && (
+                            <Lock className="absolute top-2 right-2 h-3.5 w-3.5 text-muted-foreground" />
+                          )}
+                          <p className="text-xs font-medium leading-tight">
                             {cat.nameAr}
                           </p>
                         </CardContent>
                       </Card>
-                    </Link>
-                  ))
+                    );
+
+                    return cat.isActive ? (
+                      <Link
+                        key={cat._id}
+                        href={`/shop?category=${cat.slug}`}
+                      >
+                        {cardContent}
+                      </Link>
+                    ) : (
+                      <div key={cat._id} className="pointer-events-none">
+                        {cardContent}
+                      </div>
+                    );
+                  })
               : Array.from({ length: 12 }).map((_, i) => (
                   <Skeleton key={i} className="h-24 rounded-xl" />
                 ))}

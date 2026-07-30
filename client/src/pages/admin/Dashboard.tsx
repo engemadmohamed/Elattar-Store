@@ -67,7 +67,7 @@ export default function AdminDashboard() {
         <div className="mb-6">
           <h1 className="text-2xl font-bold">لوحة التحكم</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            مرحباً بك في إدارة Al Mohandes
+            مرحباً بك في إدارة المهندس
           </p>
         </div>
 
