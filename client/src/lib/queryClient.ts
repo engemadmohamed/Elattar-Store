@@ -14,8 +14,8 @@ export async function apiRequest<T = unknown>(
   url: string,
   data?: unknown
 ): Promise<T> {
-  const token = localStorage.getItem("el-attar-token");
-  const customerToken = localStorage.getItem("el-attar-customer-token");
+  const token = localStorage.getItem("al-mohandes-token");
+  const customerToken = localStorage.getItem("al-mohandes-customer-token");
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
   if (customerToken) headers["X-Customer-Token"] = customerToken;
