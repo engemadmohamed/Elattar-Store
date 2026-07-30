@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { Category } from "../models/Category.js";
+import { Product } from "../models/Product.js";
 import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();
@@ -84,8 +85,11 @@ router.delete("/:id", requireAuth, async (req: Request, res: Response) => {
       }
     }
 
+    // Delete all products within these categories
+    await Product.deleteMany({ categoryId: { $in: idsToDelete } });
+
     await Category.deleteMany({ _id: { $in: idsToDelete } });
-    return res.json({ message: "Category and all subcategories deleted" });
+    return res.json({ message: "تم حذف الفئة والفئات الفرعية والمنتجات بنجاح" });
   } catch (error) {
     console.error("Error deleting category:", error);
     return res.status(500).json({ message: "Server error" });
