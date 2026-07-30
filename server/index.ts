@@ -18,14 +18,14 @@ if (process.env.NODE_ENV === "production") {
   serveStatic(app);
 } else {
   app.get("/", (_req, res) => {
-    res.send("El Attar API running. Start Vite dev server for the frontend.");
+    res.send("Al Mohandes API running. Start Vite dev server for the frontend.");
   });
 }
 
 connectDB()
   .then(() => {
     app.listen(PORT, "0.0.0.0", () => {
-      console.log(`🚀 El Attar Store API running on port ${PORT}`);
+      console.log(`🚀 Al Mohandes Store API running on port ${PORT}`);
     });
   })
   .catch((err) => {

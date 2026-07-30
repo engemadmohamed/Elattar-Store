@@ -12,12 +12,19 @@ export default function Logo({ className = "h-9 w-9" }: LogoProps) {
       xmlns="http://www.w3.org/2000/svg"
     >
       <defs>
-        <linearGradient id="elAttarLogoGrad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+        <linearGradient
+          id="alMohandesLogoGrad"
+          x1="0"
+          y1="0"
+          x2="40"
+          y2="40"
+          gradientUnits="userSpaceOnUse"
+        >
           <stop offset="0" stopColor="hsl(var(--primary))" />
           <stop offset="1" stopColor="hsl(var(--primary) / 0.75)" />
         </linearGradient>
       </defs>
-      <rect width="40" height="40" rx="11" fill="url(#elAttarLogoGrad)" />
+      <rect width="40" height="40" rx="11" fill="url(#alMohandesLogoGrad)" />
       {/* open notebook */}
       <path
         d="M8 13.5c0-.6.5-1 1.2-.9L19 14v16l-9.4-1.6c-.9-.1-1.6-.9-1.6-1.8V13.5Z"
@@ -29,7 +36,12 @@ export default function Logo({ className = "h-9 w-9" }: LogoProps) {
         fill="white"
         fillOpacity="0.92"
       />
-      <path d="M20 14v16" stroke="hsl(var(--primary))" strokeWidth="1" strokeOpacity="0.4" />
+      <path
+        d="M20 14v16"
+        stroke="hsl(var(--primary))"
+        strokeWidth="1"
+        strokeOpacity="0.4"
+      />
       {/* pen resting diagonally */}
       <rect
         x="-2"

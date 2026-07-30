@@ -44,7 +44,7 @@ app.use("/api/upload", uploadRoutes);
 
 // Health check
 app.get("/api/health", (_req, res) => {
-  res.json({ status: "ok", app: "El Attar Store" });
+  res.json({ status: "ok", app: "Al Mohandes Store" });
 });
 
 export default app;

@@ -46,8 +46,8 @@ export default function AdminSidebar() {
           className="flex items-center gap-2"
           onClick={() => setMobileOpen(false)}
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
-            A
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold" lang="en">
+            M
           </div>
           <div>
             <p className="font-bold text-sm">المهندس</p>
@@ -82,7 +82,7 @@ export default function AdminSidebar() {
       <div className="p-4 border-t">
         <div className="flex items-center gap-2 mb-3">
           <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
-            {admin?.name?.charAt(0).toUpperCase() || "A"}
+            {admin?.name?.charAt(0).toUpperCase() || "M"}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">المهندس</p>

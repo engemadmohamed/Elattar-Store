@@ -46,8 +46,11 @@ export default function AdminLogin() {
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-2xl mx-auto mb-3">
-            A
+          <div
+            className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-2xl mx-auto mb-3"
+            lang="en"
+          >
+            M
           </div>
           <CardTitle className="text-2xl">إدارة المهندس</CardTitle>
           <CardDescription>تسجيل الدخول للوحة الإدارة</CardDescription>
