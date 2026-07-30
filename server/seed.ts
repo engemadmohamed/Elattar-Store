@@ -19,7 +19,7 @@ async function seed() {
     const adminExists = await Admin.findOne({ email: adminEmail });
     if (!adminExists) {
       await Admin.create({
-        name: "El Attar Admin",
+        name: "المهندس",
         email: adminEmail,
         password: adminPassword,
         role: "superadmin",
