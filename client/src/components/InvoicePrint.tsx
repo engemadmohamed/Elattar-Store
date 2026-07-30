@@ -141,7 +141,6 @@ function printInvoice(order: InvoiceOrder) {
     </div>
     ${order.customerLibraryName ? `<div><div class="section-title">اسم المكتبة</div><div>${escapeHtml(order.customerLibraryName)}</div></div>` : ""}
     ${order.customerLibraryLocation ? `<div><div class="section-title">موقع المكتبة</div><div>${escapeHtml(order.customerLibraryLocation)}</div></div>` : ""}
-    ${order.customerEmail ? `<div class="full"><div class="section-title">البريد الإلكتروني</div><div>${escapeHtml(order.customerEmail)}</div></div>` : ""}
     ${order.shipping?.address ? `<div class="full"><div class="section-title">عنوان الشحن</div><div>${escapeHtml(order.shipping.address)}${order.shipping.city ? "، " + escapeHtml(order.shipping.city) : ""}${order.shipping.governorate ? "، " + escapeHtml(order.shipping.governorate) : ""}</div></div>` : ""}
     ${order.shipping?.trackingNumber ? `<div><div class="section-title">رقم التتبع</div><div>${escapeHtml(order.shipping.trackingNumber)}</div></div>` : ""}
   </div>

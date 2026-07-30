@@ -132,7 +132,7 @@ export default function AdminInvoices() {
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Receipt className="h-5 w-5" />
             {selectedEmail
-              ? `فواتير ${selectedCustomer?.customerName || selectedEmail}`
+              ? `فواتير ${selectedCustomer?.customerName || selectedCustomer?.customerPhone}`
               : "فواتير العملاء"}
           </h1>
         </div>
@@ -185,9 +185,6 @@ export default function AdminInvoices() {
                           <TableCell>
                             <p className="font-medium text-sm">
                               {c.customerName}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {c._id}
                             </p>
                           </TableCell>
                           <TableCell className="text-sm">
