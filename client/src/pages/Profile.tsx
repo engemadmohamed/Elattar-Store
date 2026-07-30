@@ -7,6 +7,7 @@ import {
   Pencil,
   Printer,
   XCircle,
+  AlertTriangle,
   RotateCcw,
 } from "lucide-react";
 import { useCustomerAuth } from "@/lib/customer-auth-context";

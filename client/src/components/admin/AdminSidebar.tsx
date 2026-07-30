@@ -82,7 +82,7 @@ export default function AdminSidebar() {
             {admin?.name?.charAt(0).toUpperCase() || "A"}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{admin?.name}</p>
+            <p className="text-sm font-medium truncate">المهندس</p>
             <p className="text-xs text-muted-foreground truncate">
               {admin?.email}
             </p>

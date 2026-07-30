@@ -30,6 +30,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { apiRequest } from "@/lib/queryClient";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 
 // Auto-generate a URL-friendly slug from Arabic text
@@ -42,6 +43,27 @@ function autoSlug(text: string): string {
     .replace(/^-|-$/g, "") // Trim hyphens from start/end
     .toLowerCase();
 }
+
+// Helper function to find the path to a category from root to child
+const findCategoryPath = (
+  allCategories: Category[],
+  categoryId: string | null,
+): string[] => {
+  if (!categoryId) return [];
+  const path: string[] = [];
+  let currentId: string | null = categoryId;
+
+  while (currentId) {
+    const category = allCategories.find((c) => c._id === currentId);
+    if (category) {
+      path.unshift(category._id);
+      currentId = category.parentId;
+    } else {
+      currentId = null; // Category not found, break loop
+    }
+  }
+  return path;
+};
 
 interface Category {
   _id: string;
@@ -60,6 +82,7 @@ export default function AdminCategories() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
+  const [categoryChain, setCategoryChain] = useState<string[]>([]);
   const [form, setForm] = useState({
     name: "",
     nameAr: "",
@@ -76,6 +99,7 @@ export default function AdminCategories() {
   const resetFormAndState = () => {
     setEditingCategory(null);
     setForm({ name: "", nameAr: "", slug: "", icon: "📦", parentId: "" }); // Reset slug
+    setCategoryChain([]);
   };
 
   const createMutation = useMutation({
@@ -150,6 +174,9 @@ export default function AdminCategories() {
       icon: category.icon,
       parentId: category.parentId || "",
     });
+    setCategoryChain(
+      categories ? findCategoryPath(categories, category.parentId) : [],
+    );
     setOpen(true);
   };
 
@@ -175,6 +202,7 @@ export default function AdminCategories() {
   const handleAddSubcategoryClick = (parentId: string) => {
     resetFormAndState();
     set("parentId", parentId);
+    setCategoryChain(categories ? findCategoryPath(categories, parentId) : []);
     setOpen(true);
   };
 
@@ -205,47 +233,17 @@ export default function AdminCategories() {
     return descendants;
   };
 
-  // Helper function to build category options for the Select,
-  // excluding the current category being edited and its descendants.
-  const buildCategorySelectOptions = (
-    allCategories: Category[],
-    excludeId: string | null, // The ID of the category being edited
-    parentId: string | null = null,
-    level = 0,
-  ): { value: string; label: string }[] => {
-    let options: { value: string; label: string }[] = [];
-    const children = allCategories.filter((c) => c.parentId === parentId);
-
-    // Get all IDs to exclude (the category itself and its descendants)
-    const excludedFromSelection = excludeId
-      ? [excludeId, ...getDescendants(excludeId)]
-      : [];
-
-    for (const category of children) {
-      // If this category is the one being edited or one of its descendants, skip it.
-      if (excludedFromSelection.includes(category._id)) {
-        continue;
-      }
-
-      options.push({
-        value: category._id,
-        label: `${"— ".repeat(level)}${category.nameAr}`,
-      });
-      options = options.concat(
-        buildCategorySelectOptions(
-          allCategories,
-          excludeId,
-          category._id,
-          level + 1,
-        ),
-      );
+  const handleCategoryChange = (level: number, value: string) => {
+    const newChain = categoryChain.slice(0, level);
+    if (value) {
+      newChain.push(value);
     }
-    return options;
-  };
+    setCategoryChain(newChain);
 
-  const categorySelectOptions = categories
-    ? buildCategorySelectOptions(categories, editingCategory?._id ?? null)
-    : [];
+    const finalParentId =
+      newChain.length > 0 ? newChain[newChain.length - 1] : "";
+    set("parentId", finalParentId);
+  };
 
   return (
     <div className="flex min-h-screen">
@@ -317,29 +315,79 @@ export default function AdminCategories() {
                 required
               />
             </div>
-            {/* Show parent category selection only when editing an existing category */}
-            {editingCategory && (
-              <div>
-                <Label>الفئة الأم (اختياري)</Label>
-                <Select
-                  value={form.parentId}
-                  onValueChange={(v) => set("parentId", v)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="فئة رئيسية" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">فئة رئيسية</SelectItem>{" "}
-                    {/* Option for top-level category */}
-                    {categorySelectOptions.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            <div>
+              <Label>الفئة الأم (اختياري)</Label>
+              {(() => {
+                if (!categories) return <Skeleton className="h-10 w-full" />;
+
+                const dropdowns = [];
+                const excludedFromSelection = editingCategory
+                  ? [
+                      editingCategory._id,
+                      ...getDescendants(editingCategory._id),
+                    ]
+                  : [];
+
+                // Level 0 dropdown (root categories)
+                const rootCategories = categories.filter(
+                  (c) => !c.parentId && !excludedFromSelection.includes(c._id),
+                );
+                dropdowns.push(
+                  <div key="level-0">
+                    <Select
+                      value={categoryChain[0] || ""}
+                      onValueChange={(value) => handleCategoryChange(0, value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="فئة رئيسية (لا يوجد)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">فئة رئيسية (لا يوجد)</SelectItem>
+                        {rootCategories.map((opt) => (
+                          <SelectItem key={opt._id} value={opt._id}>
+                            {opt.nameAr}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>,
+                );
+
+                // Subsequent dropdowns for subcategories
+                categoryChain.forEach((catId, i) => {
+                  const subcategories = categories.filter(
+                    (c) =>
+                      c.parentId === catId &&
+                      !excludedFromSelection.includes(c._id),
+                  );
+                  if (subcategories.length > 0) {
+                    dropdowns.push(
+                      <div key={`level-${i + 1}`} className="mt-2">
+                        <Select
+                          value={categoryChain[i + 1] || ""}
+                          onValueChange={(value) =>
+                            handleCategoryChange(i + 1, value)
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="اختر فئة فرعية" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {subcategories.map((opt) => (
+                              <SelectItem key={opt._id} value={opt._id}>
+                                {opt.nameAr}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>,
+                    );
+                  }
+                });
+
+                return <div className="space-y-2">{dropdowns}</div>;
+              })()}
+            </div>
             <Button
               type="submit"
               className="w-full"
