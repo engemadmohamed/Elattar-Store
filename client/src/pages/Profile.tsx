@@ -115,8 +115,8 @@ export default function Profile() {
       setForm({
         name: customer.name,
         phone: customer.phone,
-        libraryName: customer.libraryName || "",
-        libraryLocation: customer.libraryLocation || "",
+        libraryName: (customer as any).libraryName || "",
+        libraryLocation: (customer as any).libraryLocation || "",
       });
   }, [customer]);
 
@@ -273,8 +273,9 @@ export default function Profile() {
                         setForm({
                           name: customer.name,
                           phone: customer.phone,
-                          libraryName: customer.libraryName || "",
-                          libraryLocation: customer.libraryLocation || "",
+                          libraryName: (customer as any).libraryName || "",
+                          libraryLocation:
+                            (customer as any).libraryLocation || "",
                         });
                     }}
                   >
@@ -300,11 +301,11 @@ export default function Profile() {
                 </p>
                 <p>
                   <span className="text-muted-foreground">اسم المكتبة: </span>
-                  {customer.libraryName || "-"}
+                  {(customer as any).libraryName || "-"}
                 </p>
                 <p>
                   <span className="text-muted-foreground">موقع المكتبة: </span>
-                  {customer.libraryLocation || "-"}
+                  {(customer as any).libraryLocation || "-"}
                 </p>
               </div>
             )}

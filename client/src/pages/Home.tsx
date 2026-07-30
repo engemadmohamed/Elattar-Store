@@ -89,12 +89,21 @@ export default function Home() {
           <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 xl:grid-cols-12 gap-3">
             {categories
               ? categories
-                  .filter((c) => !c.parentId)
+                  .filter((c) => !c.parentId && c.isActive)
                   .map((cat) => (
-                    <Link key={cat._id} href={`/shop?category=${cat.slug}`}>
-                      <Card className="group hover:shadow-lg hover:-translate-y-1 hover:border-primary/50 transition-all duration-300 cursor-pointer h-full min-h-[96px]">
-                        <CardContent className="p-4 flex flex-col items-center justify-center text-center h-full">
-                          <p className="text-xs font-medium leading-tight">
+                    <Link
+                      key={cat._id}
+                      href={`/shop?category=${cat.slug}`}
+                    >
+                      <Card
+                        className="group hover:shadow-lg hover:-translate-y-1 hover:border-primary/50 transition-all duration-300 cursor-pointer h-full min-h-[96px]"
+                      >
+                        <CardContent
+                          className="p-4 flex flex-col items-center justify-center text-center h-full"
+                        >
+                          <p
+                            className="text-xs font-medium leading-tight"
+                          >
                             {cat.nameAr}
                           </p>
                         </CardContent>
