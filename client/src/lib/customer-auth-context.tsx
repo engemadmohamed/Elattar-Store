@@ -4,6 +4,8 @@ interface Customer {
   id: string;
   name: string;
   phone: string;
+  libraryName: string;
+  libraryLocation: string;
 }
 
 interface CustomerAuthContextType {
@@ -26,7 +28,7 @@ const CustomerAuthContext = createContext<CustomerAuthContextType>({
   logout: () => {},
 });
 
-async function customerRequest<T>(
+export async function customerRequest<T>(
   method: string,
   url: string,
   data?: unknown,

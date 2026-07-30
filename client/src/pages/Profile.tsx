@@ -10,7 +10,7 @@ import {
   AlertTriangle,
   RotateCcw,
 } from "lucide-react";
-import { useCustomerAuth } from "@/lib/customer-auth-context";
+import { useCustomerAuth, customerRequest } from "@/lib/customer-auth-context";
 import { useCart } from "@/lib/cart-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -72,28 +72,6 @@ const statusLabels: Record<string, string> = {
   cancelled: "ملغي",
 };
 
-async function customerRequest<T>(
-  method: string,
-  url: string,
-  data?: unknown,
-): Promise<T> {
-  const token = localStorage.getItem("al-mohandes-customer-token");
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (token) headers["X-Customer-Token"] = token;
-  const res = await fetch(url, {
-    method,
-    headers,
-    body: data ? JSON.stringify(data) : undefined,
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ message: "حدث خطأ" }));
-    throw new Error(err.message || "حدث خطأ");
-  }
-  return res.json();
-}
-
 export default function Profile() {
   const { customer, isAuthenticated, isLoading } = useCustomerAuth();
   const { toast } = useToast();
@@ -114,8 +92,8 @@ export default function Profile() {
       setForm({
         name: customer.name,
         phone: customer.phone,
-        libraryName: (customer as any).libraryName || "",
-        libraryLocation: (customer as any).libraryLocation || "",
+        libraryName: customer.libraryName || "",
+        libraryLocation: customer.libraryLocation || "",
       });
   }, [customer]);
 
@@ -268,9 +246,8 @@ export default function Profile() {
                         setForm({
                           name: customer.name,
                           phone: customer.phone,
-                          libraryName: (customer as any).libraryName || "",
-                          libraryLocation:
-                            (customer as any).libraryLocation || "",
+                        libraryName: customer.libraryName || "",
+                        libraryLocation: customer.libraryLocation || "",
                         });
                     }}
                   >
@@ -290,11 +267,11 @@ export default function Profile() {
                 </p>
                 <p>
                   <span className="text-muted-foreground">اسم المكتبة: </span>
-                  {(customer as any).libraryName || "-"}
+                {customer.libraryName || "-"}
                 </p>
                 <p>
                   <span className="text-muted-foreground">موقع المكتبة: </span>
-                  {(customer as any).libraryLocation || "-"}
+                {customer.libraryLocation || "-"}
                 </p>
               </div>
             )}
