@@ -329,11 +329,7 @@ export default function Profile() {
             ) : orders && orders.length > 0 ? (
               <div className="space-y-4">
                 {orders.map((order) => {
-                  const canCancel = ![
-                    "shipped",
-                    "delivered",
-                    "cancelled",
-                  ].includes(order.status);
+                  const canCancel = order.status === "pending";
                   return (
                     <div key={order._id} className="border rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">

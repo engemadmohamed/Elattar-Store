@@ -91,7 +91,7 @@ const STATUS_OPTIONS = [
 
 const paymentMethodLabels: Record<string, string> = {
   cash_on_delivery: "الدفع عند الاستلام",
-  visa: "فيزا / ماستركارد",
+  bank_transfer: "حساب بنكي",
   instapay: "إنستاباي",
   vodafone_cash: "فودافون كاش",
 };

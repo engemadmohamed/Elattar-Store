@@ -92,7 +92,7 @@ const OrderSchema = new Schema<IOrder>(
     },
     paymentMethod: {
       type: String,
-      enum: ["cash_on_delivery", "visa", "instapay", "vodafone_cash"],
+      enum: ["cash_on_delivery", "bank_transfer", "instapay", "vodafone_cash"],
       default: "cash_on_delivery",
     },
     transferScreenshotUrl: { type: String },
