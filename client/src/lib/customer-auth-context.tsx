@@ -28,7 +28,7 @@ const CustomerAuthContext = createContext<CustomerAuthContextType>({
   logout: () => {},
 });
 
-export async function customerRequest<T>(
+async function customerRequest<T>(
   method: string,
   url: string,
   data?: unknown,
