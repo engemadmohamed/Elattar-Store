@@ -1,4 +1,4 @@
-# El Attar | العطار — متجر القرطاسية
+# Al Mohandes | المهندس — متجر القرطاسية
 
 متجر إلكتروني عربي كامل لبيع الأقلام والدفاتر والأدوات المكتبية.
 
@@ -60,7 +60,7 @@ npm run db:reset  # يمسح كل البيانات أولاً ثم يضيف من
    - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
    - `VITE_ADMIN_PATH`
    - `NODE_ENV=production`
-   - `APP_BASE_URL` — الرابط النهائي للموقع (مثلاً `https://el-attar.vercel.app`)
+   - `APP_BASE_URL` — الرابط النهائي للموقع (مثلاً `https://al-mohandes.vercel.app`)
 3. اضغط Deploy — Vercel يبني Vite ويرفع العملية.
 
 > **ملاحظة**: على Vercel لازم تستخدم Cloudinary لرفع الصور — الـ filesystem مؤقت هناك.
