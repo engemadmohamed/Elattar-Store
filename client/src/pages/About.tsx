@@ -6,7 +6,7 @@ export default function About() {
     <InfoPageLayout
       icon={Store}
       title="من نحن"
-      subtitle="Al Attar | العطار للأدوات المكتبية"
+      subtitle="Al Mohandes | المهندس للأدوات المكتبية"
     >
       <p>
         Al Attar متجر متخصص في بيع الأدوات المكتبية والقلمية، بيوفر تشكيلة واسعة

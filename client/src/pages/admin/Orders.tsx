@@ -367,18 +367,22 @@ export default function AdminOrders() {
                     {selectedOrder.shipping?.address}
                   </p>
                 </div>
-                <div>
-                  <p className="text-muted-foreground">اسم المكتبة</p>
-                  <p className="font-medium">
-                    {selectedOrder.customerLibraryName || "-"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">موقع المكتبة</p>
-                  <p className="font-medium">
-                    {selectedOrder.customerLibraryLocation || "-"}
-                  </p>
-                </div>
+                {selectedOrder.customerLibraryName && (
+                  <div>
+                    <p className="text-muted-foreground">اسم المكتبة</p>
+                    <p className="font-medium">
+                      {selectedOrder.customerLibraryName}
+                    </p>
+                  </div>
+                )}
+                {selectedOrder.customerLibraryLocation && (
+                  <div>
+                    <p className="text-muted-foreground">موقع المكتبة</p>
+                    <p className="font-medium">
+                      {selectedOrder.customerLibraryLocation}
+                    </p>
+                  </div>
+                )}
               </div>
               <Separator />
               <div className="space-y-2">
