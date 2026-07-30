@@ -166,28 +166,30 @@ export default function Shop() {
                 {breadcrumbs.map((crumb, index) => (
                   <span key={crumb._id} className="flex items-center gap-2">
                     <span className="text-muted-foreground">/</span>
-                    <Link href={`/shop?category=${crumb.slug}`}>
+                    {index < breadcrumbs.length - 1 || crumb.isActive ? (
+                      <Link href={`/shop?category=${crumb.slug}`}>
+                        <Button
+                          variant={
+                            index === breadcrumbs.length - 1
+                              ? "default"
+                              : "outline"
+                          }
+                          size="sm"
+                        >
+                          {crumb.nameAr}
+                        </Button>
+                      </Link>
+                    ) : (
                       <Button
-                        variant={
-                          index === breadcrumbs.length - 1
-                            ? "default"
-                            : "outline"
-                        }
+                        variant="default"
                         size="sm"
-                        disabled={
-                          index === breadcrumbs.length - 1 && !crumb.isActive
-                        }
-                        className={
-                          index === breadcrumbs.length - 1 && !crumb.isActive
-                            ? "opacity-50"
-                            : ""
-                        }
+                        disabled
+                        className="opacity-50"
                       >
-                        {index === breadcrumbs.length - 1 &&
-                          !crumb.isActive && <Lock className="h-3 w-3 ml-1" />}
+                        <Lock className="h-3 w-3 ml-1" />
                         {crumb.nameAr}
                       </Button>
-                    </Link>
+                    )}
                   </span>
                 ))}
               </>
