@@ -315,78 +315,80 @@ export default function AdminCategories() {
                 required
               />
             </div>
-            <div>
-              <Label>الفئه الرئسية</Label>
-              {(() => {
-                if (!categories) return <Skeleton className="h-10 w-full" />;
+            {editingCategory && (
+              <div>
+                <Label>الفئه الرئسية</Label>
+                {(() => {
+                  if (!categories) return <Skeleton className="h-10 w-full" />;
 
-                const dropdowns = [];
-                const excludedFromSelection = editingCategory
-                  ? [
-                      editingCategory._id,
-                      ...getDescendants(editingCategory._id),
-                    ]
-                  : [];
+                  const dropdowns = [];
+                  const excludedFromSelection = editingCategory
+                    ? [
+                        editingCategory._id,
+                        ...getDescendants(editingCategory._id),
+                      ]
+                    : [];
 
-                // Level 0 dropdown (root categories)
-                const rootCategories = categories.filter(
-                  (c) => !c.parentId && !excludedFromSelection.includes(c._id),
-                );
-                dropdowns.push(
-                  <div key="level-0">
-                    <Select
-                      value={categoryChain[0] || ""}
-                      onValueChange={(value) => handleCategoryChange(0, value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="اختر فئة رئيسية" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {rootCategories.map((opt) => (
-                          <SelectItem key={opt._id} value={opt._id}>
-                            {opt.nameAr}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>,
-                );
-
-                // Subsequent dropdowns for subcategories
-                categoryChain.forEach((catId, i) => {
-                  const subcategories = categories.filter(
-                    (c) =>
-                      c.parentId === catId &&
-                      !excludedFromSelection.includes(c._id),
+                  // Level 0 dropdown (root categories)
+                  const rootCategories = categories.filter(
+                    (c) => !c.parentId && !excludedFromSelection.includes(c._id),
                   );
-                  if (subcategories.length > 0) {
-                    dropdowns.push(
-                      <div key={`level-${i + 1}`} className="mt-2">
-                        <Select
-                          value={categoryChain[i + 1] || ""}
-                          onValueChange={(value) =>
-                            handleCategoryChange(i + 1, value)
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="اختر فئة فرعية" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {subcategories.map((opt) => (
-                              <SelectItem key={opt._id} value={opt._id}>
-                                {opt.nameAr}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>,
-                    );
-                  }
-                });
+                  dropdowns.push(
+                    <div key="level-0">
+                      <Select
+                        value={categoryChain[0] || ""}
+                        onValueChange={(value) => handleCategoryChange(0, value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="اختر فئة رئيسية" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {rootCategories.map((opt) => (
+                            <SelectItem key={opt._id} value={opt._id}>
+                              {opt.nameAr}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>,
+                  );
 
-                return <div className="space-y-2">{dropdowns}</div>;
-              })()}
-            </div>
+                  // Subsequent dropdowns for subcategories
+                  categoryChain.forEach((catId, i) => {
+                    const subcategories = categories.filter(
+                      (c) =>
+                        c.parentId === catId &&
+                        !excludedFromSelection.includes(c._id),
+                    );
+                    if (subcategories.length > 0) {
+                      dropdowns.push(
+                        <div key={`level-${i + 1}`} className="mt-2">
+                          <Select
+                            value={categoryChain[i + 1] || ""}
+                            onValueChange={(value) =>
+                              handleCategoryChange(i + 1, value)
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="اختر فئة فرعية" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {subcategories.map((opt) => (
+                                <SelectItem key={opt._id} value={opt._id}>
+                                  {opt.nameAr}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>,
+                      );
+                    }
+                  });
+
+                  return <div className="space-y-2">{dropdowns}</div>;
+                })()}
+              </div>
+            )}
             <Button
               type="submit"
               className="w-full"
