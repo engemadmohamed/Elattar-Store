@@ -21,15 +21,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatPrice } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import RelatedProducts from "@/components/RelatedProducts";
 import InvoicePrint from "@/components/InvoicePrint";
 
@@ -458,6 +456,44 @@ export default function Profile() {
         open={!!invoiceOrder}
         onClose={() => setInvoiceOrder(null)}
       />
+
+      {/* Cancel Order Confirmation Dialog */}
+      <Dialog open={!!cancelTarget} onOpenChange={() => setCancelTarget(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" /> إلغاء الطلب
+            </DialogTitle>
+            <DialogDescription className="text-right pt-2">
+              هل أنت متأكد من إلغاء طلب{" "}
+              <strong>#{cancelTarget?.orderNumber}</strong>؟
+              <br />
+              هذا الإجراء لا يمكن التراجع عنه.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-row gap-2 sm:gap-2">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setCancelTarget(null)}
+            >
+              إلغاء
+            </Button>
+            <Button
+              variant="destructive"
+              className="flex-1"
+              disabled={cancelMutation.isPending}
+              onClick={() => {
+                if (cancelTarget) {
+                  cancelMutation.mutate(cancelTarget._id);
+                }
+              }}
+            >
+              {cancelMutation.isPending ? "جاري الإلغاء..." : "تأكيد الإلغاء"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
