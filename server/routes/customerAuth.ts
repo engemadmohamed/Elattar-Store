@@ -22,7 +22,14 @@ router.post("/signup", async (req: Request, res: Response) => {
       return res.status(409).json({ message: "هذا الرقم مسجل بالفعل" });
     }
 
-    const customer = await Customer.create({ name, phone, password, libraryName, libraryLocation });
+    const customer = await Customer.create({
+      name,
+      phone,
+      password,
+      libraryName,
+      libraryLocation,
+      email: `${phone}@almohandes.placeholder`, // Add a unique placeholder email
+    });
     const token = jwt.sign({ id: customer._id }, JWT_SECRET, { expiresIn: "30d" });
 
     return res.status(201).json({
