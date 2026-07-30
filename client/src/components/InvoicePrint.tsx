@@ -1,4 +1,9 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Printer } from "lucide-react";
@@ -14,15 +19,20 @@ interface InvoiceOrder {
   shippingCost: number;
   total: number;
   paymentMethod?: string;
-  shipping?: { company?: string; address?: string; city?: string; governorate?: string; trackingNumber?: string };
+  shipping?: {
+    company?: string;
+    address?: string;
+    city?: string;
+    governorate?: string;
+    trackingNumber?: string;
+  };
   createdAt: string;
+  customerLibraryName?: string;
+  customerLibraryLocation?: string;
 }
 
 function escapeHtml(str: string) {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 // Prints the invoice from a completely isolated, freshly-opened document.
@@ -41,12 +51,14 @@ function printInvoice(order: InvoiceOrder) {
           <td style="text-align:center">${item.quantity}</td>
           <td style="text-align:left">${formatPrice(item.price)}</td>
           <td style="text-align:left">${formatPrice(item.price * item.quantity)}</td>
-        </tr>`
+        </tr>`,
     )
     .join("");
 
   const paymentLabel =
-    order.paymentMethod === "cash_on_delivery" ? "الدفع عند الاستلام" : order.paymentMethod || "";
+    order.paymentMethod === "cash_on_delivery"
+      ? "الدفع عند الاستلام"
+      : order.paymentMethod || "";
 
   const html = `<!doctype html>
 <html dir="rtl" lang="ar">
@@ -109,7 +121,7 @@ function printInvoice(order: InvoiceOrder) {
 <body>
   <div class="header">
     <div>
-      <div class="brand">El Attar | العطار</div>
+      <div class="brand">Al Mohandes | المهندس</div>
       <div class="brand-sub">فاتورة مبيعات</div>
     </div>
     <div class="meta">
@@ -127,6 +139,8 @@ function printInvoice(order: InvoiceOrder) {
       <div class="section-title">الهاتف</div>
       <div>${escapeHtml(order.customerPhone)}</div>
     </div>
+    ${order.customerLibraryName ? `<div><div class="section-title">اسم المكتبة</div><div>${escapeHtml(order.customerLibraryName)}</div></div>` : ""}
+    ${order.customerLibraryLocation ? `<div><div class="section-title">موقع المكتبة</div><div>${escapeHtml(order.customerLibraryLocation)}</div></div>` : ""}
     ${order.customerEmail ? `<div class="full"><div class="section-title">البريد الإلكتروني</div><div>${escapeHtml(order.customerEmail)}</div></div>` : ""}
     ${order.shipping?.address ? `<div class="full"><div class="section-title">عنوان الشحن</div><div>${escapeHtml(order.shipping.address)}${order.shipping.city ? "، " + escapeHtml(order.shipping.city) : ""}${order.shipping.governorate ? "، " + escapeHtml(order.shipping.governorate) : ""}</div></div>` : ""}
     ${order.shipping?.company ? `<div><div class="section-title">شركة الشحن</div><div>${escapeHtml(order.shipping.company)}</div></div>` : ""}
@@ -155,7 +169,7 @@ function printInvoice(order: InvoiceOrder) {
 
   ${paymentLabel ? `<p style="font-size:13px;color:#666">طريقة الدفع: ${escapeHtml(paymentLabel)}</p>` : ""}
 
-  <div class="footer">شكرًا لتسوقك من El Attar</div>
+  <div class="footer">شكرًا لتسوقك من Al Mohandes</div>
 </body>
 </html>`;
 
@@ -203,8 +217,12 @@ export default function InvoicePrint({
           <div className="space-y-2">
             {order.items.map((item, i) => (
               <div key={i} className="flex justify-between text-sm">
-                <span>{item.nameAr} × {item.quantity}</span>
-                <span className="font-semibold">{formatPrice(item.price * item.quantity)}</span>
+                <span>
+                  {item.nameAr} × {item.quantity}
+                </span>
+                <span className="font-semibold">
+                  {formatPrice(item.price * item.quantity)}
+                </span>
               </div>
             ))}
           </div>

@@ -19,6 +19,16 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatPrice } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import RelatedProducts from "@/components/RelatedProducts";
 import InvoicePrint from "@/components/InvoicePrint";
 
@@ -96,6 +106,7 @@ export default function Profile() {
     libraryLocation: "",
   });
   const [invoiceOrder, setInvoiceOrder] = useState<Order | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<Order | null>(null);
 
   useEffect(() => {
     if (customer)
@@ -134,6 +145,7 @@ export default function Profile() {
     onSuccess: () => {
       toast({ title: "تم إلغاء الطلب" });
       qc.invalidateQueries({ queryKey: ["/api/orders/my-orders"] });
+      setCancelTarget(null);
     },
     onError: (err) =>
       toast({
@@ -358,7 +370,7 @@ export default function Profile() {
                             size="sm"
                             className="text-destructive gap-1 h-7"
                             disabled={cancelMutation.isPending}
-                            onClick={() => cancelMutation.mutate(order._id)}
+                            onClick={() => setCancelTarget(order)}
                           >
                             <XCircle className="h-3.5 w-3.5" /> إلغاء الطلب
                           </Button>

@@ -30,6 +30,8 @@ export interface IOrder extends Document {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
+  customerLibraryName?: string;
+  customerLibraryLocation?: string;
   items: IOrderItem[];
   subtotal: number;
   shippingCost: number;
@@ -37,6 +39,7 @@ export interface IOrder extends Document {
   status: OrderStatus;
   paymentStatus: PaymentStatus;
   paymentMethod: string;
+  transferScreenshotUrl?: string;
   shipping: IShippingInfo;
   notes?: string;
   createdAt: Date;
@@ -71,6 +74,8 @@ const OrderSchema = new Schema<IOrder>(
     customerName: { type: String, required: true },
     customerEmail: { type: String, required: false, default: "" },
     customerPhone: { type: String, required: true },
+    customerLibraryName: { type: String },
+    customerLibraryLocation: { type: String },
     items: [OrderItemSchema],
     subtotal: { type: Number, required: true },
     shippingCost: { type: Number, required: true, default: 0 },
@@ -85,7 +90,12 @@ const OrderSchema = new Schema<IOrder>(
       enum: ["pending", "paid", "failed", "refunded"],
       default: "pending",
     },
-    paymentMethod: { type: String, default: "cash_on_delivery" },
+    paymentMethod: {
+      type: String,
+      enum: ["cash_on_delivery", "visa", "instapay", "vodafone_cash"],
+      default: "cash_on_delivery",
+    },
+    transferScreenshotUrl: { type: String },
     shipping: ShippingInfoSchema,
     notes: { type: String },
   },

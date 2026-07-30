@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2, Edit, ChevronRight, X } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Edit,
+  ChevronRight,
+  Lock,
+  Unlock,
+  AlertTriangle,
+} from "lucide-react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +26,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -39,6 +49,7 @@ interface Category {
   nameAr: string;
   slug: string;
   icon: string;
+  isActive: boolean;
   parentId: string | null;
 }
 
@@ -48,6 +59,7 @@ export default function AdminCategories() {
   const [open, setOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
   const [form, setForm] = useState({
     name: "",
     nameAr: "",
@@ -258,7 +270,7 @@ export default function AdminCategories() {
                 categories={categories}
                 parentId={null}
                 onEdit={handleEditClick}
-                onDelete={handleDeleteClick}
+                onDelete={(cat) => setDeleteTarget(cat)}
                 onAddSub={handleAddSubcategoryClick}
                 expanded={expanded}
                 onToggle={handleToggle}
@@ -273,6 +285,7 @@ export default function AdminCategories() {
         </Card>
       </main>
 
+      {/* Add/Edit Dialog */}
       <Dialog
         open={open}
         onOpenChange={(isOpen) => {
@@ -341,6 +354,45 @@ export default function AdminCategories() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" /> حذف الفئة
+            </DialogTitle>
+            <DialogDescription className="text-right pt-2">
+              هل أنت متأكد من حذف "<strong>{deleteTarget?.nameAr}</strong>"؟
+              <br />
+              سيتم حذف أي فئات فرعية تابعة لها أيضًا. هذا الإجراء لا يمكن
+              التراجع عنه.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-row gap-2 sm:gap-2">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setDeleteTarget(null)}
+            >
+              إلغاء
+            </Button>
+            <Button
+              variant="destructive"
+              className="flex-1"
+              disabled={deleteMutation.isPending}
+              onClick={() => {
+                if (deleteTarget) {
+                  deleteMutation.mutate(deleteTarget._id);
+                  setDeleteTarget(null);
+                }
+              }}
+            >
+              {deleteMutation.isPending ? "جاري الحذف..." : "تأكيد الحذف"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -349,7 +401,7 @@ interface CategoryTreeProps {
   categories: Category[];
   parentId: string | null;
   onEdit: (category: Category) => void;
-  onDelete: (id: string) => void;
+  onDelete: (category: Category) => void;
   onAddSub: (parentId: string) => void;
   expanded: Record<string, boolean>;
   onToggle: (id: string) => void;
@@ -419,7 +471,7 @@ function CategoryTree({
 interface CategoryItemProps {
   category: Category;
   onEdit: (category: Category) => void;
-  onDelete: (id: string) => void;
+  onDelete: (category: Category) => void;
   onAddSub: (parentId: string) => void;
   hasChildren: boolean;
   isExpanded: boolean;
@@ -435,8 +487,30 @@ function CategoryItem({
   isExpanded,
   onToggle,
 }: CategoryItemProps) {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+
+  const toggleMutation = useMutation({
+    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
+      apiRequest("PUT", `/api/categories/${id}`, { isActive }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["/api/categories"] });
+      toast({ title: "تم تحديث حالة الفئة" });
+    },
+    onError: (err) =>
+      toast({
+        title: "فشل تحديث الحالة",
+        description: String(err),
+        variant: "destructive",
+      }),
+  });
+
   return (
-    <div className="flex items-center justify-between p-2 rounded-lg border bg-background hover:bg-muted/50 transition-colors">
+    <div
+      className={`flex items-center justify-between p-2 rounded-lg border bg-background hover:bg-muted/50 transition-colors ${
+        !category.isActive ? "opacity-50" : ""
+      }`}
+    >
       <div className="flex items-center gap-2">
         <Button
           variant="ghost"
@@ -462,6 +536,25 @@ function CategoryItem({
           variant="ghost"
           size="icon"
           className="h-7 w-7"
+          title={category.isActive ? "قفل الفئة" : "فتح الفئة"}
+          onClick={() =>
+            toggleMutation.mutate({
+              id: category._id,
+              isActive: !category.isActive,
+            })
+          }
+          disabled={toggleMutation.isPending}
+        >
+          {category.isActive ? (
+            <Unlock className="h-4 w-4" />
+          ) : (
+            <Lock className="h-4 w-4 text-muted-foreground" />
+          )}
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
           title="إضافة فئة فرعية"
           onClick={() => onAddSub(category._id)}
         >
@@ -479,7 +572,7 @@ function CategoryItem({
           variant="ghost"
           size="icon"
           className="h-7 w-7 text-destructive"
-          onClick={() => onDelete(category._id)}
+          onClick={() => onDelete(category)}
         >
           <Trash2 className="h-4 w-4" />
         </Button>

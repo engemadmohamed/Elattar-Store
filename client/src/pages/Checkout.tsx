@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { CheckCircle, Truck, CreditCard } from "lucide-react";
+import { CheckCircle, Truck, CreditCard, Upload } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
 import { useCustomerAuth } from "@/lib/customer-auth-context";
 import { Button } from "@/components/ui/button";
@@ -13,12 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { formatPrice } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 
-const SHIPPING_COMPANIES = [
-  { id: "bosta", name: "Bosta", nameAr: "بوسطة", cost: 50, days: "2-3 أيام" },
-  { id: "aramex", name: "Aramex", nameAr: "أرامكس", cost: 65, days: "1-2 يوم" },
-  { id: "jnt", name: "J&T Express", nameAr: "J&T إكسبريس", cost: 45, days: "3-5 أيام" },
-  { id: "mylerz", name: "Mylerz", nameAr: "مايلرز", cost: 40, days: "3-4 أيام" },
-];
+const FIXED_SHIPPING_COST = 50;
 
 const GOVERNORATES = [
   "القاهرة", "الجيزة", "الإسكندرية", "الدقهلية", "البحيرة", "الفيوم", "الغربية",
@@ -34,7 +29,10 @@ export default function Checkout() {
   const { customer } = useCustomerAuth();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
-  const [selectedShipping, setSelectedShipping] = useState(SHIPPING_COMPANIES[0]);
+  const [uploading, setUploading] = useState(false);
+  const [transferScreenshot, setTransferScreenshot] = useState<string | null>(
+    null,
+  );
 
   const [form, setForm] = useState({
     customerName: "",
@@ -46,7 +44,7 @@ export default function Checkout() {
     city: "",
     governorate: "",
     notes: "",
-    paymentMethod: "cash_on_delivery",
+    paymentMethod: "cash_on_delivery", // 'cash_on_delivery', 'visa', 'instapay'
   });
 
   // Prefill from the logged-in customer's profile, without overwriting
@@ -62,7 +60,44 @@ export default function Checkout() {
   }, [customer]);
 
   const set = (key: string, val: string) => setForm((f) => ({ ...f, [key]: val }));
-  const grandTotal = total + selectedShipping.cost;
+  const grandTotal = total + FIXED_SHIPPING_COST;
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("image", file);
+    // Customer token should be used for authentication if the endpoint is protected
+    const token = localStorage.getItem("al-mohandes-customer-token");
+    try {
+      const res = await fetch("/api/upload/image", {
+        method: "POST",
+        headers: token ? { "X-Customer-Token": token } : {},
+        body: formData,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.url) {
+        toast({
+          title: "فشل رفع الصورة",
+          description: data.message || `خطأ من السيرفر (${res.status})`,
+          variant: "destructive",
+        });
+        return;
+      }
+      setTransferScreenshot(data.url);
+      toast({ title: "تم رفع صورة التحويل ✓" });
+    } catch (err) {
+      toast({
+        title: "فشل رفع الصورة",
+        description: "تعذر الاتصال بالسيرفر، تأكد من الاتصال بالإنترنت",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,6 +109,13 @@ export default function Checkout() {
       toast({ title: "السلة فارغة", variant: "destructive" });
       return;
     }
+    if (
+      form.paymentMethod !== "cash_on_delivery" &&
+      !transferScreenshot
+    ) {
+      toast({ title: "الرجاء رفع صورة إثبات التحويل", variant: "destructive" });
+      return;
+    }
 
     setLoading(true);
     try {
@@ -83,8 +125,8 @@ export default function Checkout() {
         customerPhone: form.customerPhone,
         items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
         shipping: {
-          company: selectedShipping.nameAr,
-          cost: selectedShipping.cost,
+          company: "شحن",
+          cost: FIXED_SHIPPING_COST,
           recipientName: form.recipientName || form.customerName,
           recipientPhone: form.recipientPhone || form.customerPhone,
           address: form.address,
@@ -92,6 +134,7 @@ export default function Checkout() {
           governorate: form.governorate,
         },
         paymentMethod: form.paymentMethod,
+        transferScreenshotUrl: transferScreenshot,
         notes: form.notes,
         customerLibraryName: customer?.libraryName,
         customerLibraryLocation: customer?.libraryLocation,
@@ -197,31 +240,6 @@ export default function Checkout() {
                 </CardContent>
               </Card>
 
-              {/* Shipping Company */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    📦 شركة الشحن
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-3">
-                    {SHIPPING_COMPANIES.map((company) => (
-                      <button
-                        key={company.id}
-                        type="button"
-                        onClick={() => setSelectedShipping(company)}
-                        className={`p-3 rounded-lg border-2 text-left transition-colors ${selectedShipping.id === company.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}
-                      >
-                        <p className="font-semibold text-sm">{company.name}</p>
-                        <p className="text-xs text-muted-foreground">{company.days}</p>
-                        <p className="text-sm font-bold text-primary mt-1">{formatPrice(company.cost)}</p>
-                      </button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
               {/* Payment */}
               <Card>
                 <CardHeader>
@@ -233,8 +251,8 @@ export default function Checkout() {
                   <div className="space-y-2">
                     {[
                       { value: "cash_on_delivery", label: "💵 الدفع عند الاستلام" },
-                      { value: "vodafone_cash", label: "📱 فودافون كاش" },
-                      { value: "instapay", label: "💳 إنستاباي" },
+                      { value: "visa", label: "💳 فيزا / ماستركارد" },
+                      { value: "instapay", label: "📱 إنستاباي" },
                     ].map((method) => (
                       <label key={method.value} className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer ${form.paymentMethod === method.value ? "border-primary bg-primary/5" : ""}`}>
                         <input type="radio" name="payment" value={method.value} checked={form.paymentMethod === method.value} onChange={(e) => set("paymentMethod", e.target.value)} className="text-primary" />
@@ -242,6 +260,27 @@ export default function Checkout() {
                       </label>
                     ))}
                   </div>
+                  {form.paymentMethod !== "cash_on_delivery" && (
+                    <div className="mt-4 border-t pt-4">
+                      <Label>إثبات التحويل *</Label>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        بعد التحويل، الرجاء رفع صورة من إيصال الدفع.
+                      </p>
+                      {transferScreenshot ? (
+                        <div className="relative h-24 w-24 rounded-lg border overflow-hidden">
+                          <img src={transferScreenshot} alt="إثبات التحويل" className="h-full w-full object-cover" />
+                          <button type="button" onClick={() => setTransferScreenshot(null)} className="absolute top-0 right-0 h-6 w-6 bg-black/50 text-white flex items-center justify-center rounded-bl-lg">✕</button>
+                        </div>
+                      ) : (
+                        <>
+                          <Label htmlFor="transfer-upload" className="flex items-center gap-2 cursor-pointer border-2 border-dashed rounded-lg p-4 hover:border-primary/50 transition-colors">
+                            {uploading ? <span className="text-sm text-primary">جاري الرفع...</span> : <><Upload className="h-4 w-4 text-muted-foreground" /> <span className="text-sm text-muted-foreground">رفع صورة</span></>}
+                          </Label>
+                          <input id="transfer-upload" type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
+                        </>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -272,8 +311,8 @@ export default function Checkout() {
                       <span>{formatPrice(total)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">الشحن ({selectedShipping.nameAr})</span>
-                      <span>{formatPrice(selectedShipping.cost)}</span>
+                      <span className="text-muted-foreground">الشحن</span>
+                      <span>{formatPrice(FIXED_SHIPPING_COST)}</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between font-bold text-base">

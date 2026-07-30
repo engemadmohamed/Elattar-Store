@@ -32,7 +32,7 @@ import { Separator } from "@/components/ui/separator";
 import { apiRequest } from "@/lib/queryClient";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, Search, Printer } from "lucide-react";
+import { Eye, Search } from "lucide-react";
 import InvoicePrint from "@/components/InvoicePrint";
 
 interface Order {
@@ -54,6 +54,7 @@ interface Order {
   status: string;
   paymentStatus: string;
   paymentMethod: string;
+  transferScreenshotUrl?: string;
   shipping: {
     company: string;
     trackingNumber?: string;
@@ -75,11 +76,6 @@ const STATUS_OPTIONS = [
     color: "bg-yellow-100 text-yellow-800",
   },
   { value: "confirmed", label: "مؤكد", color: "bg-blue-100 text-blue-800" },
-  {
-    value: "processing",
-    label: "قيد التجهيز",
-    color: "bg-purple-100 text-purple-800",
-  },
   {
     value: "shipped",
     label: "تم الشحن",
@@ -106,7 +102,7 @@ export default function AdminOrders() {
   const [trackingNumber, setTrackingNumber] = useState("");
 
   const GROUPS: Record<string, string[]> = {
-    pending: ["pending", "confirmed", "processing"],
+    pending: ["pending", "confirmed"],
     shipped: ["shipped", "delivered"],
     cancelled: ["cancelled"],
   };
@@ -303,14 +299,6 @@ export default function AdminOrders() {
                             variant="ghost"
                             size="icon"
                             className="h-7 w-7"
-                            onClick={() => setInvoiceOrder(order)}
-                          >
-                            <Printer className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
                             onClick={() => {
                               setSelectedOrder(order);
                               setTrackingNumber(
@@ -381,6 +369,22 @@ export default function AdminOrders() {
                     <p className="font-medium">
                       {selectedOrder.customerLibraryLocation}
                     </p>
+                  </div>
+                )}
+                {selectedOrder.transferScreenshotUrl && (
+                  <div className="col-span-2">
+                    <p className="text-muted-foreground">إثبات التحويل</p>
+                    <a
+                      href={selectedOrder.transferScreenshotUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <img
+                        src={selectedOrder.transferScreenshotUrl}
+                        alt="إثبات التحويل"
+                        className="mt-1 h-24 w-24 rounded-lg border object-cover"
+                      />
+                    </a>
                   </div>
                 )}
               </div>
