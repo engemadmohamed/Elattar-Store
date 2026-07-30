@@ -40,7 +40,7 @@ interface Order {
   orderNumber: string;
   customerName: string;
   customerPhone: string;
-  customerEmail: string;
+  customerEmail?: string;
   items: Array<{
     name: string;
     nameAr: string;

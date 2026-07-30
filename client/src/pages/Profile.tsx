@@ -44,7 +44,7 @@ interface Order {
   orderNumber: string;
   customerName: string;
   customerPhone: string;
-  customerEmail: string;
+  customerEmail?: string;
   items: OrderItem[];
   subtotal: number;
   shippingCost: number;
@@ -317,16 +317,12 @@ export default function Profile() {
             ) : orders && orders.length > 0 ? (
               <div className="space-y-4">
                 {orders.map((order) => {
-                  const canCancel = order.status === "pending";
                   const canCancel = !["delivered", "cancelled"].includes(
                     order.status,
                   );
                   return (
                     <div key={order._id} className="border rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <p className="text-sm font-medium">
-                          طلب #{order.orderNumber}
-                        </p>
                         <p className="text-sm font-medium">
                           طلب رقم: {order.orderNumber}
                         </p>

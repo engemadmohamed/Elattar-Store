@@ -14,6 +14,7 @@ interface InvoiceOrder {
   customerName: string;
   customerPhone: string;
   customerEmail: string;
+  customerEmail?: string;
   items: Array<{ nameAr: string; price: number; quantity: number }>;
   subtotal: number;
   shippingCost: number;

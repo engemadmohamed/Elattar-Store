@@ -40,7 +40,7 @@ interface Order {
   orderNumber: string;
   customerName: string;
   customerPhone: string;
-  customerEmail: string;
+  customerEmail?: string;
   items: OrderItem[];
   subtotal: number;
   shippingCost: number;
