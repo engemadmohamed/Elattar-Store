@@ -9,20 +9,20 @@ const router = Router();
 router.post("/signup", async (req: Request, res: Response) => {
   try {
     const JWT_SECRET = process.env.JWT_SECRET as string;
-    const { name, email, phone, password, libraryName, libraryLocation } = req.body;
-    if (!name || !email || !phone || !password || !libraryName || !libraryLocation) {
+    const { name, phone, password, libraryName, libraryLocation } = req.body;
+    if (!name || !phone || !password || !libraryName || !libraryLocation) {
       return res.status(400).json({ message: "الرجاء ملء جميع الحقول" });
     }
     if (password.length < 6) {
       return res.status(400).json({ message: "كلمة المرور يجب أن تكون 6 أحرف على الأقل" });
     }
 
-    const existing = await Customer.findOne({ email: email.toLowerCase() });
-    if (existing) {
-      return res.status(409).json({ message: "هذا البريد الإلكتروني مسجل بالفعل" });
+    const existingPhone = await Customer.findOne({ phone });
+    if (existingPhone) {
+      return res.status(409).json({ message: "هذا الرقم مسجل بالفعل" });
     }
 
-    const customer = await Customer.create({ name, email, phone, password, libraryName, libraryLocation });
+    const customer = await Customer.create({ name, phone, password, libraryName, libraryLocation });
     const token = jwt.sign({ id: customer._id }, JWT_SECRET, { expiresIn: "30d" });
 
     return res.status(201).json({
@@ -30,7 +30,6 @@ router.post("/signup", async (req: Request, res: Response) => {
       customer: {
         id: customer._id,
         name: customer.name,
-        email: customer.email,
         phone: customer.phone,
         libraryName: customer.libraryName,
         libraryLocation: customer.libraryLocation,
@@ -46,14 +45,14 @@ router.post("/signup", async (req: Request, res: Response) => {
 router.post("/login", async (req: Request, res: Response) => {
   try {
     const JWT_SECRET = process.env.JWT_SECRET as string;
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ message: "البريد الإلكتروني وكلمة المرور مطلوبان" });
+    const { phone, password } = req.body;
+    if (!phone || !password) {
+      return res.status(400).json({ message: "رقم الهاتف وكلمة المرور مطلوبان" });
     }
 
-    const customer = await Customer.findOne({ email: email.toLowerCase() });
+    const customer = await Customer.findOne({ phone });
     if (!customer || !(await customer.comparePassword(password))) {
-      return res.status(401).json({ message: "البريد الإلكتروني أو كلمة المرور غير صحيحة" });
+      return res.status(401).json({ message: "رقم الهاتف أو كلمة المرور غير صحيحة" });
     }
 
     const token = jwt.sign({ id: customer._id }, JWT_SECRET, { expiresIn: "30d" });
@@ -63,7 +62,6 @@ router.post("/login", async (req: Request, res: Response) => {
       customer: {
         id: customer._id,
         name: customer.name,
-        email: customer.email,
         phone: customer.phone,
         libraryName: customer.libraryName,
         libraryLocation: customer.libraryLocation,

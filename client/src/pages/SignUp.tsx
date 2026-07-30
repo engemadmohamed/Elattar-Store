@@ -20,7 +20,6 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     name: "",
-    email: "",
     phone: "",
     password: "",
     libraryName: "",
@@ -76,16 +75,6 @@ export default function SignUp() {
                 id="name"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="email">البريد الإلكتروني</Label>
-              <Input
-                id="email"
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
                 required
               />
             </div>

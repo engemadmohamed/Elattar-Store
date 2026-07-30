@@ -3,7 +3,6 @@ import { createContext, useContext, useState, useEffect } from "react";
 interface Customer {
   id: string;
   name: string;
-  email: string;
   phone: string;
 }
 
@@ -12,7 +11,7 @@ interface CustomerAuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   signup: (formData: Record<string, string>) => Promise<void>;
-  login: (email: string, password: string) => Promise<void>;
+  login: (phone: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -81,11 +80,11 @@ export function CustomerAuthProvider({
     setCustomer(data.customer);
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (phone: string, password: string) => {
     const data = await customerRequest<{ token: string; customer: Customer }>(
       "POST",
       "/api/customer-auth/login",
-      { email, password },
+      { phone, password },
     );
     localStorage.setItem(TOKEN_KEY, data.token);
     setCustomer(data.customer);

@@ -150,9 +150,6 @@ export default function Navbar() {
                           <p className="text-sm font-medium truncate">
                             {customer?.name}
                           </p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {customer?.email}
-                          </p>
                         </div>
                         <Link
                           href="/profile"

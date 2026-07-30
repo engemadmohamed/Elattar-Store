@@ -251,10 +251,6 @@ export default function Profile() {
                     }
                   />
                 </div>
-                <div>
-                  <Label>البريد الإلكتروني</Label>
-                  <Input value={customer.email} disabled />
-                </div>
                 <div className="flex gap-2">
                   <Button
                     size="sm"
@@ -287,12 +283,6 @@ export default function Profile() {
                 <p>
                   <span className="text-muted-foreground">الاسم: </span>
                   {customer.name}
-                </p>
-                <p>
-                  <span className="text-muted-foreground">
-                    البريد الإلكتروني:{" "}
-                  </span>
-                  {customer.email}
                 </p>
                 <p>
                   <span className="text-muted-foreground">رقم الهاتف: </span>
@@ -328,11 +318,17 @@ export default function Profile() {
               <div className="space-y-4">
                 {orders.map((order) => {
                   const canCancel = order.status === "pending";
+                  const canCancel = !["delivered", "cancelled"].includes(
+                    order.status,
+                  );
                   return (
                     <div key={order._id} className="border rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
                         <p className="text-sm font-medium">
                           طلب #{order.orderNumber}
+                        </p>
+                        <p className="text-sm font-medium">
+                          طلب رقم: {order.orderNumber}
                         </p>
                         <div className="flex items-center gap-2">
                           <Badge variant="secondary">

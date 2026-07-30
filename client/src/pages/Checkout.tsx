@@ -65,7 +65,6 @@ export default function Checkout() {
 
   const [form, setForm] = useState({
     customerName: "",
-    customerEmail: "",
     customerPhone: "",
     recipientName: "",
     recipientPhone: "",
@@ -83,7 +82,6 @@ export default function Checkout() {
     setForm((f) => ({
       ...f,
       customerName: f.customerName || customer.name,
-      customerEmail: f.customerEmail || customer.email,
       customerPhone: f.customerPhone || customer.phone,
     }));
   }, [customer]);
@@ -156,7 +154,6 @@ export default function Checkout() {
     try {
       const orderData = {
         customerName: form.customerName,
-        customerEmail: form.customerEmail,
         customerPhone: form.customerPhone,
         items: items.map((i) => ({
           productId: i.productId,
@@ -263,15 +260,6 @@ export default function Checkout() {
                         required
                       />
                     </div>
-                  </div>
-                  <div>
-                    <Label>البريد الإلكتروني (اختياري)</Label>
-                    <Input
-                      type="email"
-                      value={form.customerEmail}
-                      onChange={(e) => set("customerEmail", e.target.value)}
-                      placeholder="email@example.com"
-                    />
                   </div>
                 </CardContent>
               </Card>

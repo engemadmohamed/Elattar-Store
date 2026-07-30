@@ -18,13 +18,13 @@ export default function CustomerLogin() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ phone: "", password: "" });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await login(form.email, form.password);
+      await login(form.phone, form.password);
       toast({ title: "أهلاً بك!", description: "تم تسجيل دخولك بنجاح." });
       navigate("/");
     } catch (error) {
@@ -53,12 +53,13 @@ export default function CustomerLogin() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="email">البريد الإلكتروني</Label>
+              <Label htmlFor="phone">رقم الهاتف</Label>
               <Input
-                id="email"
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                id="phone"
+                type="tel"
+                placeholder="01xxxxxxxxx"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 required
               />
             </div>
