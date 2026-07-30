@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { ADMIN_BASE } from "@/lib/admin-path";
 
 const menuItems = [
@@ -28,9 +29,11 @@ export default function AdminSidebar() {
   const [location] = useLocation();
   const { admin, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { toast } = useToast();
 
   const handleLogout = () => {
     logout();
+    toast({ title: "تم تسجيل الخروج" });
     window.location.href = "/";
   };
 

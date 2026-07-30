@@ -14,6 +14,7 @@ import { useCart } from "@/lib/cart-context";
 import { useTheme } from "@/lib/theme-provider";
 import { useCustomerAuth } from "@/lib/customer-auth-context";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import CartDrawer from "./CartDrawer";
 import Logo from "./Logo";
 import ScrollToTopButton from "./ScrollToTopButton";
@@ -27,6 +28,7 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const [location, navigate] = useLocation();
+  const { toast } = useToast();
   const accountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -164,6 +166,7 @@ export default function Navbar() {
                           className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-accent text-destructive"
                           onClick={() => {
                             logout();
+                            toast({ title: "تم تسجيل الخروج" });
                             setAccountOpen(false);
                           }}
                         >

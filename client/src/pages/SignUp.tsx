@@ -40,6 +40,10 @@ export default function SignUp() {
     setLoading(true);
     try {
       await signup(form);
+      toast({
+        title: "تم إنشاء حسابك بنجاح!",
+        description: "أهلاً بك في متجر المهندس.",
+      });
       navigate("/");
     } catch (error) {
       toast({

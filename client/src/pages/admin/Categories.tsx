@@ -316,7 +316,7 @@ export default function AdminCategories() {
               />
             </div>
             <div>
-              <Label>الفئة الأم (اختياري)</Label>
+              <Label>الفئه الرئسية</Label>
               {(() => {
                 if (!categories) return <Skeleton className="h-10 w-full" />;
 
@@ -339,10 +339,9 @@ export default function AdminCategories() {
                       onValueChange={(value) => handleCategoryChange(0, value)}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="فئة رئيسية (لا يوجد)" />
+                        <SelectValue placeholder="اختر فئة رئيسية" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">فئة رئيسية (لا يوجد)</SelectItem>
                         {rootCategories.map((opt) => (
                           <SelectItem key={opt._id} value={opt._id}>
                             {opt.nameAr}

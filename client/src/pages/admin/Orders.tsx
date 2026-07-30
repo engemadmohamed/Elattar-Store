@@ -89,6 +89,13 @@ const STATUS_OPTIONS = [
   { value: "cancelled", label: "ملغي", color: "bg-red-100 text-red-800" },
 ];
 
+const paymentMethodLabels: Record<string, string> = {
+  cash_on_delivery: "الدفع عند الاستلام",
+  visa: "فيزا / ماستركارد",
+  instapay: "إنستاباي",
+  vodafone_cash: "فودافون كاش",
+};
+
 export default function AdminOrders() {
   const qc = useQueryClient();
   const { toast } = useToast();
@@ -387,6 +394,13 @@ export default function AdminOrders() {
                     </a>
                   </div>
                 )}
+                <div>
+                  <p className="text-muted-foreground">طريقة الدفع</p>
+                  <p className="font-medium">
+                    {paymentMethodLabels[selectedOrder.paymentMethod] ||
+                      selectedOrder.paymentMethod}
+                  </p>
+                </div>
               </div>
               <Separator />
               <div className="space-y-2">

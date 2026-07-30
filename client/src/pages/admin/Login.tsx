@@ -26,6 +26,10 @@ export default function AdminLogin() {
     setLoading(true);
     try {
       await login(form.email, form.password);
+      toast({
+        title: "أهلاً بك!",
+        description: "تم تسجيل الدخول للوحة التحكم.",
+      });
       navigate(`${ADMIN_BASE}/dashboard`);
     } catch (error) {
       toast({

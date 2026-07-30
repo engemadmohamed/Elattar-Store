@@ -25,6 +25,7 @@ export default function CustomerLogin() {
     setLoading(true);
     try {
       await login(form.email, form.password);
+      toast({ title: "أهلاً بك!", description: "تم تسجيل دخولك بنجاح." });
       navigate("/");
     } catch (error) {
       toast({
