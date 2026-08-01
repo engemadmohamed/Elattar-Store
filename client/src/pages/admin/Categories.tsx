@@ -706,7 +706,7 @@ function CategoryItem({
           title="إضافة فئة فرعية"
           onClick={() => onAddSub(category._id)}
         >
-          <Plus className="h-4 w-4 text-green-600" />
+          <Plus className="h-4 w-4 text-foreground font-black" />
         </Button>
         <Button
           variant="ghost"

@@ -54,10 +54,10 @@ export default function QRModal({
         <style>
           body { font-family: Arial, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; background: white; }
           .label { border: 2px solid #333; border-radius: 8px; padding: 20px; text-align: center; width: 280px; }
-          .store { font-size: 18px; font-weight: bold; color: #3b82f6; margin-bottom: 4px; }
+          .store { font-size: 18px; font-weight: bold; color: #000000; margin-bottom: 4px; }
           .product-name { font-size: 13px; font-weight: 600; margin: 8px 0; direction: rtl; }
-          .sku { font-size: 11px; color: #666; margin: 4px 0; }
-          .price { font-size: 16px; font-weight: bold; color: #3b82f6; margin: 8px 0; }
+          .sku { font-size: 11px; color: #444; margin: 4px 0; }
+          .price { font-size: 16px; font-weight: bold; color: #000000; margin: 8px 0; }
           img { width: 200px; height: 200px; margin: 10px auto; display: block; }
           .scan-text { font-size: 11px; color: #888; margin-top: 8px; }
         </style>

@@ -46,14 +46,14 @@ router.get("/stats", async (_req: Request, res: Response) => {
   try {
     const reviews = await Review.find({}).lean();
     const count = reviews.length;
-    const avg = count ? reviews.reduce((sum, r) => sum + r.rating, 0) / count : 4.9;
+    const avg = count ? reviews.reduce((sum, r) => sum + r.rating, 0) / count : 0;
     return res.json({
-      count: count || 5000,
+      count,
       average: Math.round(avg * 10) / 10,
     });
   } catch (error) {
     console.error("Get review stats error:", error);
-    return res.json({ count: 5000, average: 4.9 });
+    return res.json({ count: 0, average: 0 });
   }
 });
 
@@ -108,9 +108,48 @@ router.post("/product/:productId", requireCustomerAuth, async (req: CustomerAuth
   }
 });
 
+// 5. Customer: Edit own review
+router.put("/:reviewId", requireCustomerAuth, async (req: CustomerAuthRequest, res: Response) => {
+  try {
+    const { rating, comment } = req.body;
+    const review = await Review.findOne({ _id: req.params.reviewId, customerId: req.customerId });
+    if (!review) return res.status(404).json({ message: "التقييم غير موجود أو غير مصرح به" });
+
+    if (rating) review.rating = Number(rating);
+    if (comment !== undefined) review.comment = comment;
+    await review.save();
+
+    if (review.productId) {
+      await recomputeProductRating(review.productId.toString());
+    }
+
+    return res.json(review);
+  } catch (error) {
+    console.error("Customer edit review error:", error);
+    return res.status(500).json({ message: "حدث خطأ في الخادم" });
+  }
+});
+
+// 6. Customer: Delete own review
+router.delete("/:reviewId", requireCustomerAuth, async (req: CustomerAuthRequest, res: Response) => {
+  try {
+    const review = await Review.findOne({ _id: req.params.reviewId, customerId: req.customerId });
+    if (!review) return res.status(404).json({ message: "التقييم غير موجود أو غير مصرح به" });
+
+    const productId = review.productId ? review.productId.toString() : null;
+    await review.deleteOne();
+    if (productId) await recomputeProductRating(productId);
+
+    return res.json({ message: "تم حذف التقييم بنجاح" });
+  } catch (error) {
+    console.error("Customer delete review error:", error);
+    return res.status(500).json({ message: "حدث خطأ في الخادم" });
+  }
+});
+
 // --- ADMIN ROUTES ---
 
-// 5. Admin: Get all reviews
+// 7. Admin: Get all reviews
 router.get("/admin/all", requireAuth, async (req: Request, res: Response) => {
   try {
     const { page = 1, limit = 50 } = req.query;
@@ -133,7 +172,7 @@ router.get("/admin/all", requireAuth, async (req: Request, res: Response) => {
   }
 });
 
-// 6. Admin: Add a new custom review manually
+// 8. Admin: Add a new custom review manually
 router.post("/admin/add", requireAuth, async (req: Request, res: Response) => {
   try {
     const { customerName, rating, comment, productName } = req.body;
@@ -156,7 +195,7 @@ router.post("/admin/add", requireAuth, async (req: Request, res: Response) => {
   }
 });
 
-// 7. Admin: Toggle featured status
+// 9. Admin: Toggle featured status
 router.put("/admin/:reviewId/toggle-featured", requireAuth, async (req: Request, res: Response) => {
   try {
     const review = await Review.findById(req.params.reviewId);
@@ -172,7 +211,7 @@ router.put("/admin/:reviewId/toggle-featured", requireAuth, async (req: Request,
   }
 });
 
-// 8. Admin: Delete review
+// 10. Admin: Delete review
 router.delete("/admin/:reviewId", requireAuth, async (req: Request, res: Response) => {
   try {
     const review = await Review.findById(req.params.reviewId);

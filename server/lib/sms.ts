@@ -29,43 +29,57 @@ export async function sendSmsOtp(phone: string, code: string): Promise<SmsResult
       const password = process.env.SMS_MISR_PASSWORD;
       const sender = process.env.SMS_MISR_SENDER || "ALMOHANDES";
       const message = `كود التحقق الخاص بك لمتجر المهندس هو: ${code}`;
+      const environment = process.env.SMS_MISR_ENVIRONMENT || "1";
 
-      console.log(`[SMS MISR] Dispatching OTP to ${formattedMobile} (Sender: ${sender})...`);
+      console.log(`[SMS MISR] Dispatching OTP to ${formattedMobile} (Sender: ${sender}, Env: ${environment})...`);
 
-      // SMS Misr Official Endpoint URL
+      // SMS Misr Official Web API Endpoint URL
       const encodedMsg = encodeURIComponent(message);
-      const url = `https://smsmisr.com/api/webapi/?username=${username}&password=${password}&language=2&sender=${sender}&mobile=${formattedMobile}&message=${encodedMsg}`;
+      let url = `https://smsmisr.com/api/webapi/?username=${username}&password=${password}&language=2&sender=${sender}&mobile=${formattedMobile}&message=${encodedMsg}`;
+      if (environment === "2") {
+        url += `&environment=2`;
+      }
 
-      const res = await fetch(url, { method: "POST" });
-      const responseText = await res.text();
+      let res = await fetch(url, { method: "POST" });
+      let responseText = await res.text();
       console.log(`[SMS MISR Raw Response] for ${formattedMobile}:`, responseText);
 
       // SMS Misr Code Interpretations:
       // 1901: Success
       // 1902: Invalid Username or Password
-      // 1903: Invalid Sender ID (Sender name not approved by SMS Misr)
+      // 1903: Invalid Sender ID (Sender name not approved by SMS Misr yet)
       // 1904: Insufficient Balance
       // 1905: Invalid Mobile Number
-      let isSuccess = false;
+      let isSuccess = responseText.includes("1901") || responseText.toLowerCase().includes("success");
       let errorMsg = "";
 
-      if (responseText.includes("1901") || responseText.toLowerCase().includes("success")) {
-        isSuccess = true;
-        console.log(`[SMS MISR Success] 🟢 OTP delivered to ${formattedMobile}`);
-      } else if (responseText.includes("1902")) {
-        errorMsg = "SMS Misr: اسم المستخدم أو كلمة المرور غير صحيحة";
-      } else if (responseText.includes("1903")) {
-        errorMsg = "SMS Misr: اسم المرسل Sender ID غير مفعّل بالحساب";
-      } else if (responseText.includes("1904")) {
-        errorMsg = "SMS Misr: رصيد الرسائل غير كافٍ في حسابك";
-      } else if (responseText.includes("1905")) {
-        errorMsg = "SMS Misr: رقم الهاتف غير صحيح";
-      } else {
-        errorMsg = `SMS Misr response: ${responseText}`;
+      // If 1903 (Unapproved Sender ID), try Test Environment fallback with environment=2
+      if (!isSuccess && responseText.includes("1903")) {
+        console.log("[SMS MISR] Sender ID not active yet. Attempting Test Environment (environment=2)...");
+        const testUrl = `https://smsmisr.com/api/webapi/?username=${username}&password=${password}&language=2&sender=${sender}&mobile=${formattedMobile}&message=${encodedMsg}&environment=2`;
+        res = await fetch(testUrl, { method: "POST" });
+        responseText = await res.text();
+        console.log(`[SMS MISR Test Env Response]:`, responseText);
+        if (responseText.includes("1901") || responseText.toLowerCase().includes("success")) {
+          isSuccess = true;
+        }
       }
 
       if (!isSuccess) {
+        if (responseText.includes("1902")) {
+          errorMsg = "SMS Misr: اسم المستخدم أو كلمة المرور غير صحيحة";
+        } else if (responseText.includes("1903")) {
+          errorMsg = "SMS Misr: اسم المرسل ALMOHANDES غير مفعّل بعد (اضغط Add Sender ID في لوحة SMS Misr لتفعيله)";
+        } else if (responseText.includes("1904")) {
+          errorMsg = "SMS Misr: رصيد الرسائل غير كافٍ في حسابك";
+        } else if (responseText.includes("1905")) {
+          errorMsg = "SMS Misr: رقم الهاتف غير صحيح";
+        } else {
+          errorMsg = `SMS Misr response: ${responseText}`;
+        }
         console.error(`[SMS MISR Warning]: ${errorMsg}`);
+      } else {
+        console.log(`[SMS MISR Success] 🟢 OTP delivered to ${formattedMobile}`);
       }
 
       return {

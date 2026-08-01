@@ -8,17 +8,10 @@ import { Category } from "../models/Category.js";
 const router = Router();
 
 function getBaseUrl(req: Request): string {
-  // In dev, the browser talks to the Vite server (port 5000) which proxies
-  // /api requests to this API server (port 3001) — that proxy rewrites the
-  // Host header, so req.get("host") would incorrectly return the API's own
-  // port. APP_BASE_URL (set in .env) is the reliable source of truth for
-  // the public-facing shop URL that QR codes should point to.
   if (process.env.APP_BASE_URL) {
     return process.env.APP_BASE_URL.replace(/\/+$/, "");
   }
-  const host = req.get("host") || "localhost:5000";
-  const protocol = req.secure ? "https" : "http";
-  return `${protocol}://${host}`;
+  return "https://almohandesstore.vercel.app";
 }
 
 // Get all products (public)
