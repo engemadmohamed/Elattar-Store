@@ -33,6 +33,7 @@ import ProductSection from "@/components/ProductSection";
 import { apiRequest } from "@/lib/queryClient";
 import { useStoreSettings } from "@/lib/store-settings-context";
 import { useLanguage } from "@/lib/language-context";
+import { useToast } from "@/hooks/use-toast";
 
 interface Category {
   _id: string;
@@ -56,8 +57,8 @@ interface Product {
   brand?: string;
 }
 
-const HERO_IMG = "https://images.unsplash.com/photo-1456735190827-d1262f71b8a3?w=900&q=80";
-const ABOUT_IMG = "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800&q=80";
+const HERO_IMG = "/mohandes-logo.png";
+const ABOUT_IMG = "/mohandes-logo.png";
 
 // Map category to Unsplash image
 const getCategoryImage = (cat: Category): string => {
@@ -112,6 +113,7 @@ function useInView(threshold = 0.1) {
 export default function Home() {
   const { settings } = useStoreSettings();
   const { t, lang } = useLanguage();
+  const { toast } = useToast();
   const [catMenuOpen, setCatMenuOpen] = useState(false);
   const [reviewIdx, setReviewIdx] = useState(0);
   const reviewsPerPage = 3;
@@ -651,12 +653,20 @@ export default function Home() {
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star
                     key={i}
-                    className={`h-4 w-4 ${reviewInView ? `animate-star-pop stagger-${i + 1}` : ""} fill-background text-background`}
+                    className={`h-4 w-4 ${reviewInView ? `animate-star-pop stagger-${i + 1}` : ""} ${
+                      dbStats?.averageRating && i < Math.round(dbStats.averageRating) ? "fill-background text-background" : "opacity-40"
+                    }`}
                   />
                 ))}
               </div>
-              <span className="font-black text-lg">4.9</span>
-              <span className="text-background/70 text-sm">{t("من 5000+ تقييم", "from 5000+ reviews")}</span>
+              <span className="font-black text-lg">
+                {dbStats?.reviewsCount && dbStats.averageRating > 0 ? dbStats.averageRating : "0.0"}
+              </span>
+              <span className="text-background/70 text-sm">
+                {dbStats?.reviewsCount
+                  ? t(`من ${dbStats.reviewsCount} تقييمات`, `from ${dbStats.reviewsCount} reviews`)
+                  : t("لا توجد تقييمات مسجلة بعد", "No reviews yet")}
+              </span>
             </div>
           </div>
 
@@ -763,24 +773,34 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== NEWSLETTER ===== */}
+      {/* ===== PHONE SUBSCRIPTION ===== */}
       {settings.showNewsletter && (
         <section className="py-16 px-4 bg-muted/30">
           <div className="mx-auto max-w-xl text-center">
-            <div className="h-14 w-14 rounded-2xl bg-foreground flex items-center justify-center mx-auto mb-5 animate-float">
-              <Heart className="h-7 w-7 text-background" />
+            <div className="h-14 w-14 rounded-2xl bg-foreground flex items-center justify-center mx-auto mb-5 animate-float shadow-md">
+              <Phone className="h-7 w-7 text-background" />
             </div>
-            <h2 className="text-2xl font-black mb-3 animate-fade-in-up">{t("اشترك في نشرتنا", "Subscribe to Newsletter")}</h2>
+            <h2 className="text-2xl font-black mb-3 animate-fade-in-up">{t("اشترك في خدمة عروض الهاتف والواتساب", "Subscribe for Mobile Offers")}</h2>
             <p className="text-muted-foreground mb-6 animate-fade-in-up stagger-1">
               {t("كن أول من يعرف عن العروض والمنتجات الجديدة", "Be the first to know about new products and deals")}
             </p>
-            <form className="flex gap-2 max-w-sm mx-auto animate-fade-in-up stagger-2" onSubmit={(e) => e.preventDefault()}>
+            <form
+              className="flex gap-2 max-w-md mx-auto animate-fade-in-up stagger-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                toast({
+                  title: "تم الاشتراك بنجاح 📱",
+                  description: "ستصلك أحدث العروض والمنتجات جديدة على رقم هاتفك!",
+                });
+              }}
+            >
               <input
-                type="email"
-                placeholder={t("بريدك الإلكتروني", "Your email")}
-                className="flex h-11 flex-1 rounded-full border-2 border-input bg-white px-5 text-sm focus:outline-none focus:ring-2 focus:ring-foreground transition-all"
+                type="tel"
+                required
+                placeholder={t("ادخل رقم الهاتف (مثال: 01012345678)", "Your phone number")}
+                className="flex h-12 flex-1 rounded-full border-2 border-input bg-white px-5 text-sm focus:outline-none focus:ring-2 focus:ring-foreground transition-all shadow-xs"
               />
-              <Button type="submit" className="rounded-full gap-1 px-5 font-bold">
+              <Button type="submit" className="rounded-full h-12 gap-1 px-7 font-bold text-sm shadow-md">
                 {t("اشترك", "Subscribe")}
               </Button>
             </form>
