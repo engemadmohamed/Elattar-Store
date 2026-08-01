@@ -61,28 +61,6 @@ interface Product {
 const HERO_IMG = "/mohandes-logo.png";
 const ABOUT_IMG = "/mohandes-logo.png";
 
-// Map category to Unsplash image
-const getCategoryImage = (cat: Category): string => {
-  const name = (cat.nameAr + " " + cat.name).toLowerCase();
-  if (name.includes("قلم") || name.includes("pen"))
-    return "https://images.unsplash.com/photo-1585336261022-680e295ce3fe?w=500&q=80";
-  if (name.includes("دفتر") || name.includes("notebook") || name.includes("ورق"))
-    return "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=500&q=80";
-  if (name.includes("لون") || name.includes("color") || name.includes("رسم"))
-    return "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=500&q=80";
-  if (name.includes("شنط") || name.includes("حقيب") || name.includes("bag"))
-    return "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500&q=80";
-  if (name.includes("مكتب") || name.includes("office"))
-    return "https://images.unsplash.com/photo-1497366216548-37526070297c?w=500&q=80";
-  if (name.includes("حساب") || name.includes("math") || name.includes("ألة"))
-    return "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=500&q=80";
-  if (name.includes("تعبئة") || name.includes("pack") || name.includes("صندوق"))
-    return "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&q=80";
-  if (name.includes("طلاب") || name.includes("student"))
-    return "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=500&q=80";
-  return "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=500&q=80";
-};
-
 // Interface for dynamic reviews fetched from database
 interface ReviewItem {
   _id: string;
@@ -231,10 +209,14 @@ export default function Home() {
                       {rootCategories.slice(0, 4).map((cat, i) => (
                         <div
                           key={cat._id}
-                          className="h-8 w-8 rounded-full border-2 border-white overflow-hidden bg-muted shrink-0 transition-transform duration-300 group-hover:scale-110"
+                          className="h-8 w-8 rounded-full border-2 border-white overflow-hidden bg-muted shrink-0 transition-transform duration-300 group-hover:scale-110 flex items-center justify-center text-xs"
                           style={{ zIndex: 10 - i }}
                         >
-                          <img src={cat.image || getCategoryImage(cat)} alt={catName(cat)} className="h-full w-full object-cover" />
+                          {cat.image ? (
+                            <img src={cat.image} alt={catName(cat)} className="h-full w-full object-cover" />
+                          ) : (
+                            <span>{cat.icon || "📦"}</span>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -251,8 +233,12 @@ export default function Home() {
                               className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-accent transition-all duration-200 cursor-pointer group/item"
                               style={{ animation: `fadeInUp 0.35s cubic-bezier(0.16,1,0.3,1) ${i * 0.04}s both` }}
                             >
-                              <div className="h-9 w-9 rounded-lg overflow-hidden bg-muted shrink-0 transition-transform duration-300 group-hover/item:scale-110">
-                                <img src={cat.image || getCategoryImage(cat)} alt={catName(cat)} className="h-full w-full object-cover" />
+                              <div className="h-9 w-9 rounded-lg overflow-hidden bg-muted shrink-0 transition-transform duration-300 group-hover/item:scale-110 flex items-center justify-center text-sm">
+                                {cat.image ? (
+                                  <img src={cat.image} alt={catName(cat)} className="h-full w-full object-cover" />
+                                ) : (
+                                  <span>{cat.icon || "📦"}</span>
+                                )}
                               </div>
                               <span className="text-sm font-medium leading-tight">{catName(cat)}</span>
                             </div>
@@ -384,12 +370,19 @@ export default function Home() {
                         style={{ boxShadow: "0 4px 24px hsl(0 0% 0% / 0.07)" }}
                       >
                         {/* Image */}
-                        <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-                          <img
-                            src={cat.image || getCategoryImage(cat)}
-                            alt={catName(cat)}
-                            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-115"
-                          />
+                        <div className="relative aspect-[4/3] overflow-hidden bg-muted flex items-center justify-center">
+                          {cat.image ? (
+                            <img
+                              src={cat.image}
+                              alt={catName(cat)}
+                              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-115"
+                            />
+                          ) : (
+                            <div className="h-full w-full bg-gradient-to-br from-foreground/5 via-foreground/10 to-foreground/20 flex flex-col items-center justify-center p-4 text-foreground group-hover:scale-105 transition-transform duration-500">
+                              <span className="text-4xl mb-2">{cat.icon || "📦"}</span>
+                              <span className="text-xs font-bold text-muted-foreground">{catName(cat)}</span>
+                            </div>
+                          )}
                           {/* Dark overlay with gradient */}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
                           
@@ -751,41 +744,6 @@ export default function Home() {
           )}
         </div>
       </section>
-
-      {/* ===== PHONE SUBSCRIPTION ===== */}
-      {settings.showNewsletter && (
-        <section className="py-16 px-4 bg-muted/30">
-          <div className="mx-auto max-w-xl text-center">
-            <div className="h-14 w-14 rounded-2xl bg-foreground flex items-center justify-center mx-auto mb-5 animate-float shadow-md">
-              <Phone className="h-7 w-7 text-background" />
-            </div>
-            <h2 className="text-2xl font-black mb-3 animate-fade-in-up">{t("اشترك في خدمة عروض الهاتف والواتساب", "Subscribe for Mobile Offers")}</h2>
-            <p className="text-muted-foreground mb-6 animate-fade-in-up stagger-1">
-              {t("كن أول من يعرف عن العروض والمنتجات الجديدة", "Be the first to know about new products and deals")}
-            </p>
-            <form
-              className="flex gap-2 max-w-md mx-auto animate-fade-in-up stagger-2"
-              onSubmit={(e) => {
-                e.preventDefault();
-                toast({
-                  title: "تم الاشتراك بنجاح 📱",
-                  description: "ستصلك أحدث العروض والمنتجات جديدة على رقم هاتفك!",
-                });
-              }}
-            >
-              <input
-                type="tel"
-                required
-                placeholder={t("رقم الهاتف", "Phone Number")}
-                className="flex h-12 flex-1 rounded-full border-2 border-input bg-white px-5 text-sm focus:outline-none focus:ring-2 focus:ring-foreground transition-all shadow-xs"
-              />
-              <Button type="submit" className="rounded-full h-12 gap-1 px-7 font-bold text-sm shadow-md">
-                {t("اشترك", "Subscribe")}
-              </Button>
-            </form>
-          </div>
-        </section>
-      )}
     </div>
   );
 }

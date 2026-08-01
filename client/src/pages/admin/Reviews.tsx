@@ -163,7 +163,7 @@ export default function AdminReviews() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-foreground hover:bg-foreground/10 h-8 text-xs gap-1 font-bold"
+                      className="text-destructive hover:bg-destructive/10 h-8 text-xs gap-1 font-bold"
                       onClick={() => deleteMutation.mutate(review._id)}
                     >
                       <Trash2 className="h-3.5 w-3.5" /> حذف التقييم

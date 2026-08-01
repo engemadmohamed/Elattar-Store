@@ -36,29 +36,6 @@ interface Category {
   isActive: boolean;
 }
 
-// Map category slugs/names to real Unsplash images
-const getCategoryImage = (cat: Category): string => {
-  const name = (cat.nameAr + " " + cat.name).toLowerCase();
-  if (name.includes("قلم") || name.includes("pen"))
-    return "https://images.unsplash.com/photo-1585336261022-680e295ce3fe?w=400&q=80";
-  if (name.includes("دفتر") || name.includes("notebook") || name.includes("ورق"))
-    return "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=400&q=80";
-  if (name.includes("لون") || name.includes("color") || name.includes("رسم"))
-    return "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400&q=80";
-  if (name.includes("شنط") || name.includes("حقيب") || name.includes("bag"))
-    return "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&q=80";
-  if (name.includes("مكتب") || name.includes("office"))
-    return "https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&q=80";
-  if (name.includes("حساب") || name.includes("math") || name.includes("ألة"))
-    return "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400&q=80";
-  if (name.includes("تعبئة") || name.includes("pack") || name.includes("صندوق"))
-    return "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80";
-  if (name.includes("طلاب") || name.includes("student") || name.includes("مدرس"))
-    return "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&q=80";
-  // Default
-  return "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=400&q=80";
-};
-
 export default function Navbar() {
   const { count } = useCart();
   const { customer, isAuthenticated, logout } = useCustomerAuth();
@@ -195,12 +172,16 @@ export default function Navbar() {
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-accent transition-all duration-200 group cursor-pointer"
                 style={{ animation: `fadeInUp 0.4s cubic-bezier(0.16,1,0.3,1) ${i * 0.04}s both` }}
               >
-                <div className="h-10 w-10 rounded-xl overflow-hidden bg-muted shrink-0">
-                  <img
-                    src={cat.image || getCategoryImage(cat)}
-                    alt={catName(cat)}
-                    className="h-full w-full object-cover"
-                  />
+                <div className="h-10 w-10 rounded-xl overflow-hidden bg-muted shrink-0 flex items-center justify-center">
+                  {cat.image ? (
+                    <img
+                      src={cat.image}
+                      alt={catName(cat)}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-base">{cat.icon || "📦"}</span>
+                  )}
                 </div>
                 <span className="text-sm font-medium">{catName(cat)}</span>
               </div>
@@ -339,12 +320,16 @@ export default function Navbar() {
                             className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-accent transition-all duration-200 cursor-pointer group text-center"
                             style={{ animation: `fadeInUp 0.35s cubic-bezier(0.16,1,0.3,1) ${i * 0.04}s both` }}
                           >
-                            <div className="h-16 w-full rounded-lg overflow-hidden bg-muted transition-transform duration-300 group-hover:scale-105">
-                              <img
-                                src={cat.image || getCategoryImage(cat)}
-                                alt={catName(cat)}
-                                className="h-full w-full object-cover"
-                              />
+                            <div className="h-16 w-full rounded-lg overflow-hidden bg-muted transition-transform duration-300 group-hover:scale-105 flex items-center justify-center">
+                              {cat.image ? (
+                                <img
+                                  src={cat.image}
+                                  alt={catName(cat)}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <span className="text-2xl">{cat.icon || "📦"}</span>
+                              )}
                             </div>
                             <span className="text-xs font-semibold leading-tight">{catName(cat)}</span>
                           </div>
