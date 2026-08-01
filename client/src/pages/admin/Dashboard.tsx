@@ -44,12 +44,12 @@ export default function AdminDashboard() {
     ordersData?.orders?.filter((o) => o.status === "pending").length || 0;
 
   const statusColors: Record<string, string> = {
-    pending: "bg-yellow-100 text-yellow-800",
-    confirmed: "bg-blue-100 text-blue-800",
-    processing: "bg-purple-100 text-purple-800",
-    shipped: "bg-indigo-100 text-indigo-800",
-    delivered: "bg-green-100 text-green-800",
-    cancelled: "bg-red-100 text-red-800",
+    pending:    "bg-foreground/8 text-foreground border border-foreground/20",
+    confirmed:  "bg-foreground/15 text-foreground border border-foreground/25",
+    processing: "bg-foreground/20 text-foreground border border-foreground/30",
+    shipped:    "bg-foreground/25 text-foreground border border-foreground/35",
+    delivered:  "bg-foreground text-background",
+    cancelled:  "bg-destructive/10 text-destructive border border-destructive/25",
   };
   const statusLabels: Record<string, string> = {
     pending: "قيد الانتظار",
@@ -78,36 +78,42 @@ export default function AdminDashboard() {
               title: "المنتجات",
               value: productsData?.total,
               icon: Package,
-              color: "text-blue-500",
+              color: "text-foreground",
               sub: "منتج نشط",
+              bg: "bg-foreground/8",
             },
             {
               title: "الطلبات",
               value: ordersData?.total,
               icon: ShoppingBag,
-              color: "text-green-500",
+              color: "text-foreground",
               sub: "إجمالي الطلبات",
+              bg: "bg-foreground/8",
             },
             {
               title: "قيد الانتظار",
               value: pendingOrders,
               icon: TrendingUp,
-              color: "text-yellow-500",
+              color: "text-foreground",
               sub: "طلب جديد",
+              bg: "bg-foreground/8",
             },
             {
               title: "الفئات",
               value: categories?.length,
               icon: Tags,
-              color: "text-purple-500",
+              color: "text-foreground",
               sub: "فئة منتج",
+              bg: "bg-foreground/8",
             },
           ].map((stat) => (
             <Card key={stat.title}>
               <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm text-muted-foreground">{stat.title}</p>
-                  <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-semibold text-muted-foreground">{stat.title}</p>
+                  <div className={`h-8 w-8 rounded-lg ${stat.bg} flex items-center justify-center`}>
+                    <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                  </div>
                 </div>
                 {stat.value !== undefined ? (
                   <p className="text-2xl font-bold">{stat.value}</p>
@@ -185,8 +191,8 @@ export default function AdminDashboard() {
           <Link href={`${ADMIN_BASE}/orders`}>
             <Card className="hover:border-primary/50 transition-colors cursor-pointer">
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                  <ShoppingBag className="h-5 w-5 text-green-500" />
+                <div className="h-10 w-10 rounded-lg bg-foreground/8 flex items-center justify-center">
+                  <ShoppingBag className="h-5 w-5 text-foreground" />
                 </div>
                 <div>
                   <p className="font-medium text-sm">إدارة الطلبات</p>

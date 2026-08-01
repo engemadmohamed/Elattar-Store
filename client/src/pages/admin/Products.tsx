@@ -267,7 +267,7 @@ export default function AdminProducts() {
                           }
                         >
                           {product.isActive ? (
-                            <ToggleRight className="h-5 w-5 text-green-500" />
+                            <ToggleRight className="h-5 w-5 text-foreground" />
                           ) : (
                             <ToggleLeft className="h-5 w-5 text-muted-foreground" />
                           )}

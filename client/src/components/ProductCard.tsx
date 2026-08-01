@@ -1,4 +1,4 @@
-import { ShoppingCart, Eye } from "lucide-react";
+import { ShoppingCart, Eye, Star } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useCart } from "@/lib/cart-context";
 import { useCustomerAuth } from "@/lib/customer-auth-context";
@@ -53,60 +53,82 @@ export default function ProductCard({ product }: { product: Product }) {
 
   return (
     <Link href={`/product/${product._id}`}>
-      <div className="group relative rounded-xl border bg-card hover:shadow-xl hover:-translate-y-1 hover:border-primary/40 transition-all duration-300 overflow-hidden cursor-pointer will-change-transform">
+      <div className="product-card-hover group relative rounded-2xl border-2 border-transparent bg-white overflow-hidden cursor-pointer will-change-transform"
+        style={{ boxShadow: "0 2px 16px hsl(0 0% 0% / 0.07)" }}
+      >
         {/* Image */}
         <div className="relative aspect-square bg-muted overflow-hidden">
           {product.images[0] ? (
             <img
               src={product.images[0]}
               alt={product.nameAr}
-              className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+              className="h-full w-full object-cover transition-transform duration-400 group-hover:scale-108"
             />
           ) : (
-            <div className="h-full w-full flex items-center justify-center text-5xl">
-              📦
+            <div className="h-full w-full flex items-center justify-center">
+              <ShoppingCart className="h-12 w-12 text-muted-foreground/30" />
             </div>
           )}
+
+          {/* Discount badge */}
           {hasDiscount && (
-            <Badge className="absolute top-2 left-2 bg-destructive">
-              خصم {Math.round(((product.price - price) / product.price) * 100)}%
-            </Badge>
-          )}
-          {!inStock && (
-            <div className="absolute inset-0 bg-background/70 flex items-center justify-center">
-              <Badge variant="secondary">نفدت الكمية</Badge>
+            <div className="absolute top-2.5 rtl:right-2.5 ltr:left-2.5 bg-foreground text-background text-[11px] font-black px-2 py-0.5 rounded-full">
+              -{Math.round(((product.price - price) / product.price) * 100)}%
             </div>
           )}
+
+          {/* Out of stock overlay */}
+          {!inStock && (
+            <div className="absolute inset-0 bg-white/75 backdrop-blur-sm flex items-center justify-center">
+              <span className="text-xs font-bold text-muted-foreground border-2 px-3 py-1 rounded-full">نفدت الكمية</span>
+            </div>
+          )}
+
           {/* Quick view overlay */}
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-            <Eye className="h-6 w-6 text-white scale-75 group-hover:scale-100 transition-transform duration-300" />
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
+            <div className="bg-white rounded-full p-2.5 shadow-lg transform scale-75 group-hover:scale-100 transition-transform duration-300">
+              <Eye className="h-4 w-4 text-foreground" />
+            </div>
+          </div>
+
+          {/* Add to cart — shown on hover */}
+          <div className="absolute bottom-0 inset-x-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out p-2">
+            <button
+              onClick={handleAddToCart}
+              disabled={!inStock}
+              className="w-full py-2 bg-foreground text-background text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 hover:bg-foreground/85 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ShoppingCart className="h-3.5 w-3.5" />
+              أضف للسلة
+            </button>
           </div>
         </div>
 
         {/* Info */}
-        <div className="p-3">
+        <div className="p-3.5">
           {product.brand && (
-            <p className="text-xs text-muted-foreground mb-1">
+            <p className="text-[11px] text-muted-foreground font-medium mb-1 uppercase tracking-wide">
               {product.brand}
             </p>
           )}
-          <h3 className="text-sm font-medium leading-snug line-clamp-2 mb-1">
+          <h3 className="text-sm font-semibold leading-snug line-clamp-2 mb-2.5">
             {product.nameAr}
           </h3>
-          <div className="flex items-center justify-between gap-2 mt-1">
-            <div>
-              <span className="font-bold text-primary">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-black text-base text-foreground">
                 {formatPrice(price)}
               </span>
               {hasDiscount && (
-                <span className="text-xs text-muted-foreground line-through ml-1">
+                <span className="text-xs text-muted-foreground line-through">
                   {formatPrice(product.price)}
                 </span>
               )}
             </div>
+            {/* Desktop add button */}
             <Button
               size="sm"
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 rounded-xl opacity-0 group-hover:opacity-0 md:opacity-100 transition-opacity"
               onClick={handleAddToCart}
               disabled={!inStock}
             >

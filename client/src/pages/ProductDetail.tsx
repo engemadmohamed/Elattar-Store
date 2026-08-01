@@ -246,10 +246,10 @@ export default function ProductDetail() {
             {/* Stock */}
             <div className="flex items-center gap-2">
               <div
-                className={`h-2 w-2 rounded-full ${inStock ? "bg-green-500" : "bg-red-500"}`}
+                className={`h-2 w-2 rounded-full ${inStock ? "bg-foreground" : "bg-muted-foreground/40"}`}
               />
               <span
-                className={`text-sm font-medium ${inStock ? "text-green-600" : "text-red-500"}`}
+                className={`text-sm font-medium ${inStock ? "text-foreground" : "text-muted-foreground"}`}
               >
                 {inStock ? `متوفر (${product.stock} قطعة)` : "نفدت الكمية"}
               </span>

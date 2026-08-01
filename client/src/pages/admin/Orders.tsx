@@ -73,20 +73,20 @@ const STATUS_OPTIONS = [
   {
     value: "pending",
     label: "قيد الانتظار",
-    color: "bg-yellow-100 text-yellow-800",
+    color: "bg-foreground/8 text-foreground border border-foreground/20",
   },
-  { value: "confirmed", label: "مؤكد", color: "bg-blue-100 text-blue-800" },
+  { value: "confirmed", label: "مؤكد", color: "bg-foreground/18 text-foreground border border-foreground/28" },
   {
     value: "shipped",
     label: "تم الشحن",
-    color: "bg-indigo-100 text-indigo-800",
+    color: "bg-foreground/28 text-foreground border border-foreground/38",
   },
   {
     value: "delivered",
     label: "تم التوصيل",
-    color: "bg-green-100 text-green-800",
+    color: "bg-foreground text-background",
   },
-  { value: "cancelled", label: "ملغي", color: "bg-red-100 text-red-800" },
+  { value: "cancelled", label: "ملغي", color: "bg-destructive/10 text-destructive border border-destructive/25" },
 ];
 
 const paymentMethodLabels: Record<string, string> = {

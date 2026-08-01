@@ -317,7 +317,7 @@ export default function AdminSettings() {
                       >
                         <span className="text-sm font-medium">{item.label}</span>
                         <div className="flex items-center gap-2">
-                          <span className={`text-xs ${form[item.key] ? "text-green-600" : "text-muted-foreground"}`}>
+                          <span className={`text-xs font-medium ${form[item.key] ? "text-foreground" : "text-muted-foreground"}`}>
                             {form[item.key] ? "مرئي" : "مخفي"}
                           </span>
                           <Switch

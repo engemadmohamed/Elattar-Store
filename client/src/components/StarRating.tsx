@@ -23,7 +23,7 @@ export default function StarRating({ value, onChange, size = 18, readOnly = fals
           <Star
             width={size}
             height={size}
-            className={star <= Math.round(value) ? "fill-yellow-400 text-yellow-400" : "fill-none text-muted-foreground"}
+            className={star <= Math.round(value) ? "fill-foreground text-foreground" : "fill-none text-muted-foreground/30"}
           />
         </button>
       ))}
