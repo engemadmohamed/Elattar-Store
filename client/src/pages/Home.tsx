@@ -260,7 +260,7 @@ export default function Home() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
               {categories
                 ? rootCategories.map((cat, i) => (
                     <Link key={cat._id} href={`/shop?category=${cat.slug}`}>
@@ -268,7 +268,7 @@ export default function Home() {
                         className="premium-card group h-full overflow-hidden border-primary/10 hover:border-primary/40 cursor-pointer animate-scale-in"
                         style={{ animationDelay: `${i * 0.06}s` }}
                       >
-                        <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-primary/15 to-accent/30">
+                        <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-primary/15 to-accent/30">
                           {cat.image ? (
                             <img
                               src={cat.image}
@@ -276,20 +276,20 @@ export default function Home() {
                               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                             />
                           ) : (
-                            <div className="h-full w-full flex items-center justify-center text-5xl transition-transform duration-500 group-hover:scale-125">
+                            <div className="h-full w-full flex items-center justify-center text-6xl transition-transform duration-500 group-hover:scale-125">
                               {cat.icon || "📦"}
                             </div>
                           )}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         </div>
-                        <CardContent className="p-3 text-center">
-                          <p className="text-sm font-medium leading-tight">{catName(cat)}</p>
+                        <CardContent className="p-4 text-center">
+                          <p className="text-base font-semibold leading-tight">{catName(cat)}</p>
                         </CardContent>
                       </Card>
                     </Link>
                   ))
                 : Array.from({ length: 8 }).map((_, i) => (
-                    <Skeleton key={i} className="aspect-[4/3] rounded-xl" />
+                    <Skeleton key={i} className="aspect-[16/10] rounded-xl" />
                   ))}
             </div>
           </div>
