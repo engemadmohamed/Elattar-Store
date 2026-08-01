@@ -32,12 +32,12 @@ async function seed() {
 
   // Seed categories
   const categoriesData = [
-    { name: "Pens & Writing", nameAr: "أقلام وأدوات الكتابة", slug: "pens-writing", icon: "✒️" },
-    { name: "Notebooks & Paper", nameAr: "دفاتر وأوراق", slug: "notebooks-paper", icon: "📓" },
-    { name: "Art Supplies", nameAr: "أدوات الرسم والفن", slug: "art-supplies", icon: "🎨" },
-    { name: "Office Supplies", nameAr: "مستلزمات المكتب", slug: "office-supplies", icon: "📎" },
-    { name: "School Bags", nameAr: "حقائب مدرسية", slug: "school-bags", icon: "🎒" },
-    { name: "Calculators", nameAr: "آلات حاسبة", slug: "calculators", icon: "🧮" },
+    { name: "Pens & Writing", nameAr: "أقلام وأدوات الكتابة", slug: "pens-writing", icon: "✒️", image: "https://images.pexels.com/photos/164645/pexels-photo-164645.jpeg?auto=compress&cs=tinysrgb&h=650&w=940" },
+    { name: "Notebooks & Paper", nameAr: "دفاتر وأوراق", slug: "notebooks-paper", icon: "📓", image: "https://images.pexels.com/photos/7657382/pexels-photo-7657382.jpeg?auto=compress&cs=tinysrgb&h=650&w=940" },
+    { name: "Art Supplies", nameAr: "أدوات الرسم والفن", slug: "art-supplies", icon: "🎨", image: "https://images.pexels.com/photos/38807889/pexels-photo-38807889.jpeg?auto=compress&cs=tinysrgb&h=650&w=940" },
+    { name: "Office Supplies", nameAr: "مستلزمات المكتب", slug: "office-supplies", icon: "📎", image: "https://images.pexels.com/photos/8251060/pexels-photo-8251060.jpeg?auto=compress&cs=tinysrgb&h=650&w=940" },
+    { name: "School Bags", nameAr: "حقائب مدرسية", slug: "school-bags", icon: "🎒", image: "https://images.pexels.com/photos/37580640/pexels-photo-37580640.jpeg?auto=compress&cs=tinysrgb&h=650&w=940" },
+    { name: "Calculators", nameAr: "آلات حاسبة", slug: "calculators", icon: "🧮", image: "https://images.pexels.com/photos/5775/calculator-scientific.jpg?auto=compress&cs=tinysrgb&h=650&w=940" },
   ];
 
   for (const cat of categoriesData) {
