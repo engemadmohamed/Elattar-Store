@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { compressImage } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -219,8 +220,11 @@ export default function AdminCategories() {
     setImageUploading(true);
     const token = localStorage.getItem("al-mohandes-token") || localStorage.getItem("adminToken");
     try {
+      // Compress image client-side to handle files over 6MB/10MB smoothly
+      const compressedBlob = await compressImage(file);
       const formData = new FormData();
-      formData.append("image", file);
+      formData.append("image", compressedBlob, file.name || "category.jpg");
+
       const res = await fetch("/api/upload/image", {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -231,7 +235,7 @@ export default function AdminCategories() {
         set("image", data.url);
         toast({ title: "تم رفع صورة الفئة بنجاح ✓" });
       } else {
-        // Fallback to client-side Data URL if server response is not ok
+        // Fallback to compressed Data URL
         const reader = new FileReader();
         reader.onload = (e) => {
           if (e.target?.result) {
@@ -239,10 +243,11 @@ export default function AdminCategories() {
             toast({ title: "تم رفع صورة الفئة بنجاح ✓" });
           }
         };
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(compressedBlob);
       }
     } catch {
-      // Client-side Data URL fallback
+      // Client-side compressed Data URL fallback
+      const compressedBlob = await compressImage(file);
       const reader = new FileReader();
       reader.onload = (e) => {
         if (e.target?.result) {
@@ -250,7 +255,7 @@ export default function AdminCategories() {
           toast({ title: "تم رفع صورة الفئة بنجاح ✓" });
         }
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(compressedBlob);
     } finally {
       setImageUploading(false);
     }

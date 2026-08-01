@@ -22,6 +22,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import { ADMIN_BASE } from "@/lib/admin-path";
+import { compressImage } from "@/lib/utils";
 
 interface Category {
   _id: string;
@@ -169,10 +170,11 @@ export default function AddProduct() {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
-    const formData = new FormData();
-    formData.append("image", file);
     const token = localStorage.getItem("al-mohandes-token");
     try {
+      const compressedBlob = await compressImage(file);
+      const formData = new FormData();
+      formData.append("image", compressedBlob, file.name || "product.jpg");
       const res = await fetch("/api/upload/image", {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
