@@ -23,6 +23,7 @@ const menuItems = [
   { title: "الفئات", url: `${ADMIN_BASE}/categories`, icon: Tags },
   { title: "الطلبات", url: `${ADMIN_BASE}/orders`, icon: ShoppingBag },
   { title: "فواتير العملاء", url: `${ADMIN_BASE}/invoices`, icon: Receipt },
+  { title: "إعدادات المتجر", url: `${ADMIN_BASE}/settings`, icon: Settings },
 ];
 
 export default function AdminSidebar() {

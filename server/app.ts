@@ -13,6 +13,7 @@ import productRoutes from "./routes/products.js";
 import orderRoutes from "./routes/orders.js";
 import reviewRoutes from "./routes/reviews.js";
 import uploadRoutes from "./routes/upload.js";
+import storeSettingsRoutes from "./routes/storeSettings.js";
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/settings", storeSettingsRoutes);
 
 // Health check
 app.get("/api/health", (_req, res) => {

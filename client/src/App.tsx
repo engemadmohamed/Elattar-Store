@@ -5,6 +5,7 @@ import { ThemeProvider } from "./lib/theme-provider";
 import { AuthProvider, useAuth } from "./lib/auth-context";
 import { CustomerAuthProvider } from "./lib/customer-auth-context";
 import { CartProvider } from "./lib/cart-context";
+import { StoreSettingsProvider } from "./lib/store-settings-context";
 import { Toaster } from "./components/ui/toaster";
 import { ADMIN_BASE } from "./lib/admin-path";
 
@@ -32,6 +33,7 @@ import AddProduct from "./pages/admin/AddProduct";
 import AdminOrders from "./pages/admin/Orders";
 import AdminInvoices from "./pages/admin/Invoices";
 import AdminCategories from "./pages/admin/Categories";
+import AdminSettings from "./pages/admin/Settings";
 
 function AdminRoute({ component: Component }: { component: React.ComponentType }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -127,6 +129,9 @@ function Router() {
       <Route path={`${ADMIN_BASE}/categories`}>
         <AdminRoute component={AdminCategories} />
       </Route>
+      <Route path={`${ADMIN_BASE}/settings`}>
+        <AdminRoute component={AdminSettings} />
+      </Route>
 
       <Route component={NotFound} />
     </Switch>
@@ -137,14 +142,16 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <AuthProvider>
-          <CustomerAuthProvider>
-            <CartProvider>
-              <Router />
-              <Toaster />
-            </CartProvider>
-          </CustomerAuthProvider>
-        </AuthProvider>
+        <StoreSettingsProvider>
+          <AuthProvider>
+            <CustomerAuthProvider>
+              <CartProvider>
+                <Router />
+                <Toaster />
+              </CartProvider>
+            </CustomerAuthProvider>
+          </AuthProvider>
+        </StoreSettingsProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
