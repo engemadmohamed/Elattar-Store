@@ -154,16 +154,17 @@ export function StoreSettingsProvider({ children }: { children: ReactNode }) {
       .finally(() => setIsLoading(false));
   }, []);
 
+  // LOCKED: always force pure black & white — ignore any DB color settings
   useEffect(() => {
     const root = document.documentElement;
-    root.style.setProperty("--primary", hexToHsl(settings.primaryColor));
-    root.style.setProperty("--primary-foreground", hexToHslRaw(settings.primaryForeground));
-    root.style.setProperty("--background", hexToHslRaw(settings.backgroundColor));
-    root.style.setProperty("--card", hexToHslRaw(settings.cardBackground));
-    root.style.setProperty("--ring", hexToHsl(settings.primaryColor));
-    root.style.setProperty("--sidebar-primary", hexToHsl(settings.primaryColor));
-    root.style.setProperty("--sidebar-ring", hexToHsl(settings.primaryColor));
-  }, [settings.primaryColor, settings.primaryForeground, settings.backgroundColor, settings.cardBackground]);
+    root.style.setProperty("--primary", "0 0% 7%");
+    root.style.setProperty("--primary-foreground", "0 0% 100%");
+    root.style.setProperty("--background", "0 0% 100%");
+    root.style.setProperty("--card", "0 0% 100%");
+    root.style.setProperty("--ring", "0 0% 7%");
+    root.style.setProperty("--sidebar-primary", "0 0% 7%");
+    root.style.setProperty("--sidebar-ring", "0 0% 7%");
+  }, []);
 
   return (
     <StoreSettingsContext.Provider value={{ settings, isLoading }}>

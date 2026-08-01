@@ -1,46 +1,27 @@
-import { createContext, useContext, useEffect, useState } from "react";
-
-type Theme = "dark" | "light" | "system";
+import { createContext, useContext, useEffect } from "react";
 
 type ThemeProviderContextType = {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
+  theme: "light";
+  setTheme: (theme: string) => void;
 };
 
 const ThemeProviderContext = createContext<ThemeProviderContextType>({
-  theme: "system",
+  theme: "light",
   setTheme: () => null,
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem("al-mohandes-theme") as Theme) || "system",
-  );
-
+  // Always force light mode — no dark mode allowed
   useEffect(() => {
     const root = window.document.documentElement;
-    root.classList.remove("light", "dark");
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light";
-      root.classList.add(systemTheme);
-    } else {
-      root.classList.add(theme);
-    }
-  }, [theme]);
-
-  const value = {
-    theme,
-    setTheme: (theme: Theme) => {
-      localStorage.setItem("al-mohandes-theme", theme);
-      setTheme(theme);
-    },
-  };
+    root.classList.remove("dark", "system");
+    root.classList.add("light");
+    // Clear any stored theme preference
+    localStorage.removeItem("al-mohandes-theme");
+  }, []);
 
   return (
-    <ThemeProviderContext.Provider value={value}>
+    <ThemeProviderContext.Provider value={{ theme: "light", setTheme: () => {} }}>
       {children}
     </ThemeProviderContext.Provider>
   );

@@ -277,7 +277,7 @@ html, body {
   -webkit-text-fill-color: transparent;
 }
 .shimmer-text {
-  background: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.45) 50%, hsl(var(--primary)) 100%);
+  background: linear-gradient(90deg, hsl(0 0% 7%) 0%, hsl(0 0% 45%) 50%, hsl(0 0% 7%) 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
@@ -382,6 +382,39 @@ html, body {
 /* ===== BUTTON PRESS EFFECT ===== */
 button:active, [role="button"]:active {
   transform: scale(0.97);
+}
+
+/* ===== CATEGORY CARD: powerful hover on mouse-over ===== */
+.category-card {
+  transition:
+    transform 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.38s ease,
+    border-color 0.38s ease !important;
+  will-change: transform;
+}
+.category-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 24px 48px hsl(0 0% 0% / 0.16) !important;
+  border-color: hsl(0 0% 7% / 0.4) !important;
+}
+.category-card:hover .cat-name {
+  transform: translateY(-2px);
+}
+.cat-name {
+  transition: transform 0.3s ease;
+}
+
+/* ===== REVIEW CARD HOVER ===== */
+.review-card {
+  transition:
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.3s ease,
+    border-color 0.3s ease !important;
+}
+.review-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 40px hsl(0 0% 0% / 0.12) !important;
+  border-color: hsl(0 0% 7% / 0.25) !important;
 }
 
 /* ===== PRINT ===== */

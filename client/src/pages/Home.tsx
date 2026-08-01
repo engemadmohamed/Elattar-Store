@@ -202,7 +202,6 @@ export default function Home() {
   const canPrev = reviewIdx > 0;
   const canNext = reviewIdx + reviewsPerPage < REVIEWS.length;
 
-  const { ref: catRef, inView: catInView } = useInView();
   const { ref: reviewRef, inView: reviewInView } = useInView();
   const { ref: statsRef, inView: statsInView } = useInView();
 
@@ -211,8 +210,12 @@ export default function Home() {
       {/* Announcement Bar */}
       {settings.showAnnouncementBar && settings.announcementBar && (
         <div className="bg-foreground text-background py-2.5 overflow-hidden">
-          <div className="animate-marquee whitespace-nowrap text-sm font-medium">
-            {settings.announcementBar}
+          <div className="flex gap-0" style={{ animation: "marquee 25s linear infinite" }}>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <span key={i} className="whitespace-nowrap text-sm font-medium px-8">
+                {settings.announcementBar} &nbsp;&nbsp;·&nbsp;&nbsp; {settings.announcementBar}
+              </span>
+            ))}
           </div>
         </div>
       )}
@@ -400,8 +403,8 @@ export default function Home() {
       {settings.showCategories && (
         <section className="py-16 px-4 bg-white">
           <div className="mx-auto max-w-7xl">
-            <div ref={catRef} className="flex items-end justify-between mb-10">
-              <div className={catInView ? "animate-fade-in-up" : "opacity-0"}>
+            <div data-reveal className="flex items-end justify-between mb-10">
+              <div className={"animate-fade-in-up"}>
                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
                   {t("فئاتنا", "Our Categories")}
                 </p>
@@ -409,7 +412,7 @@ export default function Home() {
                 <p className="text-sm text-muted-foreground mt-2">{t("اختر الفئة التي تناسب احتياجاتك", "Choose what fits your needs")}</p>
               </div>
               <Link href="/shop">
-                <Button variant="outline" size="sm" className={`gap-1.5 border-2 rounded-xl group ${catInView ? "animate-fade-in stagger-3" : "opacity-0"}`}>
+                <Button variant="outline" size="sm" className={"gap-1.5 border-2 rounded-xl group animate-fade-in stagger-3"}>
                   {t("الكل", "All")}
                   <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180 transition-transform duration-300 group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1" />
                 </Button>
@@ -423,27 +426,33 @@ export default function Home() {
                       <div
                         data-reveal
                         data-reveal-delay={String(Math.min(i + 1, 8))}
-                        className={`category-card group h-full overflow-hidden rounded-2xl border-2 border-transparent bg-white cursor-pointer ${catInView ? `animate-flip-in stagger-${Math.min(i + 1, 12)}` : "opacity-0"}`}
-                        style={{
-                          boxShadow: "0 4px 24px hsl(0 0% 0% / 0.07)",
-                        }}
+                        className="category-card card-shine group h-full overflow-hidden rounded-2xl border-2 border-transparent bg-white cursor-pointer"
+                        style={{ boxShadow: "0 4px 24px hsl(0 0% 0% / 0.07)" }}
                       >
                         {/* Image */}
                         <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                           <img
                             src={cat.image || getCategoryImage(cat)}
                             alt={catName(cat)}
-                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            className="h-full w-full object-cover transition-transform duration-600 group-hover:scale-115"
                           />
-                          {/* Overlay on hover */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-350" />
-                          <div className="absolute bottom-3 ltr:left-3 rtl:right-3 text-white text-xs font-semibold opacity-0 group-hover:opacity-100 transition-all duration-350 group-hover:translate-y-0 translate-y-3 flex items-center gap-1">
-                            {t("تصفح", "Browse")} <ArrowRight className="h-3 w-3 rtl:rotate-180" />
+                          {/* Dark overlay with gradient */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
+                          {/* Browse button slides up */}
+                          <div className="absolute bottom-0 inset-x-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-400 ease-out">
+                            <div className="flex items-center justify-center gap-1.5 text-white text-xs font-bold bg-white/15 backdrop-blur-sm rounded-xl py-2">
+                              {t("تصفح المنتجات", "Browse")}
+                              <ArrowRight className="h-3 w-3 rtl:rotate-180" />
+                            </div>
+                          </div>
+                          {/* Category number badge */}
+                          <div className="absolute top-2.5 rtl:left-2.5 ltr:right-2.5 h-6 w-6 rounded-full bg-white/90 backdrop-blur text-foreground text-[10px] font-black flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100">
+                            {i + 1}
                           </div>
                         </div>
                         {/* Name */}
-                        <div className="p-3 text-center">
-                          <p className="text-sm font-bold leading-tight">{catName(cat)}</p>
+                        <div className="px-3 py-3 text-center">
+                          <p className="cat-name text-sm font-bold leading-tight">{catName(cat)}</p>
                         </div>
                       </div>
                     </Link>
@@ -451,6 +460,7 @@ export default function Home() {
                 : Array.from({ length: 8 }).map((_, i) => (
                     <Skeleton key={i} className="aspect-[4/3] rounded-2xl" />
                   ))}
+
             </div>
           </div>
         </section>

@@ -98,28 +98,44 @@ function WhatsAppButton() {
 
 // ============================================================
 // Scroll-reveal: observe elements with data-reveal attribute
-// and add "revealed" class when they enter viewport
+// Uses MutationObserver to catch dynamically-loaded elements (e.g. from API)
 // ============================================================
 function useScrollReveal() {
   useEffect(() => {
-    const observer = new IntersectionObserver(
+    const observeElements = (observer: IntersectionObserver) => {
+      document.querySelectorAll("[data-reveal]:not(.revealed)").forEach((el) => {
+        observer.observe(el);
+      });
+    };
+
+    const intersectionObs = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add("revealed");
-            observer.unobserve(entry.target);
+            intersectionObs.unobserve(entry.target);
           }
         });
       },
-      { threshold: 0.08, rootMargin: "0px 0px -40px 0px" }
+      { threshold: 0.06, rootMargin: "0px 0px -30px 0px" }
     );
 
-    const elements = document.querySelectorAll("[data-reveal]");
-    elements.forEach((el) => observer.observe(el));
+    // Initial observe
+    observeElements(intersectionObs);
 
-    return () => observer.disconnect();
+    // Watch for new elements added to DOM (API data loads)
+    const mutationObs = new MutationObserver(() => {
+      observeElements(intersectionObs);
+    });
+    mutationObs.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      intersectionObs.disconnect();
+      mutationObs.disconnect();
+    };
   });
 }
+
 
 // ============================================================
 // Navigation progress bar (top of page)
