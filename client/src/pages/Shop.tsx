@@ -14,6 +14,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import ProductCard from "@/components/ProductCard";
 import { apiRequest } from "@/lib/queryClient";
+import { useLanguage } from "@/lib/language-context";
 
 interface Product {
   _id: string;
@@ -33,11 +34,13 @@ interface Category {
   nameAr: string;
   slug: string;
   icon: string;
+  image?: string;
   isActive: boolean;
   parentId: string | null;
 }
 
 export default function Shop() {
+  const { t, lang } = useLanguage();
   const [, navigate] = useLocation();
   const search = useSearch();
   const params = new URLSearchParams(search);
@@ -97,10 +100,10 @@ export default function Shop() {
   });
 
   const title = searchParam
-    ? `نتائج البحث: "${searchParam}"`
+    ? `${t("نتائج البحث", "Search Results")}: "${searchParam}"`
     : selectedCategory
-      ? selectedCategory.nameAr
-      : "جميع المنتجات";
+      ? (lang === "ar" ? selectedCategory.nameAr : selectedCategory.name)
+      : t("جميع المنتجات", "All Products");
 
   // Breadcrumbs
   const breadcrumbs = useMemo(() => {
@@ -125,7 +128,7 @@ export default function Shop() {
             </h1>
             {data && !showSubcategories && (
               <p className="text-sm text-muted-foreground mt-1">
-                {data.total} منتج
+                {data.total} {t("منتج", "products")}
               </p>
             )}
           </div>
@@ -142,11 +145,11 @@ export default function Shop() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="newest">الأحدث</SelectItem>
-                  <SelectItem value="price_asc">السعر: الأقل</SelectItem>
-                  <SelectItem value="price_desc">السعر: الأعلى</SelectItem>
-                  <SelectItem value="name">الاسم</SelectItem>
-                  <SelectItem value="best_selling">الأكثر مبيعًا</SelectItem>
+                  <SelectItem value="newest">{t("الأحدث", "Newest")}</SelectItem>
+                  <SelectItem value="price_asc">{t("السعر: الأقل", "Price: Low")}</SelectItem>
+                  <SelectItem value="price_desc">{t("السعر: الأعلى", "Price: High")}</SelectItem>
+                  <SelectItem value="name">{t("الاسم", "Name")}</SelectItem>
+                  <SelectItem value="best_selling">{t("الأكثر مبيعًا", "Best Selling")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -160,7 +163,7 @@ export default function Shop() {
               <>
                 <Link href="/shop">
                   <Button variant="outline" size="sm">
-                    الكل
+                    {t("الكل", "All")}
                   </Button>
                 </Link>
                 {breadcrumbs.map((crumb, index) => (
@@ -176,7 +179,7 @@ export default function Shop() {
                           }
                           size="sm"
                         >
-                          {crumb.nameAr}
+                          {lang === "ar" ? crumb.nameAr : crumb.name}
                         </Button>
                       </Link>
                     ) : (
@@ -187,7 +190,7 @@ export default function Shop() {
                         className="opacity-50"
                       >
                         <Lock className="h-3 w-3 ml-1" />
-                        {crumb.nameAr}
+                        {lang === "ar" ? crumb.nameAr : crumb.name}
                       </Button>
                     )}
                   </span>
@@ -200,7 +203,7 @@ export default function Shop() {
                   cat.isActive ? (
                     <Link key={cat._id} href={`/shop?category=${cat.slug}`}>
                       <Button variant="outline" size="sm">
-                        {cat.nameAr}
+                        {lang === "ar" ? cat.nameAr : cat.name}
                       </Button>
                     </Link>
                   ) : (
@@ -211,7 +214,7 @@ export default function Shop() {
                       disabled
                       className="opacity-50 pointer-events-none"
                     >
-                      <Lock className="h-3 w-3 ml-1" /> {cat.nameAr}
+                      <Lock className="h-3 w-3 ml-1" /> {lang === "ar" ? cat.nameAr : cat.name}
                     </Button>
                   ),
                 )
@@ -241,8 +244,15 @@ export default function Shop() {
                     {!cat.isActive && (
                       <Lock className="absolute top-2 right-2 h-3.5 w-3.5 text-muted-foreground" />
                     )}
+                    <div className="h-10 w-10 rounded-lg overflow-hidden bg-primary/10 flex items-center justify-center text-lg mb-2">
+                      {cat.image ? (
+                        <img src={cat.image} alt={cat.nameAr} className="h-full w-full object-cover" />
+                      ) : (
+                        <span>{cat.icon || "📦"}</span>
+                      )}
+                    </div>
                     <p className="text-sm font-medium leading-tight">
-                      {cat.nameAr}
+                      {lang === "ar" ? cat.nameAr : cat.name}
                     </p>
                   </CardContent>
                 </Card>
@@ -268,8 +278,8 @@ export default function Shop() {
         ) : data?.products.length === 0 ? (
           <div className="text-center py-20 text-muted-foreground">
             <p className="text-5xl mb-4">🔍</p>
-            <p className="text-lg font-medium">لا توجد منتجات</p>
-            <p className="text-sm mt-1">جرب البحث بكلمة مختلفة</p>
+            <p className="text-lg font-medium">{t("لا توجد منتجات", "No products found")}</p>
+            <p className="text-sm mt-1">{t("جرب البحث بكلمة مختلفة", "Try a different search")}</p>
           </div>
         ) : (
           <>
@@ -287,17 +297,17 @@ export default function Shop() {
                   disabled={page <= 1}
                   onClick={() => handleQueryChange({ page: page - 1 })}
                 >
-                  السابق
+                  {t("السابق", "Previous")}
                 </Button>
                 <span className="flex items-center px-4 text-sm">
-                  صفحة {page} من {data.totalPages}
+                  {t("صفحة", "Page")} {page} {t("من", "of")} {data.totalPages}
                 </span>
                 <Button
                   variant="outline"
                   disabled={page >= data.totalPages}
                   onClick={() => handleQueryChange({ page: page + 1 })}
                 >
-                  التالي
+                  {t("التالي", "Next")}
                 </Button>
               </div>
             )}

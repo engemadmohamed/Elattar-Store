@@ -1,6 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { ArrowRight, Truck, Shield, RefreshCw, Sparkles, Star } from "lucide-react";
+import { useState } from "react";
+import {
+  ArrowRight,
+  Truck,
+  Shield,
+  RefreshCw,
+  Sparkles,
+  Star,
+  ChevronDown,
+  Instagram,
+  Facebook,
+  Twitter,
+  MessageCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -8,13 +21,15 @@ import ProductCard from "@/components/ProductCard";
 import ProductSection from "@/components/ProductSection";
 import { apiRequest } from "@/lib/queryClient";
 import { useStoreSettings } from "@/lib/store-settings-context";
+import { useLanguage } from "@/lib/language-context";
 
 interface Category {
   _id: string;
   name: string;
   nameAr: string;
-  icon: string;
   slug: string;
+  icon: string;
+  image?: string;
   parentId: string | null;
   isActive: boolean;
 }
@@ -30,8 +45,13 @@ interface Product {
   brand?: string;
 }
 
+const HERO_IMG = "https://images.pexels.com/photos/7657377/pexels-photo-7657377.jpeg?auto=compress&cs=tinysrgb&h=650&w=940";
+const ABOUT_IMG = "https://images.pexels.com/photos/5594313/pexels-photo-5594313.jpeg?auto=compress&cs=tinysrgb&h=650&w=940";
+
 export default function Home() {
   const { settings } = useStoreSettings();
+  const { t, lang } = useLanguage();
+  const [catMenuOpen, setCatMenuOpen] = useState(false);
 
   const { data: categories } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
@@ -43,11 +63,14 @@ export default function Home() {
     queryFn: () => apiRequest("GET", "/api/products?limit=8&sort=newest"),
   });
 
+  const rootCategories = categories?.filter((c) => !c.parentId && c.isActive) || [];
   const stats = [
-    { value: "+5000", label: "عميل سعيد" },
-    { value: "+800", label: "منتج متنوع" },
-    { value: "4.9", label: "تقييم العملاء" },
+    { value: "+5000", label: t("عميل سعيد", "Happy Customers") },
+    { value: "+800", label: t("منتج متنوع", "Products") },
+    { value: "4.9", label: t("تقييم العملاء", "Rating") },
   ];
+
+  const catName = (cat: Category) => (lang === "ar" ? cat.nameAr : cat.name);
 
   return (
     <div className="min-h-screen">
@@ -62,20 +85,77 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-background to-accent/30 gradient-animate" />
-        <div className="absolute top-10 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-accent/30 rounded-full blur-3xl animate-float" style={{ animationDelay: "2s" }} />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-accent/20 gradient-animate" />
+        <div className="hero-blob absolute top-10 ltr:left-10 rtl:right-10 w-72 h-72 bg-primary/20 rounded-full animate-float" />
+        <div className="hero-blob absolute bottom-10 ltr:right-10 rtl:left-10 w-96 h-96 bg-accent/40 rounded-full animate-float" style={{ animationDelay: "2s" }} />
 
-        <div className="relative mx-auto max-w-7xl py-20 px-4">
+        <div className="relative mx-auto max-w-7xl py-16 px-4">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left: Text */}
+            {/* Left: Text + Category dropdown */}
             <div className="animate-fade-in-up">
               <div className="inline-flex items-center gap-2 rounded-full border bg-background/80 px-4 py-1.5 text-sm text-primary mb-6 shadow-sm backdrop-blur">
                 <Sparkles className="h-3.5 w-3.5" />
                 {settings.heroBadge}
               </div>
+
+              {/* Clickable categories in hero */}
+              {settings.showCategories && rootCategories.length > 0 && (
+                <div className="relative mb-6">
+                  <button
+                    onClick={() => setCatMenuOpen((o) => !o)}
+                    className="flex items-center gap-2 rounded-2xl border-2 border-primary/30 bg-background/80 backdrop-blur px-5 py-3 shadow-sm hover:shadow-md hover:border-primary/50 transition-all duration-300 group"
+                  >
+                    <div className="flex -space-x-2 rtl:space-x-reverse">
+                      {rootCategories.slice(0, 4).map((cat, i) => (
+                        <div
+                          key={cat._id}
+                          className="h-7 w-7 rounded-full border-2 border-background overflow-hidden bg-primary/10 flex items-center justify-center text-xs"
+                          style={{ zIndex: 10 - i }}
+                        >
+                          {cat.image ? (
+                            <img src={cat.image} alt={catName(cat)} className="h-full w-full object-cover" />
+                          ) : (
+                            <span>{cat.icon || "📦"}</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <span className="text-sm font-semibold">
+                      {t("تسوق بالفئة", "Shop by Category")}
+                    </span>
+                    <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${catMenuOpen ? "rotate-180" : ""}`} />
+                  </button>
+
+                  {catMenuOpen && (
+                    <div className="absolute top-full mt-2 w-full max-w-md rounded-2xl border bg-popover shadow-2xl z-50 overflow-hidden animate-scale-in origin-top">
+                      <div className="p-2 grid grid-cols-2 gap-1">
+                        {rootCategories.map((cat, i) => (
+                          <Link
+                            key={cat._id}
+                            href={`/shop?category=${cat.slug}`}
+                            onClick={() => setCatMenuOpen(false)}
+                          >
+                            <div className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-accent transition-all duration-200 hover:scale-[1.02] cursor-pointer group/item animate-fade-in-up" style={{ animationDelay: `${i * 0.04}s` }}>
+                              <div className="h-10 w-10 rounded-lg overflow-hidden bg-primary/10 flex items-center justify-center text-lg shrink-0 transition-transform duration-300 group-hover/item:scale-110">
+                                {cat.image ? (
+                                  <img src={cat.image} alt={catName(cat)} className="h-full w-full object-cover" />
+                                ) : (
+                                  <span>{cat.icon || "📦"}</span>
+                                )}
+                              </div>
+                              <span className="text-sm font-medium">{catName(cat)}</span>
+                              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover/item:opacity-100 group-hover/item:ltr:translate-x-1 group-hover/item:rtl:-translate-x-1 transition-all" />
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-4 leading-[1.15]">
-                <span className="text-primary">{settings.heroFeaturedTitle}</span>
+                <span className="shimmer-text">{settings.heroFeaturedTitle}</span>
                 <br />
                 {settings.heroTitle}
               </h1>
@@ -85,7 +165,7 @@ export default function Home() {
               <div className="flex flex-wrap items-center gap-3">
                 <Link href="/shop">
                   <Button size="lg" className="gap-2 animate-pulse-glow">
-                    {settings.heroPrimaryButton} <ArrowRight className="h-4 w-4" />
+                    {settings.heroPrimaryButton} <ArrowRight className="h-4 w-4 rtl:rotate-180" />
                   </Button>
                 </Link>
                 <Link href="/shop?sort=price_asc">
@@ -106,54 +186,32 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Right: Hero image / floating cards */}
+            {/* Right: Hero image */}
             <div className="relative animate-scale-in">
-              {settings.heroImageUrl ? (
-                <div className="relative rounded-3xl overflow-hidden shadow-2xl">
-                  <img
-                    src={settings.heroImageUrl}
-                    alt={settings.storeName}
-                    className="w-full h-[400px] object-cover"
-                  />
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl group">
+                <img
+                  src={settings.heroImageUrl || HERO_IMG}
+                  alt={settings.storeName}
+                  className="w-full h-[420px] object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/30 to-transparent" />
+
+                {/* Floating badge */}
+                <div className="absolute top-4 ltr:right-4 rtl:left-4 bg-background/90 backdrop-blur rounded-2xl px-4 py-3 shadow-lg animate-float">
+                  <p className="text-2xl font-bold text-primary">{settings.discountPercent}%</p>
+                  <p className="text-xs text-muted-foreground">{t("خصم", "OFF")}</p>
                 </div>
-              ) : (
-                <div className="relative h-[400px] flex items-center justify-center">
-                  {/* Floating product cards */}
-                  <div className="absolute top-0 right-8 w-48 animate-float">
-                    <Card className="overflow-hidden shadow-xl border-primary/20">
-                      <div className="aspect-square bg-gradient-to-br from-primary/20 to-accent/40 flex items-center justify-center text-6xl">
-                        📓
-                      </div>
-                      <CardContent className="p-3">
-                        <p className="text-sm font-medium">دفاتر فاخرة</p>
-                        <p className="text-primary font-bold">٨٩ ج.م</p>
-                      </CardContent>
-                    </Card>
+
+                {/* Floating card bottom */}
+                <div className="absolute bottom-4 ltr:left-4 rtl:right-4 bg-background/90 backdrop-blur rounded-2xl px-4 py-3 shadow-lg animate-float" style={{ animationDelay: "1s" }}>
+                  <div className="flex items-center gap-1 mb-1">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star key={i} className="h-3 w-3 fill-primary text-primary" />
+                    ))}
                   </div>
-                  <div className="absolute bottom-0 left-8 w-48 animate-float" style={{ animationDelay: "1.5s" }}>
-                    <Card className="overflow-hidden shadow-xl border-primary/20">
-                      <div className="aspect-square bg-gradient-to-br from-accent/40 to-primary/20 flex items-center justify-center text-6xl">
-                        ✒️
-                      </div>
-                      <CardContent className="p-3">
-                        <p className="text-sm font-medium">أقلام فاخرة</p>
-                        <p className="text-primary font-bold">١٢٩ ج.م</p>
-                      </CardContent>
-                    </Card>
-                  </div>
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 animate-float" style={{ animationDelay: "0.8s" }}>
-                    <Card className="overflow-hidden shadow-2xl border-primary/30 bg-card/80 backdrop-blur">
-                      <div className="aspect-square bg-gradient-to-br from-primary/30 to-accent/50 flex items-center justify-center text-7xl">
-                        🎨
-                      </div>
-                      <CardContent className="p-3">
-                        <p className="text-sm font-medium">أدوات رسم احترافية</p>
-                        <p className="text-primary font-bold">٢٤٩ ج.م</p>
-                      </CardContent>
-                    </Card>
-                  </div>
+                  <p className="text-xs font-medium">4.9 / 5.0</p>
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
@@ -166,14 +224,14 @@ export default function Home() {
             {[
               { icon: Truck, title: settings.shippingTitle, desc: settings.shippingDescription },
               { icon: Shield, title: settings.policiesTitle, desc: settings.policiesDescription },
-              { icon: RefreshCw, title: "إرجاع سهل", desc: "خلال 14 يوم من الاستلام" },
+              { icon: RefreshCw, title: t("إرجاع سهل", "Easy Returns"), desc: t("خلال 14 يوم من الاستلام", "Within 14 days") },
             ].map((f, i) => (
               <div
                 key={i}
                 className="flex items-center gap-3 p-3 rounded-xl transition-all hover:bg-primary/5 group animate-fade-in-up"
                 style={{ animationDelay: `${i * 0.15}s` }}
               >
-                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110 group-hover:bg-primary/20">
+                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/20">
                   <f.icon className="h-5 w-5 text-primary" />
                 </div>
                 <div>
@@ -186,57 +244,52 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Categories */}
+      {/* Categories grid with images */}
       {settings.showCategories && (
         <section className="py-14 px-4">
           <div className="mx-auto max-w-7xl">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="text-2xl font-bold animate-fade-in-up">تسوق بالفئة</h2>
-                <p className="text-sm text-muted-foreground mt-1">اختر الفئة التي تناسب احتياجاتك</p>
+                <h2 className="text-2xl font-bold animate-fade-in-up">{t("تسوق بالفئة", "Shop by Category")}</h2>
+                <p className="text-sm text-muted-foreground mt-1">{t("اختر الفئة التي تناسب احتياجاتك", "Choose what fits your needs")}</p>
               </div>
               <Link href="/shop">
                 <Button variant="ghost" size="sm" className="gap-1">
-                  الكل <ArrowRight className="h-4 w-4" />
+                  {t("الكل", "All")} <ArrowRight className="h-4 w-4 rtl:rotate-180" />
                 </Button>
               </Link>
             </div>
 
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {categories
-                ? categories
-                    .filter((c) => !c.parentId)
-                    .map((cat, i) => {
-                      const cardContent = (
-                        <Card
-                          className={`group transition-all duration-300 h-full min-h-[100px] hover:shadow-xl hover:-translate-y-1.5 hover:border-primary/50 ${
-                            cat.isActive ? "cursor-pointer" : "opacity-50 bg-muted/50"
-                          } animate-scale-in`}
-                          style={{ animationDelay: `${i * 0.05}s` }}
-                        >
-                          <CardContent className="relative p-4 flex flex-col items-center justify-center text-center h-full">
-                            <div className="text-3xl mb-2 transition-transform duration-300 group-hover:scale-125">
+                ? rootCategories.map((cat, i) => (
+                    <Link key={cat._id} href={`/shop?category=${cat.slug}`}>
+                      <Card
+                        className="premium-card group h-full overflow-hidden border-primary/10 hover:border-primary/40 cursor-pointer animate-scale-in"
+                        style={{ animationDelay: `${i * 0.06}s` }}
+                      >
+                        <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-primary/15 to-accent/30">
+                          {cat.image ? (
+                            <img
+                              src={cat.image}
+                              alt={catName(cat)}
+                              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            />
+                          ) : (
+                            <div className="h-full w-full flex items-center justify-center text-5xl transition-transform duration-500 group-hover:scale-125">
                               {cat.icon || "📦"}
                             </div>
-                            <p className="text-xs font-medium leading-tight">
-                              {cat.nameAr}
-                            </p>
-                          </CardContent>
-                        </Card>
-                      );
-
-                      return cat.isActive ? (
-                        <Link key={cat._id} href={`/shop?category=${cat.slug}`}>
-                          {cardContent}
-                        </Link>
-                      ) : (
-                        <div key={cat._id} className="pointer-events-none">
-                          {cardContent}
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         </div>
-                      );
-                    })
+                        <CardContent className="p-3 text-center">
+                          <p className="text-sm font-medium leading-tight">{catName(cat)}</p>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))
                 : Array.from({ length: 8 }).map((_, i) => (
-                    <Skeleton key={i} className="h-24 rounded-xl" />
+                    <Skeleton key={i} className="aspect-[4/3] rounded-xl" />
                   ))}
             </div>
           </div>
@@ -249,12 +302,12 @@ export default function Home() {
           <div className="mx-auto max-w-7xl">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="text-2xl font-bold animate-fade-in-up">أشهر المنتجات</h2>
-                <p className="text-sm text-muted-foreground mt-1">منتجات مختارة بعناية لك</p>
+                <h2 className="text-2xl font-bold animate-fade-in-up">{t("أشهر المنتجات", "Featured Products")}</h2>
+                <p className="text-sm text-muted-foreground mt-1">{t("منتجات مختارة بعناية لك", "Handpicked for you")}</p>
               </div>
               <Link href="/shop">
                 <Button variant="ghost" size="sm" className="gap-1">
-                  عرض كل شيء <ArrowRight className="h-4 w-4" />
+                  {t("عرض كل شيء", "View All")} <ArrowRight className="h-4 w-4 rtl:rotate-180" />
                 </Button>
               </Link>
             </div>
@@ -274,8 +327,7 @@ export default function Home() {
             {productsData?.products.length === 0 && (
               <div className="text-center py-12 text-muted-foreground">
                 <p className="text-4xl mb-3">🛒</p>
-                <p>لم يتم إضافة منتجات بعد</p>
-                <p className="text-sm mt-1">ادخل لوحة التحكم وأضف منتجاتك</p>
+                <p>{t("لم يتم إضافة منتجات بعد", "No products yet")}</p>
               </div>
             )}
           </div>
@@ -287,13 +339,13 @@ export default function Home() {
         <section className="py-14 px-4">
           <div className="mx-auto max-w-7xl">
             <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary to-primary/70 gradient-animate p-8 sm:p-12 text-primary-foreground shadow-2xl">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-              <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+              <div className="absolute top-0 ltr:right-0 rtl:left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 ltr:translate-x-1/2 rtl:-translate-x-1/2" />
+              <div className="absolute bottom-0 ltr:left-0 rtl:right-0 w-48 h-48 bg-white/10 rounded-full blur-3xl translate-y-1/2 ltr:-translate-x-1/2 rtl:translate-x-1/2" />
 
               <div className="relative grid sm:grid-cols-2 gap-6 items-center">
                 <div className="animate-fade-in-up">
                   <div className="inline-block bg-white/20 backdrop-blur rounded-full px-4 py-1.5 text-sm font-bold mb-4">
-                    خصم {settings.discountPercent}%
+                    {t("خصم", "Discount")} {settings.discountPercent}%
                   </div>
                   <h2 className="text-3xl sm:text-4xl font-bold mb-3">
                     {settings.discountBannerTitle}
@@ -303,7 +355,7 @@ export default function Home() {
                   </p>
                   <Link href="/shop?onSale=true">
                     <Button size="lg" variant="secondary" className="gap-2 shadow-lg">
-                      {settings.ctaButtonText} <ArrowRight className="h-4 w-4" />
+                      {settings.ctaButtonText} <ArrowRight className="h-4 w-4 rtl:rotate-180" />
                     </Button>
                   </Link>
                 </div>
@@ -311,19 +363,19 @@ export default function Home() {
                 {/* Social links */}
                 <div className="flex sm:justify-end gap-3 animate-fade-in-up stagger-2">
                   {[
-                    { label: "Instagram", href: settings.instagram },
-                    { label: "Facebook", href: settings.facebook },
-                    { label: "Twitter", href: settings.twitter },
-                    { label: "WhatsApp", href: settings.whatsapp ? `https://wa.me/${settings.whatsapp}` : "" },
+                    { icon: Instagram, href: settings.instagram },
+                    { icon: Facebook, href: settings.facebook },
+                    { icon: Twitter, href: settings.twitter },
+                    { icon: MessageCircle, href: settings.whatsapp ? `https://wa.me/${settings.whatsapp}` : "" },
                   ].filter((s) => s.href).map((s, i) => (
                     <a
-                      key={s.label}
+                      key={i}
                       href={s.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="h-12 w-12 rounded-full bg-white/15 backdrop-blur flex items-center justify-center text-sm font-bold hover:bg-white/25 hover:scale-110 transition-all duration-300"
+                      className="h-12 w-12 rounded-full bg-white/15 backdrop-blur flex items-center justify-center hover:bg-white/25 hover:scale-110 transition-all duration-300"
                     >
-                      {s.label.charAt(0)}
+                      <s.icon className="h-5 w-5" />
                     </a>
                   ))}
                 </div>
@@ -333,11 +385,11 @@ export default function Home() {
         </section>
       )}
 
-      {/* About section */}
+      {/* About section with image */}
       <section className="py-14 px-4 bg-muted/20">
         <div className="mx-auto max-w-7xl">
           <div className="grid md:grid-cols-2 gap-8 items-center">
-            <div className="animate-slide-in-right">
+            <div className="animate-slide-in-right rtl:order-2 ltr:order-1">
               <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
                 <Sparkles className="h-5 w-5 text-primary" />
               </div>
@@ -347,54 +399,45 @@ export default function Home() {
               </p>
               <Link href="/about">
                 <Button variant="outline" className="gap-2">
-                  اقرأ المزيد <ArrowRight className="h-4 w-4" />
+                  {t("اقرأ المزيد", "Read More")} <ArrowRight className="h-4 w-4 rtl:rotate-180" />
                 </Button>
               </Link>
             </div>
 
-            {settings.showRatings && (
-              <div className="animate-slide-in-left">
-                <Card className="p-8 border-primary/20">
-                  <div className="flex items-center gap-1 mb-4">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} className="h-6 w-6 fill-primary text-primary" />
-                    ))}
+            <div className="animate-slide-in-left rtl:order-1 ltr:order-2">
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl group">
+                <img
+                  src={ABOUT_IMG}
+                  alt={settings.aboutTitle}
+                  className="w-full h-[300px] object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                {settings.showRatings && (
+                  <div className="absolute bottom-4 ltr:left-4 rtl:right-4 bg-background/90 backdrop-blur rounded-2xl p-4 shadow-lg">
+                    <div className="flex items-center gap-1 mb-1">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star key={i} className="h-4 w-4 fill-primary text-primary" />
+                      ))}
+                    </div>
+                    <p className="text-sm font-bold">4.9 {t("من 5", "out of 5")}</p>
+                    <p className="text-xs text-muted-foreground">+5000 {t("تقييم", "reviews")}</p>
                   </div>
-                  <p className="text-2xl font-bold mb-2">4.9 من 5</p>
-                  <p className="text-muted-foreground mb-4">
-                    تقييم عملائنا هو أفضل دليل على جودة منتجاتنا وخدمتنا
-                  </p>
-                  <div className="grid grid-cols-3 gap-4 pt-4 border-t">
-                    <div className="text-center">
-                      <p className="text-xl font-bold text-primary">+5000</p>
-                      <p className="text-xs text-muted-foreground">عميل</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-xl font-bold text-primary">+800</p>
-                      <p className="text-xs text-muted-foreground">منتج</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-xl font-bold text-primary">14 يوم</p>
-                      <p className="text-xs text-muted-foreground">إرجاع</p>
-                    </div>
-                  </div>
-                </Card>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </div>
       </section>
 
       {/* Best Sellers */}
       <ProductSection
-        title="الأكثر مبيعًا"
+        title={t("الأكثر مبيعًا", "Best Sellers")}
         query="sort=best_selling"
         limit={8}
       />
 
       {/* Discounts */}
       <ProductSection
-        title="عروض وخصومات"
+        title={t("عروض وخصومات", "Deals & Discounts")}
         query="onSale=true"
         limit={8}
         bgMuted
@@ -404,17 +447,17 @@ export default function Home() {
       {settings.showNewsletter && (
         <section className="py-14 px-4">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-2xl font-bold mb-3 animate-fade-in-up">اشترك في نشرتنا البريدية</h2>
+            <h2 className="text-2xl font-bold mb-3 animate-fade-in-up">{t("اشترك في نشرتنا", "Subscribe to Newsletter")}</h2>
             <p className="text-muted-foreground mb-6 animate-fade-in-up stagger-1">
-              كن أول من يعرف عن العروض والمنتجات الجديدة
+              {t("كن أول من يعرف عن العروض والمنتجات الجديدة", "Be the first to know about new products and deals")}
             </p>
             <form className="flex gap-2 max-w-md mx-auto animate-fade-in-up stagger-2" onSubmit={(e) => e.preventDefault()}>
               <input
                 type="email"
-                placeholder="بريدك الإلكتروني"
+                placeholder={t("بريدك الإلكتروني", "Your email")}
                 className="flex h-10 flex-1 rounded-md border border-input bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
-              <Button type="submit">اشترك</Button>
+              <Button type="submit">{t("اشترك", "Subscribe")}</Button>
             </form>
           </div>
         </section>

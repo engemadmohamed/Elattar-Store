@@ -8,6 +8,8 @@ import {
   Lock,
   Unlock,
   AlertTriangle,
+  ImagePlus,
+  X,
 } from "lucide-react";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { Button } from "@/components/ui/button";
@@ -71,6 +73,7 @@ interface Category {
   nameAr: string;
   slug: string;
   icon: string;
+  image?: string;
   isActive: boolean;
   parentId: string | null;
 }
@@ -86,10 +89,12 @@ export default function AdminCategories() {
   const [form, setForm] = useState({
     name: "",
     nameAr: "",
-    slug: "", // Add slug to form state
-    icon: "📦", // Keep icon in form state with default, but not in UI
+    slug: "",
+    icon: "📦",
     parentId: "",
+    image: "",
   });
+  const [imageUploading, setImageUploading] = useState(false);
 
   const { data: categories } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
@@ -98,7 +103,7 @@ export default function AdminCategories() {
 
   const resetFormAndState = () => {
     setEditingCategory(null);
-    setForm({ name: "", nameAr: "", slug: "", icon: "📦", parentId: "" }); // Reset slug
+    setForm({ name: "", nameAr: "", slug: "", icon: "📦", parentId: "", image: "" });
     setCategoryChain([]);
   };
 
@@ -107,7 +112,8 @@ export default function AdminCategories() {
       apiRequest("POST", "/api/categories", {
         ...data,
         parentId: data.parentId || null,
-        icon: data.icon || "📦", // Ensure icon is not empty
+        icon: data.icon || "📦",
+        image: data.image || undefined,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["/api/categories"] });
@@ -128,7 +134,8 @@ export default function AdminCategories() {
       apiRequest("PUT", `/api/categories/${editingCategory?._id}`, {
         ...data,
         parentId: data.parentId || null,
-        icon: data.icon || "📦", // Ensure icon is not empty
+        icon: data.icon || "📦",
+        image: data.image || undefined,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["/api/categories"] });
@@ -170,9 +177,10 @@ export default function AdminCategories() {
     setForm({
       name: category.name,
       nameAr: category.nameAr,
-      slug: category.slug, // Populate slug when editing
+      slug: category.slug,
       icon: category.icon,
       parentId: category.parentId || "",
+      image: category.image || "",
     });
     setCategoryChain(
       categories ? findCategoryPath(categories, category.parentId) : [],
@@ -204,6 +212,27 @@ export default function AdminCategories() {
     set("parentId", parentId);
     setCategoryChain(categories ? findCategoryPath(categories, parentId) : []);
     setOpen(true);
+  };
+
+  const handleImageUpload = async (file: File) => {
+    setImageUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      const res = await fetch("/api/upload/image", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${localStorage.getItem("adminToken")}` },
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Upload failed");
+      const data = await res.json();
+      set("image", data.url);
+      toast({ title: "تم رفع الصورة ✓" });
+    } catch {
+      toast({ title: "فشل رفع الصورة", variant: "destructive" });
+    } finally {
+      setImageUploading(false);
+    }
   };
 
   const handleToggle = (id: string) => {
@@ -302,6 +331,44 @@ export default function AdminCategories() {
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Image upload */}
+            <div>
+              <Label>صورة الفئة</Label>
+              <div className="mt-2 flex items-center gap-3">
+                {form.image ? (
+                  <div className="relative h-20 w-20 rounded-xl overflow-hidden border-2 border-primary/30 group">
+                    <img src={form.image} alt="Category" className="h-full w-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => set("image", "")}
+                      className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                    >
+                      <X className="h-5 w-5 text-white" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="h-20 w-20 rounded-xl border-2 border-dashed border-primary/30 flex items-center justify-center cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all duration-200">
+                    {imageUploading ? (
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    ) : (
+                      <ImagePlus className="h-6 w-6 text-primary/60" />
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleImageUpload(file);
+                      }}
+                    />
+                  </label>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  اضغط على المربع لرفع صورة للفئة
+                </p>
+              </div>
+            </div>
             <div>
               <Label>الاسم بالعربية *</Label>
               <Input
@@ -576,6 +643,13 @@ function CategoryItem({
             <span className="w-4" /> // Placeholder for alignment
           )}
         </Button>
+        <div className="h-8 w-8 rounded-lg overflow-hidden bg-primary/10 flex items-center justify-center text-lg shrink-0">
+          {category.image ? (
+            <img src={category.image} alt={category.nameAr} className="h-full w-full object-cover" />
+          ) : (
+            <span>{category.icon || "📦"}</span>
+          )}
+        </div>
         <div>
           <p className="font-medium text-sm">{category.nameAr}</p>
         </div>

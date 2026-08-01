@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from "./lib/auth-context";
 import { CustomerAuthProvider } from "./lib/customer-auth-context";
 import { CartProvider } from "./lib/cart-context";
 import { StoreSettingsProvider } from "./lib/store-settings-context";
+import { LanguageProvider } from "./lib/language-context";
 import { Toaster } from "./components/ui/toaster";
 import { ADMIN_BASE } from "./lib/admin-path";
 
@@ -142,7 +143,8 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <StoreSettingsProvider>
+        <LanguageProvider>
+          <StoreSettingsProvider>
           <AuthProvider>
             <CustomerAuthProvider>
               <CartProvider>
@@ -151,7 +153,8 @@ export default function App() {
               </CartProvider>
             </CustomerAuthProvider>
           </AuthProvider>
-        </StoreSettingsProvider>
+          </StoreSettingsProvider>
+        </LanguageProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

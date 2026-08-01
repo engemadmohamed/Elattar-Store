@@ -9,7 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Inter", "sans-serif"],
+        sans: ["Cairo", "Inter", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",
