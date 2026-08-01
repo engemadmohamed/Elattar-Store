@@ -58,15 +58,6 @@ interface Product {
 const HERO_IMG = "https://images.unsplash.com/photo-1456735190827-d1262f71b8a3?w=900&q=80";
 const ABOUT_IMG = "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800&q=80";
 
-const GALLERY_IMAGES = [
-  "https://images.unsplash.com/photo-1471107340929-a87cd0f5b5f3?w=600&q=80",
-  "https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=600&q=80",
-  "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600&q=80",
-  "https://images.unsplash.com/photo-1585336261022-680e295ce3fe?w=600&q=80",
-  "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=80",
-  "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&q=80",
-];
-
 // Map category to Unsplash image
 const getCategoryImage = (cat: Category): string => {
   const name = (cat.nameAr + " " + cat.name).toLowerCase();
@@ -230,17 +221,18 @@ export default function Home() {
             backgroundSize: "40px 40px",
           }}
         />
-        {/* Blobs */}
-        <div className="hero-blob absolute -top-20 -left-20 w-80 h-80 bg-black/8 rounded-full animate-float" />
-        <div className="hero-blob absolute -bottom-10 -right-10 w-96 h-96 bg-black/5 rounded-full animate-float" style={{ animationDelay: "2s" }} />
+        {/* Morphing animated 3D shapes */}
+        <div className="absolute -top-16 -left-16 w-80 h-80 bg-foreground/5 animate-morph-shape border border-foreground/10 pointer-events-none" />
+        <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-foreground/4 animate-morph-shape pointer-events-none" style={{ animationDelay: "-7s" }} />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-72 h-72 bg-foreground/[0.02] rounded-full blur-2xl animate-pulse pointer-events-none" />
 
         <div className="relative mx-auto max-w-7xl py-16 px-4 lg:py-24">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left: Text */}
             <div className="animate-fade-in-up">
               {/* Badge */}
-              <div className="inline-flex items-center gap-2 rounded-full border-2 border-foreground/10 bg-foreground/5 px-4 py-1.5 text-sm font-semibold mb-6">
-                <Sparkles className="h-3.5 w-3.5" />
+              <div className="inline-flex items-center gap-2 rounded-full border-2 border-foreground/15 bg-foreground/5 px-4 py-1.5 text-sm font-bold mb-6 shadow-xs animate-bounce-in">
+                <Sparkles className="h-4 w-4 animate-spin" style={{ animationDuration: "6s" }} />
                 {settings.heroBadge}
               </div>
 
@@ -331,13 +323,13 @@ export default function Home() {
 
             {/* Right: Hero Image */}
             <div className="relative animate-scale-in">
-              <div className="relative rounded-3xl overflow-hidden shadow-[0_32px_64px_hsl(0_0%_0%/0.18)] group">
+              <div className="relative rounded-3xl overflow-hidden shadow-[0_32px_64px_hsl(0_0%_0%/0.22)] group animate-float-3d">
                 <img
                   src={settings.heroImageUrl || HERO_IMG}
                   alt={settings.storeName}
-                  className="w-full h-[420px] object-cover transition-transform duration-700 group-hover:scale-105"
+                  className="w-full h-[440px] object-cover transition-transform duration-700 group-hover:scale-108"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
 
                 {/* Floating discount badge */}
                 <div className="absolute top-4 ltr:right-4 rtl:left-4 bg-white rounded-2xl px-4 py-3 shadow-lg animate-float">
@@ -512,42 +504,7 @@ export default function Home() {
         </section>
       )}
 
-      {/* ===== GALLERY SECTION ===== */}
-      <section className="py-16 px-4 bg-white">
-        <div className="mx-auto max-w-7xl">
-          <div className="text-center mb-10 animate-fade-in-up">
-            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
-              {t("إلهام التسوق", "Shopping Inspiration")}
-            </p>
-            <h2 className="text-3xl font-black">{t("معرض الصور", "Gallery")}</h2>
-            <p className="text-sm text-muted-foreground mt-2">{t("اكتشف تشكيلتنا المتنوعة", "Discover our collection")}</p>
-          </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {GALLERY_IMAGES.map((img, i) => (
-              <div
-                key={i}
-                className={`relative rounded-2xl overflow-hidden shadow-sm group cursor-pointer animate-zoom-in ${
-                  i === 0 || i === 3 ? "md:row-span-2 aspect-[3/4] md:aspect-auto" : "aspect-square"
-                }`}
-                style={{ animationDelay: `${i * 0.09}s` }}
-              >
-                <img
-                  src={img}
-                  alt={`Gallery ${i + 1}`}
-                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-350" />
-                <div className="absolute bottom-3 ltr:left-3 rtl:right-3 text-white opacity-0 group-hover:opacity-100 transition-all duration-350 translate-y-4 group-hover:translate-y-0">
-                  <div className="flex items-center gap-1 text-xs font-semibold">
-                    <Sparkles className="h-3 w-3" /> {t("تشكيلة مميزة", "Featured")}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ===== DISCOUNT BANNER ===== */}
       {settings.showDiscountBanner && (

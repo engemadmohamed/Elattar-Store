@@ -237,6 +237,20 @@ html, body {
   100% { transform: translateY(-4px) scale(1.02); }
 }
 
+@keyframes morphShape {
+  0%, 100% { border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%; transform: rotate(0deg) translate(0, 0); }
+  33%      { border-radius: 70% 30% 46% 54% / 30% 60% 40% 70%; transform: rotate(120deg) translate(10px, -15px); }
+  66%      { border-radius: 30% 70% 50% 50% / 50% 30% 70% 50%; transform: rotate(240deg) translate(-10px, 10px); }
+}
+@keyframes float3D {
+  0%, 100% { transform: translateY(0px) rotateX(0deg) rotateY(0deg); }
+  50%      { transform: translateY(-12px) rotateX(4deg) rotateY(-4deg); }
+}
+@keyframes textGlowWave {
+  0%, 100% { text-shadow: 0 0 10px hsl(0 0% 0% / 0.15); }
+  50%      { text-shadow: 0 0 25px hsl(0 0% 0% / 0.35); }
+}
+
 /* ===== ANIMATION CLASSES ===== */
 .animate-fade-in-up    { animation: fadeInUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) both; }
 .animate-fade-in-down  { animation: fadeInDown 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
@@ -245,9 +259,12 @@ html, body {
 .animate-slide-in-right{ animation: slideInRight 0.65s cubic-bezier(0.16, 1, 0.3, 1) both; }
 .animate-scale-in      { animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
 .animate-float         { animation: float 5s ease-in-out infinite; }
+.animate-float-3d      { animation: float3D 6s ease-in-out infinite; }
+.animate-morph-shape   { animation: morphShape 14s ease-in-out infinite; }
 .animate-pulse-glow    { animation: pulseGlow 2.5s ease-in-out infinite; }
 .animate-bounce-in     { animation: bounceIn 0.65s ease-out both; }
 .animate-marquee       { animation: marquee 28s linear infinite; }
+.animate-text-glow     { animation: textGlowWave 4s ease-in-out infinite; }
 .animate-reveal-up     { animation: revealUp 0.75s cubic-bezier(0.16, 1, 0.3, 1) both; }
 .animate-tilt          { animation: tilt 6s ease-in-out infinite; }
 .animate-slide-up      { animation: slideUp 0.75s cubic-bezier(0.16, 1, 0.3, 1) both; }

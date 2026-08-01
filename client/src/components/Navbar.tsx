@@ -454,7 +454,7 @@ export default function Navbar() {
                 </Button>
 
                 {accountOpen && (
-                  <div className="absolute mt-2 w-52 rounded-xl border bg-white shadow-[0_8px_24px_hsl(0_0%_0%/0.12)] z-50 overflow-hidden animate-nav-slide-down origin-top">
+                  <div className="absolute top-full mt-2 rtl:left-0 ltr:right-0 w-56 rounded-2xl border-2 bg-white shadow-[0_16px_40px_hsl(0_0%_0%/0.15)] z-50 overflow-hidden animate-nav-slide-down origin-top">
                     {isAuthenticated ? (
                       <>
                         <div className="px-3 py-3 border-b bg-muted/40 flex items-center gap-2">
