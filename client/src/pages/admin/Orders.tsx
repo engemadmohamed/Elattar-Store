@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import AdminSidebar from "@/components/admin/AdminSidebar";
+import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -162,15 +162,8 @@ export default function AdminOrders() {
     };
 
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-      <main className="flex-1 p-6 overflow-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">الطلبات</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            إجمالي: {data?.total || 0} طلب
-          </p>
-        </div>
+    <AdminLayout title="الطلبات" subtitle={`إجمالي: ${data?.total || 0} طلب`}>
+      <div className="space-y-6">
 
         {/* Status group tabs */}
         <Tabs
@@ -437,6 +430,7 @@ export default function AdminOrders() {
         open={!!invoiceOrder}
         onClose={() => setInvoiceOrder(null)}
       />
-    </div>
+      </div>
+    </AdminLayout>
   );
 }

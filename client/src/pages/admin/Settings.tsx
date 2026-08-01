@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Settings as SettingsIcon, Save, RotateCcw, Eye, EyeOff } from "lucide-react";
-import AdminSidebar from "@/components/admin/AdminSidebar";
+import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -94,25 +94,22 @@ export default function AdminSettings() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen">
-        <AdminSidebar />
-        <main className="flex-1 p-6 flex items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-        </main>
-      </div>
+      <AdminLayout title="إعدادات المتجر">
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-foreground border-t-transparent" />
+        </div>
+      </AdminLayout>
     );
   }
 
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-      <main className="flex-1 p-6 overflow-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <SettingsIcon className="h-6 w-6" /> إعدادات المتجر
-            </h1>
+    <AdminLayout title="إعدادات المتجر" subtitle="تخصيص نصوص وشكل وتصميم المتجر">
+      <div className="space-y-6">
+        {/* Header Actions */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold flex items-center gap-2">
+            <SettingsIcon className="h-5 w-5" /> تخصيص المتجر
+          </h1>
             <p className="text-sm text-muted-foreground mt-1">
               تحكم في الهوية البصرية والنصوص والميزات الظاهرة للموقع من مكان واحد
             </p>
@@ -413,8 +410,8 @@ export default function AdminSettings() {
             </Card>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </AdminLayout>
   );
 }
 

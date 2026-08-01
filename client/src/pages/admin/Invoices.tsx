@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Receipt, ArrowRight, Printer, Search } from "lucide-react";
-import AdminSidebar from "@/components/admin/AdminSidebar";
+import AdminLayout from "@/components/admin/AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
@@ -116,10 +116,9 @@ export default function AdminInvoices() {
   const selectedCustomer = customers?.find((c) => c._id === selectedPhone);
 
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-      <main className="flex-1 p-6 overflow-auto">
-        <div className="flex items-center gap-3 mb-6">
+    <AdminLayout title="فواتير العملاء" subtitle="عرض وطباعة فواتير وتاريخ طلبات العملاء">
+      <div className="space-y-6">
+        <div className="flex items-center gap-3">
           {selectedPhone && (
             <Button
               variant="ghost"
@@ -284,13 +283,12 @@ export default function AdminInvoices() {
             ))}
           </div>
         )}
-      </main>
-
       <InvoicePrint
         order={invoiceOrder}
         open={!!invoiceOrder}
         onClose={() => setInvoiceOrder(null)}
       />
-    </div>
+      </div>
+    </AdminLayout>
   );
 }

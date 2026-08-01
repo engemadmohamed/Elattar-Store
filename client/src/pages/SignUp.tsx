@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import {
   User,
   Phone,
@@ -62,15 +63,34 @@ export default function SignUp() {
     return () => clearInterval(interval);
   }, [step]);
 
-  const generateAndSendOtp = () => {
-    // In production this would send a real SMS via API
-    const code = Math.floor(1000 + Math.random() * 9000).toString();
-    setGeneratedOtp(code);
-    // Show OTP in toast for demo (remove in production)
-    toast({
-      title: "📱 تم إرسال رمز التحقق",
-      description: `رمز التحقق: ${code} (للتجربة فقط)`,
-    });
+  const generateAndSendOtp = async () => {
+    try {
+      const res = await apiRequest<{ success: boolean; message: string; code?: string }>(
+        "POST",
+        "/api/customer-auth/send-otp",
+        { phone: form.phone }
+      );
+      if (res.code) {
+        setGeneratedOtp(res.code);
+        toast({
+          title: "📱 تم إرسال رمز التحقق",
+          description: `رمز التحقق الخاص بك هو: ${res.code}`,
+        });
+      } else {
+        toast({
+          title: "📱 تم إرسال رمز التحقق",
+          description: res.message || "يرجى فحص هاتفك",
+        });
+      }
+      return true;
+    } catch (error) {
+      toast({
+        title: "فشل إرسال كود التحقق",
+        description: error instanceof Error ? error.message : "تعذر الاتصال بالخادم",
+        variant: "destructive",
+      });
+      return false;
+    }
   };
 
   const handleInfoSubmit = async (e: React.FormEvent) => {
@@ -86,13 +106,19 @@ export default function SignUp() {
     if (!form.phone.match(/^(\+20|0020|0)?1[0125]\d{8}$/)) {
       toast({
         title: "رقم الهاتف غير صحيح",
-        description: "الرجاء إدخال رقم هاتف مصري صحيح",
+        description: "الرجاء إدخال رقم هاتف مصري صحيح (مثال: 01012345678)",
         variant: "destructive",
       });
       return;
     }
-    generateAndSendOtp();
-    setStep("phone-confirm");
+
+    setLoading(true);
+    const sent = await generateAndSendOtp();
+    setLoading(false);
+
+    if (sent) {
+      setStep("phone-confirm");
+    }
   };
 
   const handleOtpChange = (index: number, value: string) => {
@@ -122,20 +148,25 @@ export default function SignUp() {
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const enteredOtp = otp.join("");
-    if (enteredOtp !== generatedOtp) {
+    if (enteredOtp.length < 4) {
       setOtpError(true);
-      toast({ title: "رمز التحقق غير صحيح", variant: "destructive" });
+      toast({ title: "يرجى إدخال الرمز المكون من 4 أرقام", variant: "destructive" });
       return;
     }
+
     setLoading(true);
     try {
-      await signup(form);
+      await signup({
+        ...form,
+        code: enteredOtp,
+      });
       setStep("done");
       setTimeout(() => navigate("/"), 2000);
     } catch (error) {
+      setOtpError(true);
       toast({
-        title: "فشل إنشاء الحساب",
-        description: error instanceof Error ? error.message : undefined,
+        title: "فشل التحقق أو إنشاء الحساب",
+        description: error instanceof Error ? error.message : "رمز التحقق غير صحيح",
         variant: "destructive",
       });
     } finally {

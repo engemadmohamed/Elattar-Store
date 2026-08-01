@@ -3,7 +3,7 @@ import { Package, ShoppingBag, Tags, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import AdminSidebar from "@/components/admin/AdminSidebar";
+import AdminLayout from "@/components/admin/AdminLayout";
 import { apiRequest } from "@/lib/queryClient";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { Link } from "wouter";
@@ -61,15 +61,8 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-      <main className="flex-1 p-6 overflow-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">لوحة التحكم</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            مرحباً بك في إدارة المهندس
-          </p>
-        </div>
+    <AdminLayout title="لوحة التحكم" subtitle="مرحباً بك في لوحة إدارة المتجر">
+      <div className="space-y-6">
 
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -202,9 +195,8 @@ export default function AdminDashboard() {
                 </div>
               </CardContent>
             </Card>
-          </Link>
         </div>
-      </main>
-    </div>
+      </div>
+    </AdminLayout>
   );
 }

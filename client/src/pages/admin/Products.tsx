@@ -12,7 +12,7 @@ import {
   AlertTriangle,
   ChevronRight,
 } from "lucide-react";
-import AdminSidebar from "@/components/admin/AdminSidebar";
+import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -108,9 +108,8 @@ export default function AdminProducts() {
   };
 
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] flex-1">
+    <AdminLayout title="المنتجات" subtitle="إدارة منتجات المتجر">
+      <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6">
         {/* Category Sidebar */}
         <aside className="hidden lg:block border-r bg-muted/20 p-4 overflow-y-auto">
           <h2 className="text-lg font-semibold mb-4 px-2">الفئات</h2>
@@ -362,7 +361,8 @@ export default function AdminProducts() {
           onClose={() => setQrProduct(null)}
         />
       )}
-    </div>
+      </div>
+    </AdminLayout>
   );
 }
 

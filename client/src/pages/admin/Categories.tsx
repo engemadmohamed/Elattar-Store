@@ -11,7 +11,7 @@ import {
   ImagePlus,
   X,
 } from "lucide-react";
-import AdminSidebar from "@/components/admin/AdminSidebar";
+import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -275,14 +275,14 @@ export default function AdminCategories() {
   };
 
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-      <main className="flex-1 p-6 overflow-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">الفئات</h1>
+    <AdminLayout title="الفئات" subtitle="إدارة وتنظيم فئات المنتجات">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold">كل الفئات</h1>
           <Button className="gap-2" onClick={handleAddClick}>
             <Plus className="h-4 w-4" /> إضافة فئة
           </Button>
+        </div>
         </div>
 
         <Card>
@@ -509,7 +509,8 @@ export default function AdminCategories() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </AdminLayout>
   );
 }
 

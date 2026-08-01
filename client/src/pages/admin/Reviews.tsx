@@ -1,19 +1,18 @@
-import AdminSidebar from "@/components/admin/AdminSidebar";
+import AdminLayout from "@/components/admin/AdminLayout";
 
 export default function AdminReviews() {
   return (
-    <div className="flex min-h-screen">
-      <AdminSidebar />
-      <main className="flex-1 p-6 overflow-auto">
-        <div className="flex items-center justify-between mb-6">
+    <AdminLayout title="تقييمات المنتجات" subtitle="إدارة مراجعات وتقييمات الزوار">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">تقييمات المنتجات</h1>
+            <h1 className="text-xl font-bold">تقييمات المنتجات</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              تم تعطيل هذه الميزة.
+              جميع التقييمات مفعلة ومرئية في الصفحة الرئيسية للمتجر.
             </p>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </AdminLayout>
   );
 }
