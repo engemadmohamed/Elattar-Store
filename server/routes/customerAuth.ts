@@ -3,10 +3,11 @@ import jwt from "jsonwebtoken";
 import { Customer } from "../models/Customer.js";
 import { Otp } from "../models/Otp.js";
 import { requireCustomerAuth, CustomerAuthRequest } from "../middleware/auth.js";
+import { sendSmsOtp } from "../lib/sms.js";
 
 const router = Router();
 
-// 1. Send OTP (Server-side real OTP generation & storage)
+// 1. Send OTP (Server-side real OTP generation, storage & SMS dispatch)
 router.post("/send-otp", async (req: Request, res: Response) => {
   try {
     const { phone } = req.body;
@@ -38,12 +39,14 @@ router.post("/send-otp", async (req: Request, res: Response) => {
       expiresAt,
     });
 
-    console.log(`[REAL OTP SYSTEM] 📱 SMS OTP for ${cleanedPhone} is: ${code}`);
+    // Send SMS via Gateway (SMS MISR / Twilio / Dev Console)
+    const smsResult = await sendSmsOtp(cleanedPhone, code);
 
     return res.json({
       success: true,
       message: `تم إرسال رمز التحقق إلى الرقم ${cleanedPhone}`,
-      code, // Returned for easy testing/demo in dev environment
+      provider: smsResult.provider,
+      code: process.env.NODE_ENV === "production" ? undefined : code,
     });
   } catch (error) {
     console.error("Send OTP Error:", error);

@@ -125,16 +125,16 @@ export default function AdminSettings() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-6">
+        <div className="max-w-4xl mx-auto">
           {/* Settings form */}
           <div>
             <Tabs defaultValue="identity">
-              <TabsList className="mb-4 flex-wrap h-auto">
-                <TabsTrigger value="identity">الهوية الأساسية</TabsTrigger>
-                <TabsTrigger value="hero">النصوص الرئيسية</TabsTrigger>
-                <TabsTrigger value="banners">البنرات والتواصل</TabsTrigger>
-                <TabsTrigger value="colors">الألوان والتنسيق</TabsTrigger>
-                <TabsTrigger value="visibility">العناصر الظاهرة</TabsTrigger>
+              <TabsList className="mb-6 flex-wrap h-auto p-1.5 bg-white border-2 rounded-2xl">
+                <TabsTrigger value="identity" className="rounded-xl font-semibold">الهوية الأساسية</TabsTrigger>
+                <TabsTrigger value="hero" className="rounded-xl font-semibold">النصوص الرئيسية</TabsTrigger>
+                <TabsTrigger value="banners" className="rounded-xl font-semibold">البنرات والتواصل</TabsTrigger>
+                <TabsTrigger value="colors" className="rounded-xl font-semibold">الألوان والتنسيق</TabsTrigger>
+                <TabsTrigger value="visibility" className="rounded-xl font-semibold">العناصر الظاهرة</TabsTrigger>
               </TabsList>
 
               {/* Identity */}
@@ -329,86 +329,6 @@ export default function AdminSettings() {
                 </Card>
               </TabsContent>
             </Tabs>
-          </div>
-
-          {/* Live Preview */}
-          <div>
-            <Card className="sticky top-6 overflow-hidden">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-base">معاينة المتجر</CardTitle>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => setShowPreview(!showPreview)}
-                >
-                  {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
-              </CardHeader>
-              {showPreview && (
-                <CardContent>
-                  <div
-                    className="rounded-xl border overflow-hidden"
-                    style={{ background: form.backgroundColor }}
-                  >
-                    {/* Announcement */}
-                    {form.showAnnouncementBar && form.announcementBar && (
-                      <div
-                        className="py-2 text-center text-xs font-medium truncate px-2"
-                        style={{ background: form.primaryColor, color: form.primaryForeground }}
-                      >
-                        {form.announcementBar}
-                      </div>
-                    )}
-                    {/* Hero */}
-                    <div className="p-4" style={{ background: form.cardBackground }}>
-                      <div
-                        className="inline-block text-[10px] px-2 py-0.5 rounded-full mb-2"
-                        style={{ background: form.primaryColor, color: form.primaryForeground }}
-                      >
-                        {form.heroBadge}
-                      </div>
-                      <p className="text-lg font-bold mb-1" style={{ color: form.primaryColor }}>
-                        {form.heroFeaturedTitle}
-                      </p>
-                      <p className="text-sm font-semibold mb-2">{form.heroTitle}</p>
-                      <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{form.heroDescription}</p>
-                      <div className="flex gap-2">
-                        <span
-                          className="text-xs px-3 py-1.5 rounded-md font-medium"
-                          style={{ background: form.primaryColor, color: form.primaryForeground }}
-                        >
-                          {form.heroPrimaryButton}
-                        </span>
-                        <span
-                          className="text-xs px-3 py-1.5 rounded-md font-medium border"
-                          style={{ borderColor: form.primaryColor, color: form.primaryColor }}
-                        >
-                          {form.heroSecondaryButton}
-                        </span>
-                      </div>
-                    </div>
-                    {/* Discount banner */}
-                    {form.showDiscountBanner && (
-                      <div
-                        className="p-4 text-center"
-                        style={{ background: form.primaryColor, color: form.primaryForeground }}
-                      >
-                        <p className="text-xs opacity-80 mb-1">خصم {form.discountPercent}%</p>
-                        <p className="text-sm font-bold mb-1">{form.discountBannerTitle}</p>
-                        <p className="text-[10px] opacity-80 line-clamp-2">{form.discountBannerDescription}</p>
-                      </div>
-                    )}
-                    {/* Store info */}
-                    <div className="p-4 text-center">
-                      <p className="text-sm font-bold">{form.storeName}</p>
-                      <p className="text-[10px] text-muted-foreground">{form.storeTagline}</p>
-                      <p className="text-[10px] text-muted-foreground mt-1">{form.phone}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              )}
-            </Card>
           </div>
         </div>
       </div>

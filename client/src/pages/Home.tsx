@@ -80,69 +80,16 @@ const getCategoryImage = (cat: Category): string => {
   return "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=500&q=80";
 };
 
-// Static reviews data
-const REVIEWS = [
-  {
-    id: 1,
-    name: "أحمد محمد",
-    avatar: "أ",
-    rating: 5,
-    date: "يناير 2026",
-    text: "منتجات رائعة وجودة ممتازة! الشحن وصل في الوقت المحدد والتغليف كان احترافي جداً. سأتسوق مرة أخرى بكل تأكيد.",
-    product: "طقم أقلام فاخر",
-    verified: true,
-  },
-  {
-    id: 2,
-    name: "سارة علي",
-    avatar: "س",
-    rating: 5,
-    date: "ديسمبر 2025",
-    text: "متجر ممتاز وأسعار معقولة جداً. الدفاتر التي اشتريتها كانت بجودة عالية ومواد ممتازة. خدمة العملاء كانت متعاونة ومحترفة.",
-    product: "مجموعة دفاتر",
-    verified: true,
-  },
-  {
-    id: 3,
-    name: "محمد حسن",
-    avatar: "م",
-    rating: 5,
-    date: "نوفمبر 2025",
-    text: "تجربة تسوق رائعة من البداية للنهاية. الموقع سهل الاستخدام والمنتجات وصفها مطابق تماماً. شكراً للفريق المتميز!",
-    product: "أدوات رسم",
-    verified: true,
-  },
-  {
-    id: 4,
-    name: "فاطمة أحمد",
-    avatar: "ف",
-    rating: 5,
-    date: "أكتوبر 2025",
-    text: "اشتريت حقيبة مدرسية وكانت أفضل من المتوقع! التصميم أنيق والخامة قوية. أنصح الجميع بالتسوق من هنا.",
-    product: "حقيبة مدرسية",
-    verified: true,
-  },
-  {
-    id: 5,
-    name: "عمر السيد",
-    avatar: "ع",
-    rating: 4,
-    date: "سبتمبر 2025",
-    text: "خدمة ممتازة وسريعة. المنتجات بجودة عالية. الشحن كان سريع جداً ولم يتأخر. سأشتري مرة أخرى قريباً.",
-    product: "مستلزمات مكتبية",
-    verified: true,
-  },
-  {
-    id: 6,
-    name: "نورا خالد",
-    avatar: "ن",
-    rating: 5,
-    date: "أغسطس 2025",
-    text: "متجر رائع! الأسعار ممتازة مقارنة بالجودة المقدمة. الدعم الفني كان متعاوناً ومستعداً للمساعدة في أي وقت.",
-    product: "أقلام ملونة",
-    verified: true,
-  },
-];
+// Interface for dynamic reviews fetched from database
+interface ReviewItem {
+  _id: string;
+  customerName: string;
+  rating: number;
+  comment: string;
+  productName?: string;
+  productId?: { nameAr: string; images?: string[] };
+  createdAt: string;
+}
 
 // Intersection observer hook for scroll animations
 function useInView(threshold = 0.1) {
@@ -173,25 +120,36 @@ export default function Home() {
     queryFn: () => apiRequest("GET", "/api/categories"),
   });
 
-  const { data: productsData } = useQuery<{ products: Product[] }>({
+  const { data: productsData } = useQuery<{ products: Product[]; total?: number }>({
     queryKey: ["/api/products", "featured"],
     queryFn: () => apiRequest("GET", "/api/products?limit=8&sort=newest"),
   });
 
+  const { data: featuredReviews } = useQuery<ReviewItem[]>({
+    queryKey: ["/api/reviews/featured"],
+    queryFn: () => apiRequest("GET", "/api/reviews/featured"),
+  });
+
+  const { data: reviewStats } = useQuery<{ count: number; average: number }>({
+    queryKey: ["/api/reviews/stats"],
+    queryFn: () => apiRequest("GET", "/api/reviews/stats"),
+  });
+
   const rootCategories = categories?.filter((c) => !c.parentId && c.isActive) || [];
+  const reviewsList = featuredReviews || [];
 
   const stats = [
-    { value: "+5000", label: t("عميل سعيد", "Happy Customers"), icon: Heart },
-    { value: "+800", label: t("منتج متنوع", "Products"), icon: Sparkles },
-    { value: "4.9", label: t("تقييم العملاء", "Rating"), icon: Star },
+    { value: `+${reviewStats?.count || 5000}`, label: t("عميل سعيد", "Happy Customers"), icon: Heart },
+    { value: `+${(productsData?.products?.length ? productsData.products.length * 20 : 800)}`, label: t("منتج متنوع", "Products"), icon: Sparkles },
+    { value: `${reviewStats?.average || 4.9}`, label: t("تقييم العملاء", "Rating"), icon: Star },
     { value: "24/7", label: t("دعم فني", "Support"), icon: Shield },
   ];
 
   const catName = (cat: Category) => (lang === "ar" ? cat.nameAr : cat.name);
 
-  const visibleReviews = REVIEWS.slice(reviewIdx, reviewIdx + reviewsPerPage);
+  const visibleReviews = reviewsList.slice(reviewIdx, reviewIdx + reviewsPerPage);
   const canPrev = reviewIdx > 0;
-  const canNext = reviewIdx + reviewsPerPage < REVIEWS.length;
+  const canNext = reviewIdx + reviewsPerPage < reviewsList.length;
 
   const { ref: reviewRef, inView: reviewInView } = useInView();
   const { ref: statsRef, inView: statsInView } = useInView();
@@ -426,25 +384,32 @@ export default function Home() {
                           <img
                             src={cat.image || getCategoryImage(cat)}
                             alt={catName(cat)}
-                            className="h-full w-full object-cover transition-transform duration-600 group-hover:scale-115"
+                            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-115"
                           />
                           {/* Dark overlay with gradient */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
+                          
+                          {/* Floating interactive shape icon */}
+                          <div className="absolute top-3 rtl:right-3 ltr:left-3 h-8 w-8 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-400 -translate-y-2 group-hover:translate-y-0 group-hover:rotate-12">
+                            <Sparkles className="h-4 w-4 animate-spin" style={{ animationDuration: "8s" }} />
+                          </div>
+
                           {/* Browse button slides up */}
                           <div className="absolute bottom-0 inset-x-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-400 ease-out">
-                            <div className="flex items-center justify-center gap-1.5 text-white text-xs font-bold bg-white/15 backdrop-blur-sm rounded-xl py-2">
-                              {t("تصفح المنتجات", "Browse")}
-                              <ArrowRight className="h-3 w-3 rtl:rotate-180" />
+                            <div className="flex items-center justify-center gap-1.5 text-white text-xs font-black bg-white/20 backdrop-blur-md rounded-xl py-2.5 shadow-lg border border-white/20">
+                              {t("تصفح الفئة الآن", "Browse Category")}
+                              <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180 transition-transform group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1" />
                             </div>
                           </div>
+
                           {/* Category number badge */}
-                          <div className="absolute top-2.5 rtl:left-2.5 ltr:right-2.5 h-6 w-6 rounded-full bg-white/90 backdrop-blur text-foreground text-[10px] font-black flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100">
-                            {i + 1}
+                          <div className="absolute top-3 rtl:left-3 ltr:right-3 h-7 w-7 rounded-full bg-foreground text-background text-[11px] font-black flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100 shadow-md">
+                            0{i + 1}
                           </div>
                         </div>
                         {/* Name */}
-                        <div className="px-3 py-3 text-center">
-                          <p className="cat-name text-sm font-bold leading-tight">{catName(cat)}</p>
+                        <div className="px-3 py-3.5 text-center bg-white border-t transition-colors group-hover:bg-foreground/3">
+                          <p className="cat-name text-sm font-black leading-tight transition-transform duration-300 group-hover:-translate-y-0.5">{catName(cat)}</p>
                         </div>
                       </div>
                     </Link>
@@ -673,93 +638,105 @@ export default function Home() {
           </div>
 
           {/* Reviews Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
-            {visibleReviews.map((review, i) => (
-              <div
-                key={review.id}
-                className={`review-card bg-white rounded-2xl border-2 border-transparent p-6 ${reviewInView ? `animate-review-slide stagger-${i + 1}` : "opacity-0"}`}
-                style={{ boxShadow: "0 4px 24px hsl(0 0% 0% / 0.07)" }}
-              >
-                {/* Quote icon */}
-                <div className="mb-4">
-                  <Quote className="h-8 w-8 text-foreground/12" />
-                </div>
-
-                {/* Stars */}
-                <div className="flex items-center gap-0.5 mb-3">
-                  {Array.from({ length: 5 }).map((_, idx) => (
-                    <Star
-                      key={idx}
-                      className={`h-4 w-4 transition-colors ${idx < review.rating ? "fill-foreground text-foreground" : "text-muted-foreground/30"}`}
-                    />
-                  ))}
-                </div>
-
-                {/* Review text */}
-                <p className="text-sm text-muted-foreground leading-relaxed mb-4 line-clamp-4">
-                  "{review.text}"
-                </p>
-
-                {/* Product badge */}
-                <div className="inline-flex items-center gap-1 bg-muted text-muted-foreground text-xs px-2.5 py-1 rounded-full mb-4">
-                  <Package className="h-3 w-3" />
-                  {review.product}
-                </div>
-
-                {/* Reviewer */}
-                <div className="flex items-center gap-3 pt-4 border-t">
-                  <div className="h-10 w-10 rounded-full bg-foreground text-background text-sm font-black flex items-center justify-center shrink-0">
-                    {review.avatar}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-bold truncate">{review.name}</p>
-                      {review.verified && (
-                        <span className="text-[10px] bg-foreground text-background px-1.5 py-0.5 rounded-full font-bold shrink-0">
-                          {t("موثّق", "✓")}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground">{review.date}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Navigation */}
-          <div className="flex items-center justify-center gap-3">
-            <button
-              onClick={() => setReviewIdx((idx) => Math.max(0, idx - reviewsPerPage))}
-              disabled={!canPrev}
-              className="h-10 w-10 rounded-full border-2 flex items-center justify-center disabled:opacity-30 hover:bg-foreground hover:text-background hover:border-foreground transition-all duration-200 disabled:cursor-not-allowed"
-            >
-              <ChevronLeft className="h-4 w-4 rtl:rotate-180" />
-            </button>
-
-            {/* Dots */}
-            <div className="flex gap-2">
-              {Array.from({ length: Math.ceil(REVIEWS.length / reviewsPerPage) }).map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setReviewIdx(i * reviewsPerPage)}
-                  className={`rounded-full transition-all duration-300 ${
-                    Math.floor(reviewIdx / reviewsPerPage) === i
-                      ? "w-6 h-2.5 bg-foreground"
-                      : "w-2.5 h-2.5 bg-foreground/25 hover:bg-foreground/50"
-                  }`}
-                />
-              ))}
+          {reviewsList.length === 0 ? (
+            <div className="text-center py-12 bg-muted/20 rounded-3xl border-2 border-dashed max-w-xl mx-auto">
+              <Star className="h-10 w-10 text-muted-foreground/30 mx-auto mb-2" />
+              <p className="font-bold text-foreground">{t("لا توجد تقييمات مضافة حالياً", "No reviews added yet")}</p>
+              <p className="text-xs text-muted-foreground mt-1">تضاف التقييمات من لوحة الإدارة أو بعد تجارب الشراء</p>
             </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+                {visibleReviews.map((review, i) => (
+                  <div
+                    key={review._id}
+                    className={`review-card bg-white rounded-2xl border-2 border-transparent p-6 ${reviewInView ? `animate-review-slide stagger-${i + 1}` : "opacity-0"}`}
+                    style={{ boxShadow: "0 4px 24px hsl(0 0% 0% / 0.07)" }}
+                  >
+                    {/* Quote icon */}
+                    <div className="mb-4">
+                      <Quote className="h-8 w-8 text-foreground/12" />
+                    </div>
 
-            <button
-              onClick={() => setReviewIdx((idx) => Math.min(REVIEWS.length - reviewsPerPage, idx + reviewsPerPage))}
-              disabled={!canNext}
-              className="h-10 w-10 rounded-full border-2 flex items-center justify-center disabled:opacity-30 hover:bg-foreground hover:text-background hover:border-foreground transition-all duration-200 disabled:cursor-not-allowed"
-            >
-              <ChevronRight className="h-4 w-4 rtl:rotate-180" />
-            </button>
-          </div>
+                    {/* Stars */}
+                    <div className="flex items-center gap-0.5 mb-3">
+                      {Array.from({ length: 5 }).map((_, idx) => (
+                        <Star
+                          key={idx}
+                          className={`h-4 w-4 transition-colors ${idx < review.rating ? "fill-foreground text-foreground" : "text-muted-foreground/30"}`}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Review text */}
+                    <p className="text-sm text-muted-foreground leading-relaxed mb-4 line-clamp-4">
+                      "{review.comment || "تقييم ممتاّز بدون تعليق"}"
+                    </p>
+
+                    {/* Product badge */}
+                    {(review.productName || review.productId?.nameAr) && (
+                      <div className="inline-flex items-center gap-1 bg-muted text-muted-foreground text-xs px-2.5 py-1 rounded-full mb-4">
+                        <Package className="h-3 w-3" />
+                        {review.productName || review.productId?.nameAr}
+                      </div>
+                    )}
+
+                    {/* Reviewer */}
+                    <div className="flex items-center gap-3 pt-4 border-t">
+                      <div className="h-10 w-10 rounded-full bg-foreground text-background text-sm font-black flex items-center justify-center shrink-0">
+                        {review.customerName?.charAt(0) || "U"}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-bold truncate">{review.customerName}</p>
+                          <span className="text-[10px] bg-foreground text-background px-1.5 py-0.5 rounded-full font-bold shrink-0">
+                            {t("موثّق", "✓")}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{formatDate(review.createdAt)}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Navigation */}
+              {reviewsList.length > reviewsPerPage && (
+                <div className="flex items-center justify-center gap-3">
+                  <button
+                    onClick={() => setReviewIdx((idx) => Math.max(0, idx - reviewsPerPage))}
+                    disabled={!canPrev}
+                    className="h-10 w-10 rounded-full border-2 flex items-center justify-center disabled:opacity-30 hover:bg-foreground hover:text-background hover:border-foreground transition-all duration-200 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft className="h-4 w-4 rtl:rotate-180" />
+                  </button>
+
+                  {/* Dots */}
+                  <div className="flex gap-2">
+                    {Array.from({ length: Math.ceil(reviewsList.length / reviewsPerPage) }).map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setReviewIdx(i * reviewsPerPage)}
+                        className={`rounded-full transition-all duration-300 ${
+                          Math.floor(reviewIdx / reviewsPerPage) === i
+                            ? "w-6 h-2.5 bg-foreground"
+                            : "w-2.5 h-2.5 bg-foreground/25 hover:bg-foreground/50"
+                        }`}
+                      />
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => setReviewIdx((idx) => Math.min(reviewsList.length - reviewsPerPage, idx + reviewsPerPage))}
+                    disabled={!canNext}
+                    className="h-10 w-10 rounded-full border-2 flex items-center justify-center disabled:opacity-30 hover:bg-foreground hover:text-background hover:border-foreground transition-all duration-200 disabled:cursor-not-allowed"
+                  >
+                    <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </section>
 
