@@ -1,4 +1,5 @@
 import { Router, Request, Response } from "express";
+import mongoose from "mongoose";
 import { Category } from "../models/Category.js";
 import { Product } from "../models/Product.js";
 import { requireAuth } from "../middleware/auth.js";
@@ -32,31 +33,60 @@ router.post("/", requireAuth, async (req: Request, res: Response) => {
   try {
     const { name, nameAr, slug, icon, parentId, image } = req.body;
 
+    // Clean parentId to prevent ObjectId cast errors on empty strings
+    const cleanParentId = parentId && mongoose.Types.ObjectId.isValid(parentId) ? parentId : null;
+
     // Ensure slug is unique
-    let finalSlug = slug;
+    let finalSlug = slug || name.toLowerCase().replace(/\s+/g, "-");
     let counter = 2;
     while (await Category.findOne({ slug: finalSlug })) {
       finalSlug = `${slug}-${counter}`;
       counter++;
     }
 
-    const category = new Category({ name, nameAr, slug: finalSlug, icon, parentId: parentId || null, image });
+    const category = new Category({
+      name,
+      nameAr,
+      slug: finalSlug,
+      icon: icon || "📦",
+      parentId: cleanParentId,
+      image,
+    });
     await category.save();
     return res.status(201).json(category);
   } catch (error) {
-    return res.status(500).json({ message: "Server error" });
+    console.error("Error creating category:", error);
+    return res.status(500).json({ message: "Server error creating category" });
   }
 });
 
 // Update category (admin only)
 router.put("/:id", requireAuth, async (req: Request, res: Response) => {
   try {
-    const category = await Category.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const { name, nameAr, slug, icon, parentId, image, isActive } = req.body;
+    const cleanParentId = parentId && mongoose.Types.ObjectId.isValid(parentId) ? parentId : null;
+
+    const category = await Category.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          ...(name && { name }),
+          ...(nameAr && { nameAr }),
+          ...(slug && { slug }),
+          ...(icon && { icon }),
+          parentId: cleanParentId,
+          ...(image !== undefined && { image }),
+          ...(isActive !== undefined && { isActive }),
+        },
+      },
+      { new: true }
+    );
+
     if (!category) return res.status(404).json({ message: "Category not found" });
     return res.json(category);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Server error" });
+    console.error("Error updating category:", error);
+    return res.status(500).json({ message: "Server error updating category" });
   }
 });
 
@@ -74,7 +104,7 @@ router.delete("/:id", requireAuth, async (req: Request, res: Response) => {
 
     while (queue.length > 0) {
       const currentId = queue.shift()!;
-      const children = allCategories.filter(c => c.parentId?.toString() === currentId);
+      const children = allCategories.filter((c) => c.parentId?.toString() === currentId);
       for (const child of children) {
         const childIdStr = child._id.toString();
         if (!visited.has(childIdStr)) {

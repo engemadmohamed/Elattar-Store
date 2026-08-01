@@ -776,7 +776,7 @@ export default function Home() {
               <input
                 type="tel"
                 required
-                placeholder={t("ادخل رقم الهاتف (مثال: 01012345678)", "Your phone number")}
+                placeholder={t("رقم الهاتف", "Phone Number")}
                 className="flex h-12 flex-1 rounded-full border-2 border-input bg-white px-5 text-sm focus:outline-none focus:ring-2 focus:ring-foreground transition-all shadow-xs"
               />
               <Button type="submit" className="rounded-full h-12 gap-1 px-7 font-bold text-sm shadow-md">

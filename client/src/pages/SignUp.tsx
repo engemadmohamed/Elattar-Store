@@ -65,12 +65,18 @@ export default function SignUp() {
 
   const generateAndSendOtp = async () => {
     try {
-      const res = await apiRequest<{ success: boolean; message: string; code?: string }>(
+      const res = await apiRequest<{ success: boolean; message: string; code?: string; smsError?: string }>(
         "POST",
         "/api/customer-auth/send-otp",
         { phone: form.phone }
       );
-      if (res.code) {
+      if (res.smsError) {
+        toast({
+          title: "⚠️ تنبيه بوابة الرسائل SMS Misr",
+          description: res.smsError,
+          variant: "destructive",
+        });
+      } else if (res.code) {
         setGeneratedOtp(res.code);
         toast({
           title: "📱 تم إرسال رمز التحقق",
@@ -78,8 +84,8 @@ export default function SignUp() {
         });
       } else {
         toast({
-          title: "📱 تم إرسال رمز التحقق",
-          description: res.message || "يرجى فحص هاتفك",
+          title: "📱 تم إرسال رمز التحقق لجرّالك",
+          description: res.message || "يرجى فحص رسائل هاتفك",
         });
       }
       return true;

@@ -1,17 +1,26 @@
 /**
  * SMS Gateway Dispatcher Module
- * Sends OTP codes to Egyptian & International mobile numbers via SMS Gateway
+ * Sends OTP codes to Egyptian & International mobile numbers via SMS Gateway (SMS Misr / Twilio)
  */
 
 export interface SmsResult {
   success: boolean;
   messageId?: string;
-  provider: "sms-misr" | "victorylink" | "twilio" | "console-dev";
+  provider: "sms-misr" | "twilio" | "console-dev";
   error?: string;
+  responseCode?: string;
 }
 
 export async function sendSmsOtp(phone: string, code: string): Promise<SmsResult> {
-  const cleanedPhone = phone.trim().replace(/\s+/g, "");
+  const cleanedPhone = phone.trim().replace(/\s+/g, "").replace(/-/g, "");
+
+  // Format Egyptian mobile number (SMS Misr requires 201xxxxxxxxx format)
+  let formattedMobile = cleanedPhone;
+  if (formattedMobile.startsWith("01") && formattedMobile.length === 11) {
+    formattedMobile = `2${formattedMobile}`; // Converts 01012345678 -> 201012345678
+  } else if (formattedMobile.startsWith("+2")) {
+    formattedMobile = formattedMobile.replace("+", "");
+  }
 
   // 1. SMS MISR Gateway (Egyptian Provider)
   if (process.env.SMS_MISR_USERNAME && process.env.SMS_MISR_PASSWORD) {
@@ -19,21 +28,64 @@ export async function sendSmsOtp(phone: string, code: string): Promise<SmsResult
       const username = process.env.SMS_MISR_USERNAME;
       const password = process.env.SMS_MISR_PASSWORD;
       const sender = process.env.SMS_MISR_SENDER || "ALMOHANDES";
+      const message = `رمز التحقق الخاص بك لمتجر المهندس هو: ${code}`;
 
-      const message = encodeURIComponent(`كود التحقق الخاص بك لمتجر المهندس هو: ${code}`);
-      const url = `https://smsmisr.com/api/v2/?username=${username}&password=${password}&language=2&sender=${sender}&mobile=${cleanedPhone}&message=${message}`;
+      console.log(`[SMS MISR] Dispatching OTP to ${formattedMobile} (Sender: ${sender})...`);
 
-      const res = await fetch(url, { method: "POST" });
-      const text = await res.text();
-      console.log(`[SMS MISR] Response for ${cleanedPhone}:`, text);
+      // Try SMS Misr JSON Web API POST
+      const res = await fetch("https://smsmisr.com/api/v2/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username,
+          password,
+          language: "2", // Arabic
+          sender,
+          mobile: formattedMobile,
+          message,
+        }),
+      });
+
+      const responseText = await res.text();
+      console.log(`[SMS MISR Raw Response] for ${formattedMobile}:`, responseText);
+
+      // SMS Misr Code Interpretations:
+      // 1901: Success
+      // 1902: Invalid Username or Password
+      // 1903: Invalid Sender ID (Sender name not approved by SMS Misr)
+      // 1904: Insufficient Balance
+      // 1905: Invalid Mobile Number
+      let isSuccess = false;
+      let errorMsg = "";
+
+      if (responseText.includes("1901") || responseText.toLowerCase().includes("success")) {
+        isSuccess = true;
+        console.log(`[SMS MISR Success] 🟢 OTP delivered to ${formattedMobile}`);
+      } else if (responseText.includes("1902")) {
+        errorMsg = "SMS Misr: اسم المستخدم أو كلمة المرور غير صحيحة";
+      } else if (responseText.includes("1903")) {
+        errorMsg = "SMS Misr: اسم المرسل Sender ID غير مفعّل بالحساب";
+      } else if (responseText.includes("1904")) {
+        errorMsg = "SMS Misr: رصيد الرسائل غير كافٍ في حسابك";
+      } else if (responseText.includes("1905")) {
+        errorMsg = "SMS Misr: رقم الهاتف غير صحيح";
+      } else {
+        errorMsg = `SMS Misr response: ${responseText}`;
+      }
+
+      if (!isSuccess) {
+        console.error(`[SMS MISR Warning]: ${errorMsg}`);
+      }
 
       return {
-        success: true,
-        messageId: text,
+        success: isSuccess,
+        messageId: responseText,
         provider: "sms-misr",
+        error: errorMsg || undefined,
+        responseCode: responseText,
       };
     } catch (err) {
-      console.error("[SMS MISR Error]:", err);
+      console.error("[SMS MISR Network Error]:", err);
     }
   }
 
@@ -73,7 +125,7 @@ export async function sendSmsOtp(phone: string, code: string): Promise<SmsResult
     }
   }
 
-  // 3. Fallback / Dev Mode (Prints OTP to Server Console)
+  // 3. Dev Mode Console Log
   console.log("==========================================");
   console.log(`📱 [REAL OTP SMS SENT TO ${cleanedPhone}]`);
   console.log(`🔑 VERIFICATION CODE IS: ${code}`);
