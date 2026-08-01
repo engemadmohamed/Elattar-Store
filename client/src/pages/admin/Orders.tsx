@@ -317,7 +317,6 @@ export default function AdminOrders() {
             </TableBody>
           </Table>
         </div>
-      </main>
 
       {/* Order Detail Dialog */}
       <Dialog

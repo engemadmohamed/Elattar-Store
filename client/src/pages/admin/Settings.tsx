@@ -107,9 +107,10 @@ export default function AdminSettings() {
       <div className="space-y-6">
         {/* Header Actions */}
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold flex items-center gap-2">
-            <SettingsIcon className="h-5 w-5" /> تخصيص المتجر
-          </h1>
+          <div>
+            <h1 className="text-xl font-bold flex items-center gap-2">
+              <SettingsIcon className="h-5 w-5" /> تخصيص المتجر
+            </h1>
             <p className="text-sm text-muted-foreground mt-1">
               تحكم في الهوية البصرية والنصوص والميزات الظاهرة للموقع من مكان واحد
             </p>

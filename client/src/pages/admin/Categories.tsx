@@ -283,7 +283,6 @@ export default function AdminCategories() {
             <Plus className="h-4 w-4" /> إضافة فئة
           </Button>
         </div>
-        </div>
 
         <Card>
           <CardHeader>
@@ -310,7 +309,6 @@ export default function AdminCategories() {
             )}
           </CardContent>
         </Card>
-      </main>
 
       {/* Add/Edit Dialog */}
       <Dialog

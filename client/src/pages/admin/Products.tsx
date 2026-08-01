@@ -136,7 +136,7 @@ export default function AdminProducts() {
         </aside>
 
         {/* Main Content */}
-        <main className="p-6 overflow-auto">
+        <div className="space-y-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold">المنتجات</h1>
@@ -310,8 +310,7 @@ export default function AdminProducts() {
               </TableBody>
             </Table>
           </div>
-        </main>
-      </div>
+        </div>
       {/* Delete Confirmation Dialog */}
       <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
         <DialogContent className="max-w-sm">

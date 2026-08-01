@@ -195,6 +195,7 @@ export default function AdminDashboard() {
                 </div>
               </CardContent>
             </Card>
+          </Link>
         </div>
       </div>
     </AdminLayout>
