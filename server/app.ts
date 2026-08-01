@@ -19,8 +19,8 @@ const app = express();
 
 // Middleware
 app.use(cors({ origin: true, credentials: true }));
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(express.json({ limit: "100mb" }));
+app.use(express.urlencoded({ extended: true, limit: "100mb" }));
 
 // Serve locally-uploaded images.  On Vercel this path is ephemeral/read-only
 // so we wrap in try/catch — in production all images should go to Cloudinary.

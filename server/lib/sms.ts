@@ -28,24 +28,15 @@ export async function sendSmsOtp(phone: string, code: string): Promise<SmsResult
       const username = process.env.SMS_MISR_USERNAME;
       const password = process.env.SMS_MISR_PASSWORD;
       const sender = process.env.SMS_MISR_SENDER || "ALMOHANDES";
-      const message = `رمز التحقق الخاص بك لمتجر المهندس هو: ${code}`;
+      const message = `كود التحقق الخاص بك لمتجر المهندس هو: ${code}`;
 
       console.log(`[SMS MISR] Dispatching OTP to ${formattedMobile} (Sender: ${sender})...`);
 
-      // Try SMS Misr JSON Web API POST
-      const res = await fetch("https://smsmisr.com/api/v2/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username,
-          password,
-          language: "2", // Arabic
-          sender,
-          mobile: formattedMobile,
-          message,
-        }),
-      });
+      // SMS Misr Official Endpoint URL
+      const encodedMsg = encodeURIComponent(message);
+      const url = `https://smsmisr.com/api/webapi/?username=${username}&password=${password}&language=2&sender=${sender}&mobile=${formattedMobile}&message=${encodedMsg}`;
 
+      const res = await fetch(url, { method: "POST" });
       const responseText = await res.text();
       console.log(`[SMS MISR Raw Response] for ${formattedMobile}:`, responseText);
 
@@ -81,7 +72,7 @@ export async function sendSmsOtp(phone: string, code: string): Promise<SmsResult
         success: isSuccess,
         messageId: responseText,
         provider: "sms-misr",
-        error: errorMsg || undefined,
+        error: isSuccess ? undefined : errorMsg,
         responseCode: responseText,
       };
     } catch (err) {

@@ -575,17 +575,6 @@ export default function Home() {
                   alt={settings.aboutTitle}
                   className="w-full h-[340px] object-cover transition-transform duration-700 group-hover:scale-105"
                 />
-                {settings.showRatings && (
-                  <div className="absolute bottom-4 ltr:left-4 rtl:right-4 bg-white rounded-2xl p-4 shadow-lg animate-float">
-                    <div className="flex items-center gap-0.5 mb-1">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-foreground text-foreground" />
-                      ))}
-                    </div>
-                    <p className="text-sm font-black">4.9 {t("من 5", "out of 5")}</p>
-                    <p className="text-xs text-muted-foreground">+5000 {t("تقييم", "reviews")}</p>
-                  </div>
-                )}
               </div>
             </div>
           </div>
