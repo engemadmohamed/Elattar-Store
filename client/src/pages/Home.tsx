@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import ProductCard from "@/components/ProductCard";
+import { formatDate } from "@/lib/utils";
 import ProductSection from "@/components/ProductSection";
 import { apiRequest } from "@/lib/queryClient";
 import { useStoreSettings } from "@/lib/store-settings-context";
@@ -130,19 +131,41 @@ export default function Home() {
     queryFn: () => apiRequest("GET", "/api/reviews/featured"),
   });
 
-  const { data: reviewStats } = useQuery<{ count: number; average: number }>({
-    queryKey: ["/api/reviews/stats"],
-    queryFn: () => apiRequest("GET", "/api/reviews/stats"),
+  const { data: dbStats } = useQuery<{
+    customersCount: number;
+    productsCount: number;
+    categoriesCount: number;
+    reviewsCount: number;
+    averageRating: number;
+  }>({
+    queryKey: ["/api/settings/stats"],
+    queryFn: () => apiRequest("GET", "/api/settings/stats"),
   });
 
   const rootCategories = categories?.filter((c) => !c.parentId && c.isActive) || [];
   const reviewsList = featuredReviews || [];
 
   const stats = [
-    { value: `+${reviewStats?.count || 5000}`, label: t("عميل سعيد", "Happy Customers"), icon: Heart },
-    { value: `+${(productsData?.products?.length ? productsData.products.length * 20 : 800)}`, label: t("منتج متنوع", "Products"), icon: Sparkles },
-    { value: `${reviewStats?.average || 4.9}`, label: t("تقييم العملاء", "Rating"), icon: Star },
-    { value: "24/7", label: t("دعم فني", "Support"), icon: Shield },
+    {
+      value: dbStats?.customersCount ? `+${dbStats.customersCount}` : "+0",
+      label: t("عميل مسجّل", "Registered Customers"),
+      icon: Heart,
+    },
+    {
+      value: dbStats?.productsCount ? `+${dbStats.productsCount}` : "+0",
+      label: t("منتج متوفر", "Available Products"),
+      icon: Sparkles,
+    },
+    {
+      value: dbStats?.reviewsCount && dbStats.averageRating > 0 ? `${dbStats.averageRating}` : "0.0",
+      label: dbStats?.reviewsCount ? t(`من ${dbStats.reviewsCount} تقييم`, `from ${dbStats.reviewsCount} reviews`) : t("لا توجد تقييمات", "No Ratings Yet"),
+      icon: Star,
+    },
+    {
+      value: dbStats?.categoriesCount ? `${dbStats.categoriesCount}` : "0",
+      label: t("فئة منتجات", "Product Categories"),
+      icon: Shield,
+    },
   ];
 
   const catName = (cat: Category) => (lang === "ar" ? cat.nameAr : cat.name);
