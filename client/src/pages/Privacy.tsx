@@ -1,9 +1,8 @@
-import { ShieldCheck } from "lucide-react";
 import InfoPageLayout from "@/components/InfoPageLayout";
 
 export default function Privacy() {
   return (
-    <InfoPageLayout icon={ShieldCheck} title="سياسة الخصوصية">
+    <InfoPageLayout title="سياسة الخصوصية">
       <p>نحن في المهندس نحترم خصوصيتك ونلتزم بحماية بياناتك الشخصية.</p>
       <p>بنجمع بس البيانات اللازمة لإتمام طلبك (الاسم، الهاتف، العنوان).</p>
       <p>
