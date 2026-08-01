@@ -113,13 +113,13 @@ export default function AdminCategories() {
         ...data,
         parentId: data.parentId || null,
         icon: data.icon || "📦",
-        image: data.image || undefined,
+        image: data.image,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["/api/categories"] });
       setOpen(false);
       resetFormAndState();
-      toast({ title: "تم إضافة الفئة ✓" });
+      toast({ title: "تم إضافة الفئة بنجاح ✓" });
     },
     onError: (err) =>
       toast({
@@ -135,13 +135,13 @@ export default function AdminCategories() {
         ...data,
         parentId: data.parentId || null,
         icon: data.icon || "📦",
-        image: data.image || undefined,
+        image: data.image,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["/api/categories"] });
       setOpen(false);
       resetFormAndState();
-      toast({ title: "تم تعديل الفئة ✓" });
+      toast({ title: "تم تعديل وحفظ الفئة بنجاح ✓" });
     },
     onError: (err) =>
       toast({
@@ -494,8 +494,8 @@ export default function AdminCategories() {
       <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-destructive">
-              <AlertTriangle className="h-5 w-5" /> حذف الفئة
+            <DialogTitle className="flex items-center gap-2 text-foreground font-black">
+              <AlertTriangle className="h-5 w-5" /> تأكيد حذف الفئة
             </DialogTitle>
             <DialogDescription className="text-right pt-2">
               هل أنت متأكد من حذف "<strong>{deleteTarget?.nameAr}</strong>"؟
@@ -507,14 +507,13 @@ export default function AdminCategories() {
           <DialogFooter className="flex-row gap-2 sm:gap-2">
             <Button
               variant="outline"
-              className="flex-1"
+              className="flex-1 border-2"
               onClick={() => setDeleteTarget(null)}
             >
               إلغاء
             </Button>
             <Button
-              variant="destructive"
-              className="flex-1"
+              className="flex-1 bg-foreground text-background hover:bg-foreground/90 font-bold"
               disabled={deleteMutation.isPending}
               onClick={() => {
                 if (deleteTarget) {
@@ -714,7 +713,7 @@ function CategoryItem({
         <Button
           variant="ghost"
           size="icon"
-          className="h-7 w-7 text-destructive"
+          className="h-7 w-7 text-foreground hover:bg-foreground/10"
           onClick={() => onDelete(category)}
         >
           <Trash2 className="h-4 w-4" />

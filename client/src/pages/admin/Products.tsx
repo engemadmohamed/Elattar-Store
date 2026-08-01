@@ -297,7 +297,7 @@ export default function AdminProducts() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-destructive"
+                            className="h-8 w-8 text-foreground hover:bg-foreground/10"
                             onClick={() => handleDelete(product)}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -315,8 +315,8 @@ export default function AdminProducts() {
       <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-destructive">
-              <AlertTriangle className="h-5 w-5" /> حذف المنتج
+            <DialogTitle className="flex items-center gap-2 text-foreground font-black">
+              <AlertTriangle className="h-5 w-5" /> تأكيد حذف المنتج
             </DialogTitle>
             <DialogDescription className="text-right pt-2">
               هل أنت متأكد من حذف "<strong>{deleteTarget?.nameAr}</strong>"؟
@@ -327,14 +327,13 @@ export default function AdminProducts() {
           <DialogFooter className="flex-row gap-2 sm:gap-2">
             <Button
               variant="outline"
-              className="flex-1"
+              className="flex-1 border-2"
               onClick={() => setDeleteTarget(null)}
             >
               إلغاء
             </Button>
             <Button
-              variant="destructive"
-              className="flex-1"
+              className="flex-1 bg-foreground text-background hover:bg-foreground/90 font-bold"
               disabled={deleteMutation.isPending}
               onClick={() => {
                 if (deleteTarget) {

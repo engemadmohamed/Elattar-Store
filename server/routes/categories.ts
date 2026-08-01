@@ -63,7 +63,7 @@ router.put("/:id", requireAuth, async (req: Request, res: Response) => {
 // Delete category (admin only)
 router.delete("/:id", requireAuth, async (req: Request, res: Response) => {
   try {
-    const categoryId = req.params.id;
+    const categoryId = String(req.params.id);
 
     // To recursively delete, we need to find all descendants first.
     const allCategories = await Category.find().lean();

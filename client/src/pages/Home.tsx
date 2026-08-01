@@ -23,6 +23,7 @@ import {
   Pen,
   BookOpen,
   Palette,
+  Phone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -312,28 +313,6 @@ export default function Home() {
                   alt={settings.storeName}
                   className="w-full h-[440px] object-cover transition-transform duration-700 group-hover:scale-108"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
-
-                {/* Floating discount badge */}
-                <div className="absolute top-4 ltr:right-4 rtl:left-4 bg-white rounded-2xl px-4 py-3 shadow-lg animate-float">
-                  <p className="text-2xl font-black">{settings.discountPercent}%</p>
-                  <p className="text-xs text-muted-foreground font-medium">{t("خصم", "OFF")}</p>
-                </div>
-
-                {/* Floating rating */}
-                <div className="absolute bottom-4 ltr:left-4 rtl:right-4 bg-white rounded-2xl px-4 py-3 shadow-lg animate-float" style={{ animationDelay: "1s" }}>
-                  <div className="flex items-center gap-0.5 mb-1">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} className="h-3 w-3 fill-foreground text-foreground" />
-                    ))}
-                  </div>
-                  <p className="text-xs font-bold">4.9 / 5.0</p>
-                </div>
-
-                {/* NEW badge */}
-                <div className="absolute top-1/2 ltr:-right-3 rtl:-left-3 bg-foreground text-background rounded-full px-3 py-1.5 text-xs font-black shadow-lg animate-float" style={{ animationDelay: "1.5s" }}>
-                  {t("جديد", "NEW")}
-                </div>
               </div>
 
               {/* Decorative dots grid */}

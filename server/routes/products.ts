@@ -150,10 +150,11 @@ router.get("/admin/all", requireAuth, async (req: Request, res: Response) => {
 // Get single product by ID (public) - this is the QR target page
 router.get("/:id", async (req: Request, res: Response) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    const productId = String(req.params.id);
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
       return res.status(404).json({ message: "Product not found" });
     }
-    const product = await Product.findById(req.params.id).populate("categoryId", "name nameAr slug");
+    const product = await Product.findById(productId).populate("categoryId", "name nameAr slug");
     if (!product) return res.status(404).json({ message: "Product not found" });
     return res.json(product);
   } catch (error) {
