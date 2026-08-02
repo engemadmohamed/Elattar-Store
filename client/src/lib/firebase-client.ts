@@ -26,18 +26,13 @@ firebaseAuth.languageCode = "ar";
 export function setupRecaptcha(containerId: string = "recaptcha-container") {
   if (typeof window === "undefined") return null;
 
+  if ((window as any).recaptchaVerifier) {
+    return (window as any).recaptchaVerifier;
+  }
+
   const container = document.getElementById(containerId);
   if (container) {
     container.innerHTML = ""; // Clear existing iframe/elements to prevent 'already rendered' error
-  }
-
-  if ((window as any).recaptchaVerifier) {
-    try {
-      (window as any).recaptchaVerifier.clear();
-    } catch {
-      // ignore
-    }
-    (window as any).recaptchaVerifier = null;
   }
 
   const verifier = new RecaptchaVerifier(firebaseAuth, containerId, {
