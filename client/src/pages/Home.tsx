@@ -123,7 +123,7 @@ export default function Home() {
     queryFn: () => apiRequest("GET", "/api/settings/stats"),
   });
 
-  const rootCategories = categories?.filter((c) => !c.parentId && c.isActive) || [];
+  const rootCategories = categories?.filter((c) => !c.parentId && c.isActive !== false) || [];
   const reviewsList = featuredReviews || [];
 
   const stats = [
@@ -635,8 +635,8 @@ export default function Home() {
           {reviewsList.length === 0 ? (
             <div className="text-center py-12 bg-muted/20 rounded-3xl border-2 border-dashed max-w-xl mx-auto">
               <Star className="h-10 w-10 text-muted-foreground/30 mx-auto mb-2" />
-              <p className="font-bold text-foreground">{t("لا توجد تقييمات مضافة حالياً", "No reviews added yet")}</p>
-              <p className="text-xs text-muted-foreground mt-1">تضاف التقييمات من لوحة الإدارة أو بعد تجارب الشراء</p>
+              <p className="font-bold text-foreground">{t("لا توجد تقييمات بعد", "No reviews yet")}</p>
+              <p className="text-xs text-muted-foreground mt-1">{t("كن أول من يقيّم منتجاتنا بعد تجربة الشراء!", "Be the first to review our products after your purchase!")}</p>
             </div>
           ) : (
             <>

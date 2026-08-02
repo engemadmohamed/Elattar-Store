@@ -84,15 +84,7 @@ router.post("/signup", async (req: Request, res: Response) => {
     const existingPhone = await Customer.findOne({ phone: cleanedPhone });
     if (existingPhone) return res.status(409).json({ message: "هذا الرقم مسجل بالفعل" });
 
-    if (!code) return res.status(400).json({ message: "يرجى إدخال رمز التحقق من الهاتف" });
-
-    const otpRecord = await Otp.findOne({ phone: cleanedPhone, expiresAt: { $gt: new Date() } });
-    const isMasterCode = code.trim() === "1234" || code.trim() === "123456" || code.trim().length === 6;
-
-    if (!otpRecord && !isMasterCode) return res.status(400).json({ message: "انتهت صلاحية كود التحقق. يرجى طلب كود جديد" });
-    if (otpRecord && otpRecord.code !== code.trim() && !otpRecord.verified && !isMasterCode) {
-      return res.status(400).json({ message: "رمز التحقق غير صحيح" });
-    }
+    // No OTP verification required - direct signup
 
     // Create customer in MongoDB
     const customer = await Customer.create({
