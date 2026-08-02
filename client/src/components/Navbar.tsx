@@ -437,9 +437,9 @@ export default function Navbar() {
                   className="relative h-9 w-9 rounded-lg transition-all duration-200 hover:scale-110"
                   title="المفضلة"
                 >
-                  <Heart className={`h-4 w-4 ${wishlistCount > 0 ? "text-rose-500 fill-rose-500" : ""}`} />
+                  <Heart className={`h-4 w-4 ${wishlistCount > 0 ? "text-black fill-black" : "text-foreground"}`} />
                   {wishlistCount > 0 && (
-                    <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-rose-500 text-[10px] text-white flex items-center justify-center font-bold animate-bounce-in">
+                    <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-black text-[10px] text-white flex items-center justify-center font-bold animate-bounce-in">
                       {wishlistCount > 9 ? "9+" : wishlistCount}
                     </span>
                   )}

@@ -133,7 +133,7 @@ export default function ProductCard({ product }: { product: Product }) {
             className="absolute top-2.5 rtl:left-2.5 ltr:right-2.5 z-10 h-8 w-8 rounded-full bg-white/90 backdrop-blur-xs flex items-center justify-center shadow-md hover:scale-110 transition-transform"
             title={isFav ? "إزالة من المفضلة" : "إضافة للمفضلة"}
           >
-            <Heart className={`h-4 w-4 ${isFav ? "text-rose-500 fill-rose-500" : "text-muted-foreground"}`} />
+            <Heart className={`h-4 w-4 ${isFav ? "text-black fill-black" : "text-muted-foreground"}`} />
           </button>
 
           {/* Discount badge */}

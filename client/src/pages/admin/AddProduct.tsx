@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
-import { ArrowLeft, Plus, X, Upload, QrCode, Copy } from "lucide-react";
+import { ArrowLeft, Plus, X, Upload, QrCode, Copy, Check } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,21 +33,45 @@ interface Category {
   parentId: string | null;
 }
 
+const PRESET_COLORS = [
+  { label: "أحمر", bg: "bg-red-500 text-white border-red-600" },
+  { label: "أزرق", bg: "bg-blue-500 text-white border-blue-600" },
+  { label: "أسود", bg: "bg-black text-white border-black" },
+  { label: "أخضر", bg: "bg-green-500 text-white border-green-600" },
+  { label: "أصفر", bg: "bg-yellow-400 text-black border-yellow-500" },
+  { label: "أبيض", bg: "bg-white text-black border-gray-300" },
+  { label: "رمادي", bg: "bg-gray-500 text-white border-gray-600" },
+  { label: "بني", bg: "bg-amber-800 text-white border-amber-900" },
+  { label: "وردي", bg: "bg-pink-500 text-white border-pink-600" },
+  { label: "بنفسجي", bg: "bg-purple-500 text-white border-purple-600" },
+  { label: "برتقالي", bg: "bg-orange-500 text-white border-orange-600" },
+  { label: "شفاف", bg: "bg-slate-100 text-slate-700 border-slate-300" },
+];
+
 // Helper function to find the path to a category from root to child
 const findCategoryPath = (
   allCategories: Category[],
   categoryId: string,
 ): string[] => {
   const path: string[] = [];
-  let currentId: string | null = categoryId;
+  let currentId: string | null = categoryId ? String(categoryId) : null;
+  const visited = new Set<string>();
 
-  while (currentId) {
-    const category = allCategories.find((c) => c._id === currentId);
+  while (currentId && !visited.has(currentId)) {
+    visited.add(currentId);
+    const category = allCategories.find((c) => String(c._id) === currentId);
     if (category) {
-      path.unshift(category._id);
-      currentId = category.parentId;
+      path.unshift(String(category._id));
+      const parent = category.parentId;
+      if (!parent) {
+        currentId = null;
+      } else if (typeof parent === "object" && parent !== null) {
+        currentId = String((parent as any)._id || "");
+      } else {
+        currentId = String(parent);
+      }
     } else {
-      currentId = null; // Category not found, break loop
+      currentId = null;
     }
   }
   return path;
@@ -130,25 +154,24 @@ export default function AddProduct() {
   };
 
   useEffect(() => {
-    if (existingProduct && categories && !formPopulated) {
+    if (isEdit && existingProduct && categories) {
       const rawCat = existingProduct.categoryId;
-      const productCategoryId = typeof rawCat === "object" && rawCat !== null ? rawCat._id : String(rawCat);
-      setSavedProductSku(existingProduct.sku);
+      const productCategoryId = typeof rawCat === "object" && rawCat !== null ? String(rawCat._id) : String(rawCat || "");
+      setSavedProductSku(existingProduct.sku || "");
 
-      // Find the full path for the category and set the chain
-      const path = findCategoryPath(categories, productCategoryId);
-      setCategoryChain(path);
+      if (productCategoryId) {
+        const path = findCategoryPath(categories, productCategoryId);
+        setCategoryChain(path);
+      }
 
       setForm({
         name: existingProduct.name || "",
         nameAr: existingProduct.nameAr || "",
         description: existingProduct.description || "",
         descriptionAr: existingProduct.descriptionAr || "",
-        price: String(existingProduct.price || ""),
-        salePrice: existingProduct.salePrice
-          ? String(existingProduct.salePrice)
-          : "",
-        stock: String(existingProduct.stock || "0"),
+        price: existingProduct.price !== undefined ? String(existingProduct.price) : "",
+        salePrice: existingProduct.salePrice ? String(existingProduct.salePrice) : "",
+        stock: existingProduct.stock !== undefined ? String(existingProduct.stock) : "0",
         categoryId: productCategoryId,
         brand: existingProduct.brand || "",
         saleUnit: existingProduct.saleUnit || "piece",
@@ -156,9 +179,8 @@ export default function AddProduct() {
         images: existingProduct.images || [],
         isActive: existingProduct.isActive ?? true,
       });
-      setFormPopulated(true);
     }
-  }, [existingProduct, categories, formPopulated]);
+  }, [existingProduct, categories]);
 
   const set = (key: string, val: unknown) =>
     setForm((f) => ({ ...f, [key]: val as any }));
@@ -427,37 +449,79 @@ export default function AddProduct() {
                   <CardHeader>
                     <CardTitle className="text-base">ألوان المنتج المتاحة (اختياري)</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex gap-2">
-                      <Input
-                        value={colorInput}
-                        onChange={(e) => setColorInput(e.target.value)}
-                        placeholder="أدخل لوناً (مثلاً: أحمر، أسود، أزرق)..."
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            addColor();
-                          }
-                        }}
-                      />
-                      <Button type="button" variant="outline" onClick={addColor}>
-                        <Plus className="h-4 w-4" /> إضافة
-                      </Button>
-                    </div>
-                    {form.colors.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 pt-2">
-                        {form.colors.map((c, i) => (
-                          <Badge key={i} variant="secondary" className="gap-1.5 px-3 py-1 text-xs font-bold rounded-lg border">
-                            {c}
+                  <CardContent className="space-y-4">
+                    {/* Preset Color Choices */}
+                    <div>
+                      <Label className="mb-2.5 block text-xs font-bold text-muted-foreground">
+                        اختر من الألوان المتاحة بنقرة واحدة:
+                      </Label>
+                      <div className="flex flex-wrap gap-2">
+                        {PRESET_COLORS.map((preset) => {
+                          const isSelected = form.colors.includes(preset.label);
+                          return (
                             <button
+                              key={preset.label}
                               type="button"
-                              onClick={() => set("colors", form.colors.filter((_, j) => j !== i))}
-                              className="text-muted-foreground hover:text-destructive transition-colors"
+                              onClick={() => {
+                                if (isSelected) {
+                                  set("colors", form.colors.filter((c) => c !== preset.label));
+                                } else {
+                                  set("colors", [...form.colors, preset.label]);
+                                }
+                              }}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all ${
+                                isSelected
+                                  ? `${preset.bg} ring-2 ring-offset-1 ring-black scale-105 shadow-sm`
+                                  : "bg-muted/40 text-foreground border-input hover:bg-accent"
+                              }`}
                             >
-                              <X className="h-3.5 w-3.5" />
+                              <span>{preset.label}</span>
+                              {isSelected ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5 opacity-50" />}
                             </button>
-                          </Badge>
-                        ))}
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Custom Color Input */}
+                    <div className="pt-2 border-t">
+                      <Label className="mb-1.5 block text-xs text-muted-foreground">أو اكتب اسم لون إضافي:</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          value={colorInput}
+                          onChange={(e) => setColorInput(e.target.value)}
+                          placeholder="مثلاً: فيروزي، كحلي..."
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              addColor();
+                            }
+                          }}
+                        />
+                        <Button type="button" variant="outline" onClick={addColor}>
+                          <Plus className="h-4 w-4" /> إضافة
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Selected Colors Summary */}
+                    {form.colors.length > 0 && (
+                      <div className="pt-2 border-t">
+                        <Label className="mb-1.5 block text-xs font-bold">الألوان المختارة للمنتج ({form.colors.length}):</Label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {form.colors.map((c, i) => (
+                            <Badge key={i} variant="secondary" className="gap-1.5 px-3 py-1 text-xs font-bold rounded-lg border bg-black text-white">
+                              {c}
+                              <button
+                                type="button"
+                                onClick={() => set("colors", form.colors.filter((_, j) => j !== i))}
+                                className="text-white/80 hover:text-white transition-colors"
+                              >
+                                <X className="h-3.5 w-3.5" />
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </CardContent>
@@ -569,7 +633,7 @@ export default function AddProduct() {
 
                       // Level 0 dropdown (root categories)
                       const rootCategories = categories.filter(
-                        (c) => c.parentId === null,
+                        (c) => !c.parentId || c.parentId === null || String(c.parentId) === ""
                       );
                       dropdowns.push(
                         <div key="level-0">
@@ -597,7 +661,7 @@ export default function AddProduct() {
                       // Subsequent dropdowns for subcategories
                       categoryChain.forEach((catId, i) => {
                         const subcategories = categories.filter(
-                          (c) => c.parentId === catId,
+                          (c) => c.parentId && String(typeof c.parentId === "object" ? (c.parentId as any)._id : c.parentId) === String(catId)
                         );
                         if (subcategories.length > 0) {
                           dropdowns.push(
