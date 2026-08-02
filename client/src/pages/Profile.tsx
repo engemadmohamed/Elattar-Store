@@ -234,9 +234,6 @@ export default function Profile() {
                   <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
                     {customer?.name || "عميل المهندس"}
                   </h1>
-                  <Badge className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs px-2.5 py-0.5 rounded-full font-medium">
-                    <Sparkles className="h-3 w-3 mr-1 text-amber-400 inline" /> عميل مميز
-                  </Badge>
                 </div>
 
                 <div className="flex items-center gap-4 text-white/80 text-sm flex-wrap pt-1">

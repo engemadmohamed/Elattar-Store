@@ -18,6 +18,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { ADMIN_BASE } from "@/lib/admin-path";
+import Logo from "@/components/Logo";
 
 const menuItems = [
   { title: "لوحة التحكم", url: ADMIN_BASE, icon: LayoutDashboard },
@@ -49,12 +50,10 @@ export default function AdminSidebar() {
           className="flex items-center gap-3"
           onClick={() => setMobileOpen(false)}
         >
-          <div className="h-9 w-9 items-center justify-center rounded-xl bg-foreground text-background font-black text-base flex shrink-0">
-            E
-          </div>
+          <Logo className="h-9 w-9 rounded-xl shadow-sm border border-black/10" />
           <div>
             <p className="font-bold text-sm leading-tight">متجر المهندس</p>
-            <p className="text-xs text-muted-foreground leading-tight">لوحة الإدارة</p>
+            <p className="text-xs text-muted-foreground leading-tight">لوحة الإدارة الشاملة</p>
           </div>
         </Link>
       </div>
