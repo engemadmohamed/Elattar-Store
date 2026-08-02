@@ -11,8 +11,8 @@ const firebaseConfig = {
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "almohandes-ddfc3.firebaseapp.com",
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "almohandes-ddfc3",
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "almohandes-ddfc3.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "15359091850",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:15359091850:web:almohandes",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "153590919850",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:153590919850:web:2f2d9b37be42f584cd56d3",
 };
 
 // Initialize Firebase client app
