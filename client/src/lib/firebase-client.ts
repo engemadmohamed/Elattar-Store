@@ -72,7 +72,7 @@ export async function sendFirebasePhoneOtp(
   }
 
   try {
-    const appVerifier = setupRecaptcha(containerId);
+    const appVerifier = (window as any).recaptchaVerifier || setupRecaptcha(containerId);
     if (!appVerifier) {
       throw new Error("فشل إعداد reCAPTCHA الفاحص");
     }

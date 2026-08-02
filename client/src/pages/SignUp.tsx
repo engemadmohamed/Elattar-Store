@@ -19,12 +19,12 @@ import {
   ShieldCheck,
   ChevronLeft,
 } from "lucide-react";
+import { setupRecaptcha, sendFirebasePhoneOtp } from "@/lib/firebase-client";
+import type { ConfirmationResult } from "firebase/auth";
 
 // Steps
 type Step = "info" | "phone-confirm" | "done";
 
-import { sendFirebasePhoneOtp } from "@/lib/firebase-client";
-import type { ConfirmationResult } from "firebase/auth";
 
 export default function SignUp() {
   const { signup } = useCustomerAuth();
@@ -64,6 +64,21 @@ export default function SignUp() {
       });
     }, 1000);
     return () => clearInterval(interval);
+  }, [step]);
+
+  // Render Google reCAPTCHA immediately on signup page load
+  useEffect(() => {
+    if (step === "info") {
+      const timer = setTimeout(() => {
+        try {
+          setupRecaptcha("recaptcha-container");
+          console.log("[SignUp] Google reCAPTCHA widget rendered immediately on page mount.");
+        } catch (e) {
+          console.warn("[SignUp] reCAPTCHA mount render:", e);
+        }
+      }, 200);
+      return () => clearTimeout(timer);
+    }
   }, [step]);
 
   const generateAndSendOtp = async () => {
