@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Settings as SettingsIcon, Save, RotateCcw, Eye, EyeOff, Palette, Database } from "lucide-react";
+import { Settings as SettingsIcon, Save, RotateCcw, Eye, EyeOff, Palette, Database, Smartphone, Monitor, RefreshCw, ExternalLink } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,6 +63,8 @@ export default function AdminSettings() {
   const { refreshSettings } = useStoreSettings();
   const [form, setForm] = useState<StoreSettings>(defaultSettings);
   const [showPreview, setShowPreview] = useState(true);
+  const [deviceMode, setDeviceMode] = useState<"desktop" | "mobile">("desktop");
+  const [iframeKey, setIframeKey] = useState(0);
 
   const { data, isLoading } = useQuery<StoreSettings>({
     queryKey: ["/api/settings"],
@@ -78,7 +80,8 @@ export default function AdminSettings() {
     onSuccess: async () => {
       qc.invalidateQueries({ queryKey: ["/api/settings"] });
       await refreshSettings();
-      toast({ title: "تم حفظ التغييرات وانعكست على الموقع بنجاح ✓" });
+      setIframeKey((k) => k + 1);
+      toast({ title: "تم حفظ التغييرات وانعكست على المعاينة المباشرة بنجاح ✓" });
     },
     onError: (err) =>
       toast({ title: "فشل الحفظ", description: String(err), variant: "destructive" }),
@@ -351,6 +354,111 @@ export default function AdminSettings() {
                 </Card>
               </TabsContent>
             </Tabs>
+          </div>
+
+          {/* ===== LIVE DEVICE PREVIEW SECTION ===== */}
+          <div className="mt-12 space-y-4 pt-8 border-t">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-3xl border shadow-sm">
+              <div>
+                <h2 className="text-lg font-black flex items-center gap-2">
+                  <Eye className="h-5 w-5" /> معاينة المتجر المباشرة (Live Preview)
+                </h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  شاهد التعديلات والألوان وتنسيق المتجر حياً كأنك على جهاز عميلك بدون مغادرة صفحة الإعدادات
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {/* Device Switcher */}
+                <div className="flex items-center bg-muted p-1 rounded-2xl border">
+                  <button
+                    type="button"
+                    onClick={() => setDeviceMode("desktop")}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      deviceMode === "desktop"
+                        ? "bg-black text-white shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <Monitor className="h-3.5 w-3.5" /> كمبيوتر
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeviceMode("mobile")}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      deviceMode === "mobile"
+                        ? "bg-black text-white shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <Smartphone className="h-3.5 w-3.5" /> موبايل
+                  </button>
+                </div>
+
+                {/* Refresh iframe button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-2xl gap-1.5 text-xs font-bold border"
+                  onClick={() => setIframeKey((k) => k + 1)}
+                  title="إعادة تحديث المعاينة"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" /> تحديث
+                </Button>
+
+                {/* Open in new tab */}
+                <a href="/" target="_blank" rel="noreferrer">
+                  <Button variant="ghost" size="sm" className="rounded-2xl gap-1 text-xs font-bold text-muted-foreground hover:text-foreground">
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </Button>
+                </a>
+              </div>
+            </div>
+
+            {/* Preview Frame Container */}
+            <div className="flex justify-center bg-muted/40 p-4 sm:p-8 rounded-3xl border-2 border-dashed overflow-hidden min-h-[600px] transition-all">
+              {deviceMode === "desktop" ? (
+                /* Desktop Browser Frame */
+                <div className="w-full max-w-5xl bg-white rounded-2xl border shadow-2xl overflow-hidden flex flex-col h-[650px] transition-all">
+                  {/* Browser Bar */}
+                  <div className="bg-muted/80 px-4 py-2.5 border-b flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <span className="h-3 w-3 rounded-full bg-rose-500/80 inline-block" />
+                      <span className="h-3 w-3 rounded-full bg-amber-500/80 inline-block" />
+                      <span className="h-3 w-3 rounded-full bg-emerald-500/80 inline-block" />
+                    </div>
+                    <div className="bg-white/80 border rounded-lg px-4 py-1 font-mono text-[11px] w-72 text-center text-foreground/70 shadow-inner">
+                      https://almohandesstore.com
+                    </div>
+                    <div className="w-12 text-left font-bold text-[10px]">مباشر LIVE</div>
+                  </div>
+                  {/* Storefront Iframe */}
+                  <iframe
+                    key={iframeKey}
+                    src="/"
+                    title="Desktop Preview"
+                    className="w-full flex-1 border-none bg-white"
+                  />
+                </div>
+              ) : (
+                /* Mobile Phone Frame */
+                <div className="w-[380px] bg-black p-3.5 rounded-[44px] shadow-2xl border-4 border-black/80 flex flex-col h-[680px] transition-all relative">
+                  {/* Speaker Notch */}
+                  <div className="absolute top-5 left-1/2 -translate-x-1/2 w-28 h-4 bg-black rounded-full z-20 flex items-center justify-center">
+                    <div className="w-10 h-1 bg-white/20 rounded-full" />
+                  </div>
+                  {/* Screen */}
+                  <div className="w-full h-full bg-white rounded-[32px] overflow-hidden pt-4 flex flex-col border">
+                    <iframe
+                      key={iframeKey}
+                      src="/"
+                      title="Mobile Preview"
+                      className="w-full flex-1 border-none bg-white"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
