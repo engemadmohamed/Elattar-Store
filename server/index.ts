@@ -22,8 +22,31 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
+import QRCode from "qrcode";
+import { Product } from "./models/Product.js";
+
+async function autoUpdateProductQRCodes() {
+  try {
+    const products = await Product.find({});
+    for (const p of products) {
+      const targetUrl = `https://almohandesstore.vercel.app/product/${p._id}`;
+      const qrDataUrl = await QRCode.toDataURL(targetUrl, {
+        width: 300,
+        margin: 2,
+        color: { dark: "#000000", light: "#ffffff" },
+      });
+      p.qrCode = qrDataUrl;
+      await p.save();
+    }
+    console.log(`[QR Auto Fix] ✅ Updated QR codes for ${products.length} products to https://almohandesstore.vercel.app`);
+  } catch (err) {
+    console.error("[QR Auto Fix Error]:", err);
+  }
+}
+
 connectDB()
-  .then(() => {
+  .then(async () => {
+    await autoUpdateProductQRCodes();
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`🚀 Al Mohandes Store API running on port ${PORT}`);
     });

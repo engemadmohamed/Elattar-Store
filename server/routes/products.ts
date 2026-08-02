@@ -150,7 +150,19 @@ router.get("/:id", async (req: Request, res: Response) => {
     }
     const product = await Product.findById(productId).populate("categoryId", "name nameAr slug");
     if (!product) return res.status(404).json({ message: "Product not found" });
-    return res.json(product);
+
+    // Always generate clean fresh QR code pointing to production URL
+    const productUrl = `https://almohandesstore.vercel.app/product/${product._id}`;
+    const freshQr = await QRCode.toDataURL(productUrl, {
+      width: 300,
+      margin: 2,
+      color: { dark: "#000000", light: "#ffffff" },
+    });
+
+    const productObj = product.toObject();
+    productObj.qrCode = freshQr;
+
+    return res.json(productObj);
   } catch (error) {
     console.error("Failed to get product by ID:", error);
     return res.status(500).json({ message: "Server error" });
@@ -163,7 +175,7 @@ router.get("/:id/qr", async (req: Request, res: Response) => {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: "Product not found" });
 
-    const productUrl = `${getBaseUrl(req)}/product/${product._id}`;
+    const productUrl = `https://almohandesstore.vercel.app/product/${product._id}`;
     const qrDataUrl = await QRCode.toDataURL(productUrl, {
       width: 300,
       margin: 2,

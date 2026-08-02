@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import QRModal from "@/components/QRModal";
 import { apiRequest } from "@/lib/queryClient";
@@ -544,12 +545,20 @@ export default function AddProduct() {
                 </Card>
 
                 {/* Status */}
-                <Card>
+                <Card className="border-2 overflow-hidden">
                   <CardContent className="p-4 flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-sm">نشر المنتج</p>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-sm">نشر المنتج</p>
+                        <Badge
+                          variant={form.isActive ? "default" : "outline"}
+                          className={form.isActive ? "bg-foreground text-background font-bold text-[10px]" : "text-muted-foreground text-[10px]"}
+                        >
+                          {form.isActive ? "منشور الآن" : "مسودة خفية"}
+                        </Badge>
+                      </div>
                       <p className="text-xs text-muted-foreground">
-                        ظاهر للعملاء
+                        {form.isActive ? "المنتج ظاهر للعملاء ويمكن شراؤه" : "المنتج مخفي ولن يظهر للزوار"}
                       </p>
                     </div>
                     <Switch

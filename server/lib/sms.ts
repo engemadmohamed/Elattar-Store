@@ -1,78 +1,145 @@
 /**
- * SMS Gateway — Auth Token (Bearer) only
- * Uses SMS_AUTH_TOKEN from .env
+ * SMS Misr Gateway Dispatcher
+ * Comprehensive SMS sending module supporting both Live (1) & Test (2) environments
  */
 
 export interface SmsResult {
   success: boolean;
   messageId?: string;
-  provider: "sms-token" | "console-dev";
+  provider: "sms-misr" | "console-dev";
   error?: string;
+  responseCode?: string;
 }
 
 export async function sendSmsOtp(phone: string, code: string): Promise<SmsResult> {
   const cleanedPhone = phone.trim().replace(/\s+/g, "").replace(/-/g, "");
 
-  // Format Egyptian mobile → 201xxxxxxxxx
+  // Format Egyptian mobile number to 201xxxxxxxxx
   let mobile = cleanedPhone;
-  if (mobile.startsWith("01") && mobile.length === 11) mobile = `2${mobile}`;
-  else if (mobile.startsWith("+2")) mobile = mobile.replace("+", "");
-
-  const message = `كود التحقق الخاص بك لمتجر المهندس هو: ${code}`;
-
-  if (process.env.SMS_AUTH_TOKEN) {
-    const token = process.env.SMS_AUTH_TOKEN;
-
-    // Try both endpoints
-    const endpoints = [
-      {
-        url: "https://smsmisr.com/api/OTP/",
-        body: { Mobile: mobile, Sender: "ALMOHANDES", Message: message, Language: "2" },
-      },
-      {
-        url: "https://smsmisr.com/api/SMS/",
-        body: { mobile, sender: "ALMOHANDES", message, language: "2" },
-      },
-    ];
-
-    for (const ep of endpoints) {
-      try {
-        console.log(`[SMS] Trying ${ep.url} → ${mobile}`);
-        const res = await fetch(ep.url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify(ep.body),
-        });
-
-        const text = await res.text();
-        console.log(`[SMS] Response from ${ep.url}:`, text);
-
-        let success = false;
-        try {
-          const json = JSON.parse(text);
-          success = json.Code === "1901" || String(json.Code) === "1901" || json.success === true;
-        } catch {
-          success = text.includes("1901");
-        }
-
-        if (success) {
-          console.log(`[SMS] ✅ OTP sent to ${mobile}`);
-          return { success: true, provider: "sms-token", messageId: text };
-        }
-
-        // Permanent errors — don't try next endpoint
-        if (text.includes("1904") || text.includes("1905")) break;
-      } catch (err) {
-        console.error(`[SMS] Network error on ${ep.url}:`, err);
-      }
-    }
-
-    console.warn("[SMS] All endpoints failed — falling back to console");
+  if (mobile.startsWith("01") && mobile.length === 11) {
+    mobile = `2${mobile}`;
+  } else if (mobile.startsWith("+2")) {
+    mobile = mobile.replace("+", "");
+  } else if (!mobile.startsWith("20") && mobile.length === 10) {
+    mobile = `20${mobile}`;
   }
 
-  // Dev fallback — show code in server console
-  console.log("============================================");
-  console.log(`📱 OTP for ${cleanedPhone} → CODE: ${code}`);
-  console.log("============================================");
-  return { success: true, provider: "console-dev" };
+  const message = `كود التحقق الخاص بك لمتجر المهندس هو: ${code}`;
+  const sender = process.env.SMS_MISR_SENDER || "ALMOHANDES";
+  const username = process.env.SMS_MISR_USERNAME || "0d332a22-857a-4433-b582-2d896daa2bd6";
+  const password = process.env.SMS_MISR_PASSWORD || "3d7a2a45-30f5-4e52-8714-c0985c0ec9ee";
+  const token = process.env.SMS_AUTH_TOKEN || "";
+  const envPreference = process.env.SMS_MISR_ENVIRONMENT || "2"; // Default to 2 (Test Mode)
+
+  // Try environments: preferred first (e.g. 2), then alternate (e.g. 1)
+  const environments = [envPreference, envPreference === "2" ? "1" : "2"];
+
+  for (const env of environments) {
+    console.log(`[SMS MISR] Attempting SMS dispatch to ${mobile} (Environment: ${env}, Sender: ${sender})...`);
+
+    // Strategy A: SMS Misr OTP API (POST JSON with environment parameter)
+    try {
+      const otpPayload = {
+        environment: env,
+        username,
+        password,
+        sender,
+        mobile,
+        otp: code,
+        message,
+        language: "2",
+      };
+
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const res = await fetch("https://smsmisr.com/api/OTP/", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(otpPayload),
+      });
+
+      const responseText = await res.text();
+      console.log(`[SMS MISR OTP API env=${env}] Response:`, responseText);
+
+      let isSuccess = false;
+      try {
+        const json = JSON.parse(responseText);
+        isSuccess = json.Code === "1901" || String(json.Code) === "1901" || json.success === true;
+      } catch {
+        isSuccess = responseText.includes("1901");
+      }
+
+      if (isSuccess) {
+        console.log(`[SMS MISR] 🟢 OTP delivered successfully to ${mobile} (env=${env})`);
+        return { success: true, messageId: responseText, provider: "sms-misr" };
+      }
+    } catch (err) {
+      console.error(`[SMS MISR OTP API env=${env}] Network Error:`, err);
+    }
+
+    // Strategy B: SMS Misr Web API (Form / URL params endpoint)
+    try {
+      const encodedMsg = encodeURIComponent(message);
+      const url = `https://smsmisr.com/api/webapi/?username=${username}&password=${password}&language=2&sender=${sender}&mobile=${mobile}&message=${encodedMsg}&environment=${env}`;
+
+      const res = await fetch(url, { method: "POST" });
+      const responseText = await res.text();
+      console.log(`[SMS MISR WebAPI env=${env}] Response:`, responseText);
+
+      const isSuccess = responseText.includes("1901") || responseText.toLowerCase().includes("success");
+      if (isSuccess) {
+        console.log(`[SMS MISR] 🟢 OTP delivered via WebAPI to ${mobile} (env=${env})`);
+        return { success: true, messageId: responseText, provider: "sms-misr" };
+      }
+    } catch (err) {
+      console.error(`[SMS MISR WebAPI env=${env}] Network Error:`, err);
+    }
+
+    // Strategy C: Standard SMS API (POST JSON)
+    try {
+      const smsPayload = {
+        environment: env,
+        username,
+        password,
+        sender,
+        mobile,
+        message,
+        language: "2",
+      };
+
+      const res = await fetch("https://smsmisr.com/api/SMS/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(smsPayload),
+      });
+
+      const responseText = await res.text();
+      console.log(`[SMS MISR Standard SMS env=${env}] Response:`, responseText);
+
+      const isSuccess = responseText.includes("1901");
+      if (isSuccess) {
+        console.log(`[SMS MISR] 🟢 OTP delivered via Standard SMS to ${mobile} (env=${env})`);
+        return { success: true, messageId: responseText, provider: "sms-misr" };
+      }
+    } catch (err) {
+      console.error(`[SMS MISR Standard SMS env=${env}] Network Error:`, err);
+    }
+  }
+
+  // Fallback log to console if SMS gateway fails completely
+  console.log("==================================================");
+  console.log(`📱 [CONSOLE OTP FALLBACK] Phone: ${cleanedPhone} | OTP Code: ${code}`);
+  console.log("==================================================");
+
+  return {
+    success: false,
+    provider: "sms-misr",
+    error: "فشل إرسال الرسالة عبر بوابة SMS Misr. تحقق من اسم المرسل ورصيد الحساب.",
+  };
 }
