@@ -11,6 +11,8 @@ import {
   ToggleRight,
   AlertTriangle,
   ChevronRight,
+  FolderTree,
+  Filter,
 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -50,7 +52,7 @@ interface Product {
   sku: string;
   brand?: string;
   isActive: boolean;
-  categoryId?: { name: string; nameAr: string };
+  categoryId?: { _id?: string; name?: string; nameAr?: string };
 }
 
 interface Category {
@@ -82,7 +84,7 @@ export default function AdminProducts() {
       if (category !== "all") params.set("category", category);
       return apiRequest<{ products: Product[]; total: number }>(
         "GET",
-        `/api/products/admin/all?${params.toString()}`,
+        `/api/products/admin/all?${params.toString()}`
       );
     },
   });
@@ -91,7 +93,7 @@ export default function AdminProducts() {
     mutationFn: (id: string) => apiRequest("DELETE", `/api/products/${id}`),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["/api/products/admin/all"] });
-      toast({ title: "تم حذف المنتج" });
+      toast({ title: "تم حذف المنتج بنجاح ✓" });
     },
     onError: () => toast({ title: "فشل حذف المنتج", variant: "destructive" }),
   });
@@ -105,9 +107,9 @@ export default function AdminProducts() {
 
   const regenerateQrMutation = useMutation({
     mutationFn: () => apiRequest("POST", "/api/products/admin/regenerate-qr"),
-    onSuccess: (data: any) => {
+    onSuccess: (res: any) => {
       qc.invalidateQueries({ queryKey: ["/api/products/admin/all"] });
-      toast({ title: `✅ ${data?.message || "تم تحديث QR Codes بنجاح"}` });
+      toast({ title: `✅ ${res?.message || "تم تحديث QR Codes بنجاح"}` });
     },
     onError: () => toast({ title: "فشل تحديث QR Codes", variant: "destructive" }),
   });
@@ -117,22 +119,35 @@ export default function AdminProducts() {
   };
 
   return (
-    <AdminLayout title="المنتجات" subtitle="إدارة منتجات المتجر">
-      <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6">
-        {/* Category Sidebar */}
-        <aside className="hidden lg:block border-r bg-muted/20 p-4 overflow-y-auto">
-          <h2 className="text-lg font-semibold mb-4 px-2">الفئات</h2>
-          <div className="space-y-1">
+    <AdminLayout title="إدارة المنتجات" subtitle="عرض، إضافة، وتحديث كافة المنتجات والمخزون">
+      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
+        
+        {/* Category Filter Sidebar */}
+        <aside className="bg-white rounded-3xl border p-5 shadow-sm space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b">
+            <h2 className="text-base font-black flex items-center gap-2">
+              <FolderTree className="h-4 w-4 text-foreground" /> تصفية بالفئات
+            </h2>
+            <Badge variant="outline" className="rounded-full text-xs font-bold">
+              {categories?.length || 0} فئة
+            </Badge>
+          </div>
+
+          <div className="space-y-1.5">
             <div
-              className={`p-2 rounded-md cursor-pointer font-medium text-sm transition-colors ${
+              className={`p-3 rounded-2xl cursor-pointer font-bold text-sm transition-all flex items-center justify-between ${
                 category === "all"
-                  ? "bg-primary/10 text-primary"
-                  : "hover:bg-muted/50"
+                  ? "bg-black text-white shadow-md"
+                  : "bg-muted/30 hover:bg-muted/60 text-foreground"
               }`}
               onClick={() => setCategory("all")}
             >
-              كل المنتجات
+              <span>جميع المنتجات</span>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-white/20">
+                {data?.total || 0}
+              </span>
             </div>
+
             {categories && (
               <CategoryTree
                 categories={categories}
@@ -144,19 +159,21 @@ export default function AdminProducts() {
           </div>
         </aside>
 
-        {/* Main Content */}
+        {/* Main Products Area */}
         <div className="space-y-6">
-          <div className="flex items-center justify-between mb-6">
+          {/* Action Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white rounded-3xl border p-6 shadow-sm">
             <div>
-              <h1 className="text-2xl font-bold">المنتجات</h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                إجمالي: {data?.total || 0} منتج
+              <h1 className="text-2xl font-black">جدول المنتجات</h1>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                إجمالي المنتجات المتاحة: {data?.total || 0} منتج
               </p>
             </div>
-            <div className="flex gap-2">
+
+            <div className="flex items-center gap-2 flex-wrap">
               <Button
                 variant="outline"
-                className="gap-2 border-2"
+                className="gap-2 rounded-2xl border-2 font-bold"
                 onClick={() => {
                   if (confirm("سيتم إعادة توليد QR Code لكل المنتجات بالرابط الجديد. تأكيد؟")) {
                     regenerateQrMutation.mutate();
@@ -167,39 +184,38 @@ export default function AdminProducts() {
                 <QrCode className="h-4 w-4" />
                 {regenerateQrMutation.isPending ? "جاري التحديث..." : "تحديث QR Codes"}
               </Button>
+
               <Link href={`${ADMIN_BASE}/products/add`}>
-                <Button className="gap-2 bg-foreground text-background hover:bg-foreground/90">
+                <Button className="gap-2 bg-black hover:bg-black/90 text-white font-bold rounded-2xl px-5 shadow-md">
                   <Plus className="h-4 w-4" /> إضافة منتج
                 </Button>
               </Link>
             </div>
           </div>
 
-          {/* Search & Filter */}
-          <div className="mb-4">
-            <div className="relative max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="بحث بالاسم أو SKU..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
-              />
-            </div>
+          {/* Search Bar */}
+          <div className="relative max-w-md">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="بحث باسم المنتج أو كود SKU..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10 rounded-2xl border bg-white shadow-sm h-11 text-sm"
+            />
           </div>
 
-          {/* Table */}
-          <div className="rounded-xl border overflow-hidden">
+          {/* Products Table */}
+          <div className="rounded-3xl border bg-white shadow-sm overflow-hidden">
             <Table>
-              <TableHeader>
+              <TableHeader className="bg-muted/30">
                 <TableRow>
-                  <TableHead>المنتج</TableHead>
-                  <TableHead>SKU</TableHead>
-                  <TableHead>الفئة</TableHead>
-                  <TableHead>السعر</TableHead>
-                  <TableHead>المخزون</TableHead>
-                  <TableHead>الحالة</TableHead>
-                  <TableHead className="text-right">إجراءات</TableHead>
+                  <TableHead className="font-bold text-foreground">المنتج</TableHead>
+                  <TableHead className="font-bold text-foreground">SKU</TableHead>
+                  <TableHead className="font-bold text-foreground">الفئة</TableHead>
+                  <TableHead className="font-bold text-foreground">السعر</TableHead>
+                  <TableHead className="font-bold text-foreground">المخزون</TableHead>
+                  <TableHead className="font-bold text-foreground">الحالة</TableHead>
+                  <TableHead className="text-right font-bold text-foreground">إجراءات</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -208,7 +224,7 @@ export default function AdminProducts() {
                     <TableRow key={i}>
                       {Array.from({ length: 7 }).map((_, j) => (
                         <TableCell key={j}>
-                          <Skeleton className="h-4 w-full" />
+                          <Skeleton className="h-5 w-full rounded-lg" />
                         </TableCell>
                       ))}
                     </TableRow>
@@ -217,17 +233,17 @@ export default function AdminProducts() {
                   <TableRow>
                     <TableCell
                       colSpan={7}
-                      className="text-center py-12 text-muted-foreground"
+                      className="text-center py-12 text-muted-foreground font-medium"
                     >
-                      لا توجد منتجات
+                      لا توجد منتجات مطابقة للبحث
                     </TableCell>
                   </TableRow>
                 ) : (
                   data?.products.map((product) => (
-                    <TableRow key={product._id}>
+                    <TableRow key={product._id} className="hover:bg-muted/20 transition-colors">
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-lg bg-muted overflow-hidden shrink-0">
+                          <div className="h-11 w-11 rounded-2xl bg-muted overflow-hidden shrink-0 border">
                             {product.images[0] ? (
                               <img
                                 src={product.images[0]}
@@ -241,7 +257,7 @@ export default function AdminProducts() {
                             )}
                           </div>
                           <div>
-                            <p className="font-medium text-sm">
+                            <p className="font-bold text-sm text-foreground line-clamp-1">
                               {product.nameAr}
                             </p>
                             <p className="text-xs text-muted-foreground">
@@ -250,15 +266,20 @@ export default function AdminProducts() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-xs font-mono">
+
+                      <TableCell className="text-xs font-mono font-semibold text-muted-foreground">
                         {product.sku}
                       </TableCell>
-                      <TableCell className="text-xs">
-                        {product.categoryId?.nameAr || "-"}
+
+                      <TableCell className="text-xs font-medium">
+                        <Badge variant="outline" className="rounded-full px-2.5 py-0.5">
+                          {product.categoryId?.nameAr || "عام"}
+                        </Badge>
                       </TableCell>
+
                       <TableCell>
                         <div>
-                          <p className="text-sm font-semibold text-primary">
+                          <p className="text-sm font-black text-foreground">
                             {formatPrice(product.salePrice || product.price)}
                           </p>
                           {product.salePrice && (
@@ -268,16 +289,19 @@ export default function AdminProducts() {
                           )}
                         </div>
                       </TableCell>
+
                       <TableCell>
                         <Badge
-                          variant={
-                            product.stock > 0 ? "default" : "destructive"
-                          }
-                          className="text-xs"
+                          className={`text-xs px-2.5 py-0.5 rounded-full font-bold border ${
+                            product.stock > 0
+                              ? "bg-black text-white border-black"
+                              : "bg-rose-500/10 text-rose-600 border-rose-500/20"
+                          }`}
                         >
-                          {product.stock} قطعة
+                          {product.stock > 0 ? `متوفر ${product.stock} قطعة` : "نفذت الكمية"}
                         </Badge>
                       </TableCell>
+
                       <TableCell>
                         <button
                           onClick={() =>
@@ -286,32 +310,32 @@ export default function AdminProducts() {
                               isActive: !product.isActive,
                             })
                           }
+                          title={product.isActive ? "تعطيل المنتج" : "تفعيل المنتج"}
                         >
                           {product.isActive ? (
-                            <ToggleRight className="h-5 w-5 text-foreground" />
+                            <ToggleRight className="h-6 w-6 text-black" />
                           ) : (
-                            <ToggleLeft className="h-5 w-5 text-muted-foreground" />
+                            <ToggleLeft className="h-6 w-6 text-muted-foreground" />
                           )}
                         </button>
                       </TableCell>
+
                       <TableCell>
                         <div className="flex items-center justify-end gap-1">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
+                            className="h-8 w-8 rounded-xl hover:bg-black/5"
                             onClick={() => setQrProduct(product)}
-                            title="QR Code"
+                            title="عرض طباعة QR Code"
                           >
-                            <QrCode className="h-4 w-4 text-primary" />
+                            <QrCode className="h-4 w-4 text-foreground" />
                           </Button>
-                          <Link
-                            href={`${ADMIN_BASE}/products/edit/${product._id}`}
-                          >
+                          <Link href={`${ADMIN_BASE}/products/edit/${product._id}`}>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8"
+                              className="h-8 w-8 rounded-xl hover:bg-black/5"
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -319,7 +343,7 @@ export default function AdminProducts() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                            className="h-8 w-8 rounded-xl text-rose-600 hover:bg-rose-50"
                             onClick={() => handleDelete(product)}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -333,61 +357,62 @@ export default function AdminProducts() {
             </Table>
           </div>
         </div>
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-destructive font-black">
-              <AlertTriangle className="h-5 w-5" /> تأكيد حذف المنتج
-            </DialogTitle>
-            <DialogDescription className="text-right pt-2">
-              هل أنت متأكد من حذف "<strong>{deleteTarget?.nameAr}</strong>"؟
-              <br />
-              هذا الإجراء لا يمكن التراجع عنه.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex-row gap-2 sm:gap-2">
-            <Button
-              variant="outline"
-              className="flex-1 border-2"
-              onClick={() => setDeleteTarget(null)}
-            >
-              إلغاء
-            </Button>
-            <Button
-              variant="destructive"
-              className="flex-1 font-bold"
-              disabled={deleteMutation.isPending}
-              onClick={() => {
-                if (deleteTarget) {
-                  deleteMutation.mutate(deleteTarget._id);
-                  setDeleteTarget(null);
-                }
-              }}
-            >
-              {deleteMutation.isPending ? "جاري الحذف..." : "تأكيد الحذف"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
-      {/* QR Modal */}
-      {qrProduct && (
-        <QRModal
-          productId={qrProduct._id}
-          productName={qrProduct.nameAr}
-          productSku={qrProduct.sku}
-          price={qrProduct.salePrice || qrProduct.price}
-          open={!!qrProduct}
-          onClose={() => setQrProduct(null)}
-        />
-      )}
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+          <DialogContent className="max-w-sm rounded-3xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-rose-600 font-black">
+                <AlertTriangle className="h-5 w-5" /> تأكيد حذف المنتج
+              </DialogTitle>
+              <DialogDescription className="text-right pt-2">
+                هل أنت متأكد من حذف "<strong>{deleteTarget?.nameAr}</strong>"؟
+                <br />
+                هذا الإجراء لا يمكن التراجع عنه.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex-row gap-2 sm:gap-2">
+              <Button
+                variant="outline"
+                className="flex-1 rounded-xl"
+                onClick={() => setDeleteTarget(null)}
+              >
+                إلغاء
+              </Button>
+              <Button
+                variant="destructive"
+                className="flex-1 font-bold rounded-xl bg-rose-600 hover:bg-rose-700"
+                disabled={deleteMutation.isPending}
+                onClick={() => {
+                  if (deleteTarget) {
+                    deleteMutation.mutate(deleteTarget._id);
+                    setDeleteTarget(null);
+                  }
+                }}
+              >
+                {deleteMutation.isPending ? "جاري الحذف..." : "تأكيد الحذف"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* QR Modal */}
+        {qrProduct && (
+          <QRModal
+            productId={qrProduct._id}
+            productName={qrProduct.nameAr}
+            productSku={qrProduct.sku}
+            price={qrProduct.salePrice || qrProduct.price}
+            open={!!qrProduct}
+            onClose={() => setQrProduct(null)}
+          />
+        )}
       </div>
     </AdminLayout>
   );
 }
 
-// --- Category Tree Components ---
+// --- Category Tree Helper ---
 
 interface CategoryTreeProps {
   categories: Category[];
@@ -408,13 +433,7 @@ function CategoryTree({
   if (!children.length) return null;
 
   return (
-    <div
-      className={
-        level > 0
-          ? "space-y-1 pl-4 border-l-2 border-primary/20 ml-4 mt-1"
-          : "space-y-1"
-      }
-    >
+    <div className={level > 0 ? "space-y-1.5 pl-3 border-l-2 border-black/10 ml-2 mt-1" : "space-y-1.5"}>
       {children.map((cat) => (
         <CategoryItem
           key={cat._id}
@@ -451,14 +470,14 @@ function CategoryItem({
   return (
     <div>
       <div
-        className={`flex items-center justify-between p-2 rounded-lg border cursor-pointer transition-colors ${
+        className={`flex items-center justify-between p-2.5 rounded-2xl border cursor-pointer transition-all ${
           isSelected
-            ? "border-primary bg-primary/10 text-primary font-semibold"
-            : "bg-background hover:bg-muted/50"
+            ? "border-black bg-black text-white font-bold shadow-sm"
+            : "bg-background hover:bg-muted/50 text-foreground"
         }`}
         onClick={() => onSelect(category._id)}
       >
-        <span className="text-sm">{category.nameAr}</span>
+        <span className="text-xs font-semibold">{category.nameAr}</span>
         {hasChildren && (
           <ChevronRight
             className={`h-4 w-4 shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`}

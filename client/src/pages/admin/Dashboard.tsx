@@ -101,7 +101,7 @@ export default function AdminDashboard() {
               value: pendingOrders,
               icon: TrendingUp,
               sub: "تتطلب مراجعة",
-              iconBg: "bg-amber-500 text-white",
+              iconBg: "bg-black text-white",
             },
             {
               title: "الفئات المسجلة",

@@ -10,6 +10,8 @@ import {
   AlertTriangle,
   ImagePlus,
   X,
+  FolderTree,
+  FolderPlus,
 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -35,22 +37,21 @@ import {
 import { apiRequest } from "@/lib/queryClient";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
-// Auto-generate a URL-friendly slug from Arabic text
 function autoSlug(text: string): string {
   return text
     .trim()
-    .replace(/\s+/g, "-") // Replace spaces with hyphens
-    .replace(/[^\w\u0600-\u06FF-]/g, "") // Keep only word chars, Arabic, and hyphens
-    .replace(/-+/g, "-") // Collapse multiple hyphens
-    .replace(/^-|-$/g, "") // Trim hyphens from start/end
+    .replace(/\s+/g, "-")
+    .replace(/[^\w\u0600-\u06FF-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
     .toLowerCase();
 }
 
-// Helper function to find the path to a category from root to child
 const findCategoryPath = (
   allCategories: Category[],
-  categoryId: string | null,
+  categoryId: string | null
 ): string[] => {
   if (!categoryId) return [];
   const path: string[] = [];
@@ -62,7 +63,7 @@ const findCategoryPath = (
       path.unshift(category._id);
       currentId = category.parentId;
     } else {
-      currentId = null; // Category not found, break loop
+      currentId = null;
     }
   }
   return path;
@@ -142,7 +143,7 @@ export default function AdminCategories() {
       qc.invalidateQueries({ queryKey: ["/api/categories"] });
       setOpen(false);
       resetFormAndState();
-      toast({ title: "تم تعديل وحفظ الفئة بنجاح ✓" });
+      toast({ title: "تم تعديل الفئة بنجاح ✓" });
     },
     onError: (err) =>
       toast({
@@ -156,7 +157,7 @@ export default function AdminCategories() {
     mutationFn: (id: string) => apiRequest("DELETE", `/api/categories/${id}`),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["/api/categories"] });
-      toast({ title: "تم حذف الفئة" });
+      toast({ title: "تم حذف الفئة بنجاح" });
     },
     onError: (err) =>
       toast({
@@ -184,19 +185,9 @@ export default function AdminCategories() {
       image: category.image || "",
     });
     setCategoryChain(
-      categories ? findCategoryPath(categories, category.parentId) : [],
+      categories ? findCategoryPath(categories, category.parentId) : []
     );
     setOpen(true);
-  };
-
-  const handleDeleteClick = (id: string) => {
-    if (
-      confirm(
-        "هل أنت متأكد من حذف هذه الفئة؟ سيتم حذف أي فئات فرعية تابعة لها أيضًا.",
-      )
-    ) {
-      deleteMutation.mutate(id);
-    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -220,7 +211,6 @@ export default function AdminCategories() {
     setImageUploading(true);
     const token = localStorage.getItem("al-mohandes-token") || localStorage.getItem("adminToken");
     try {
-      // Compress image client-side to handle files over 6MB/10MB smoothly
       const compressedBlob = await compressImage(file);
       const formData = new FormData();
       formData.append("image", compressedBlob, file.name || "category.jpg");
@@ -235,7 +225,6 @@ export default function AdminCategories() {
         set("image", data.url);
         toast({ title: "تم رفع صورة الفئة بنجاح ✓" });
       } else {
-        // Fallback to compressed Data URL
         const reader = new FileReader();
         reader.onload = (e) => {
           if (e.target?.result) {
@@ -246,7 +235,6 @@ export default function AdminCategories() {
         reader.readAsDataURL(compressedBlob);
       }
     } catch {
-      // Client-side compressed Data URL fallback
       const compressedBlob = await compressImage(file);
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -265,14 +253,11 @@ export default function AdminCategories() {
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const getSubcategories = (parentId: string) =>
-    categories?.filter((c) => c.parentId === parentId) || [];
   const getDescendants = (catId: string): string[] => {
-    // Made iterative to prevent stack overflow from cycles
     if (!categories) return [];
     const descendants: string[] = [];
     const queue: string[] = [catId];
-    const visited = new Set<string>(); // Use a set to track visited nodes to break cycles
+    const visited = new Set<string>();
 
     while (queue.length > 0) {
       const currentId = queue.shift()!;
@@ -301,22 +286,35 @@ export default function AdminCategories() {
   };
 
   return (
-    <AdminLayout title="الفئات" subtitle="إدارة وتنظيم فئات المنتجات">
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold">كل الفئات</h1>
-          <Button className="gap-2" onClick={handleAddClick}>
-            <Plus className="h-4 w-4" /> إضافة فئة
+    <AdminLayout title="إدارة الفئات والأقسام" subtitle="هيكلة وتنظيم شجرة أقسام المتجر">
+      <div className="space-y-6 max-w-5xl">
+        
+        {/* Header Action */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white rounded-3xl border p-6 shadow-sm">
+          <div>
+            <h1 className="text-2xl font-black flex items-center gap-2">
+              <FolderTree className="h-6 w-6" /> شجرة فئات المتجر
+            </h1>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              إجمالي الفئات والأقسام المسجلة: {categories?.length || 0} فئة
+            </p>
+          </div>
+
+          <Button onClick={handleAddClick} className="bg-black hover:bg-black/90 text-white font-bold rounded-2xl gap-2 px-5 shadow-md">
+            <Plus className="h-4 w-4" /> إضافة فئة رئيسية
           </Button>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">
-              الفئات ({categories?.length || 0})
-            </CardTitle>
+        {/* Tree Container */}
+        <Card className="rounded-3xl border shadow-sm bg-white overflow-hidden p-6">
+          <CardHeader className="p-0 pb-4 mb-4 border-b flex flex-row items-center justify-between">
+            <CardTitle className="text-base font-black">قائمة الفئات الهيكلية</CardTitle>
+            <Badge variant="outline" className="rounded-full px-3 py-1 text-xs font-bold">
+              {categories?.length || 0} قسم
+            </Badge>
           </CardHeader>
-          <CardContent className="space-y-1">
+
+          <CardContent className="p-0 space-y-2">
             {categories && (
               <CategoryTree
                 categories={categories}
@@ -329,214 +327,215 @@ export default function AdminCategories() {
               />
             )}
             {(!categories || categories.length === 0) && (
-              <p className="text-center text-muted-foreground py-4">
-                لا توجد فئات
+              <p className="text-center text-muted-foreground py-8 font-medium">
+                لا توجد فئات مسجلة حالياً
               </p>
             )}
           </CardContent>
         </Card>
 
-      {/* Add/Edit Dialog */}
-      <Dialog
-        open={open}
-        onOpenChange={(isOpen) => {
-          setOpen(isOpen);
-          if (!isOpen) resetFormAndState();
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {editingCategory
-                ? "تعديل الفئة"
-                : form.parentId
-                  ? "إضافة فئة فرعية"
-                  : "إضافة فئة جديدة"}
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Image upload */}
-            <div>
-              <Label>صورة الفئة</Label>
-              <div className="mt-2 flex items-center gap-3">
-                {form.image ? (
-                  <div className="relative h-20 w-20 rounded-xl overflow-hidden border-2 border-primary/30 group">
-                    <img src={form.image} alt="Category" className="h-full w-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => set("image", "")}
-                      className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
-                    >
-                      <X className="h-5 w-5 text-white" />
-                    </button>
-                  </div>
-                ) : (
-                  <label className="h-20 w-20 rounded-xl border-2 border-dashed border-primary/30 flex items-center justify-center cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all duration-200">
-                    {imageUploading ? (
-                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                    ) : (
-                      <ImagePlus className="h-6 w-6 text-primary/60" />
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleImageUpload(file);
-                      }}
-                    />
-                  </label>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  اضغط على المربع لرفع صورة للفئة
-                </p>
-              </div>
-            </div>
-            <div>
-              <Label>الاسم بالعربية *</Label>
-              <Input
-                value={form.nameAr}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  set("nameAr", val);
-                  set("name", val); // Keep for compatibility
-                  set("slug", autoSlug(val)); // Generate slug
-                }}
-                required
-              />
-            </div>
-            {editingCategory && (
+        {/* Add/Edit Dialog */}
+        <Dialog
+          open={open}
+          onOpenChange={(isOpen) => {
+            setOpen(isOpen);
+            if (!isOpen) resetFormAndState();
+          }}
+        >
+          <DialogContent className="max-w-md rounded-3xl">
+            <DialogHeader>
+              <DialogTitle className="font-black text-xl">
+                {editingCategory
+                  ? "تعديل الفئة"
+                  : form.parentId
+                    ? "إضافة فئة فرعية"
+                    : "إضافة فئة رئيسية جديدة"}
+              </DialogTitle>
+            </DialogHeader>
+
+            <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+              {/* Image upload */}
               <div>
-                <Label>الفئه الرئسية</Label>
-                {(() => {
-                  if (!categories) return <Skeleton className="h-10 w-full" />;
-
-                  const dropdowns = [];
-                  const excludedFromSelection = editingCategory
-                    ? [
-                        editingCategory._id,
-                        ...getDescendants(editingCategory._id),
-                      ]
-                    : [];
-
-                  // Level 0 dropdown (root categories)
-                  const rootCategories = categories.filter(
-                    (c) => !c.parentId && !excludedFromSelection.includes(c._id),
-                  );
-                  dropdowns.push(
-                    <div key="level-0">
-                      <Select
-                        value={categoryChain[0] || ""}
-                        onValueChange={(value) => handleCategoryChange(0, value)}
+                <Label className="font-bold text-xs">صورة الفئة التوضيحية</Label>
+                <div className="mt-2 flex items-center gap-3">
+                  {form.image ? (
+                    <div className="relative h-20 w-20 rounded-2xl overflow-hidden border-2 border-black group">
+                      <img src={form.image} alt="Category" className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => set("image", "")}
+                        className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
                       >
-                        <SelectTrigger>
-                          <SelectValue placeholder="اختر فئة رئيسية" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {rootCategories.map((opt) => (
-                            <SelectItem key={opt._id} value={opt._id}>
-                              {opt.nameAr}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>,
-                  );
-
-                  // Subsequent dropdowns for subcategories
-                  categoryChain.forEach((catId, i) => {
-                    const subcategories = categories.filter(
-                      (c) =>
-                        c.parentId === catId &&
-                        !excludedFromSelection.includes(c._id),
-                    );
-                    if (subcategories.length > 0) {
-                      dropdowns.push(
-                        <div key={`level-${i + 1}`} className="mt-2">
-                          <Select
-                            value={categoryChain[i + 1] || ""}
-                            onValueChange={(value) =>
-                              handleCategoryChange(i + 1, value)
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="اختر فئة فرعية" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {subcategories.map((opt) => (
-                                <SelectItem key={opt._id} value={opt._id}>
-                                  {opt.nameAr}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>,
-                      );
-                    }
-                  });
-
-                  return <div className="space-y-2">{dropdowns}</div>;
-                })()}
+                        <X className="h-5 w-5 text-white" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="h-20 w-20 rounded-2xl border-2 border-dashed border-black/20 flex items-center justify-center cursor-pointer hover:border-black hover:bg-black/5 transition-all">
+                      {imageUploading ? (
+                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-black border-t-transparent" />
+                      ) : (
+                        <ImagePlus className="h-6 w-6 text-black/40" />
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleImageUpload(file);
+                        }}
+                      />
+                    </label>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    اضغط المربع لرفع صورة توضيحية للفئة
+                  </p>
+                </div>
               </div>
-            )}
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={createMutation.isPending || updateMutation.isPending}
-            >
-              {createMutation.isPending || updateMutation.isPending
-                ? "جاري الحفظ..."
-                : editingCategory
-                  ? "حفظ التعديلات"
-                  : "إضافة الفئة"}
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-destructive font-black">
-              <AlertTriangle className="h-5 w-5" /> تأكيد حذف الفئة
-            </DialogTitle>
-            <DialogDescription className="text-right pt-2">
-              هل أنت متأكد من حذف "<strong>{deleteTarget?.nameAr}</strong>"؟
-              <br />
-              سيتم حذف جميع الفئات الفرعية و **جميع المنتجات** داخل هذه الفئة
-              والفئات الفرعية. هذا الإجراء لا يمكن التراجع عنه.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex-row gap-2 sm:gap-2">
-            <Button
-              variant="outline"
-              className="flex-1 border-2"
-              onClick={() => setDeleteTarget(null)}
-            >
-              إلغاء
-            </Button>
-            <Button
-              variant="destructive"
-              className="flex-1 font-bold"
-              disabled={deleteMutation.isPending}
-              onClick={() => {
-                if (deleteTarget) {
-                  deleteMutation.mutate(deleteTarget._id);
-                  setDeleteTarget(null);
-                }
-              }}
-            >
-              {deleteMutation.isPending ? "جاري الحذف..." : "تأكيد الحذف"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              <div>
+                <Label className="font-bold text-xs">اسم الفئة بالعربية *</Label>
+                <Input
+                  className="rounded-xl mt-1 h-11"
+                  value={form.nameAr}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    set("nameAr", val);
+                    set("name", val);
+                    set("slug", autoSlug(val));
+                  }}
+                  required
+                />
+              </div>
+
+              {editingCategory && (
+                <div>
+                  <Label className="font-bold text-xs">الفئة الرئيسية الأب</Label>
+                  {(() => {
+                    if (!categories) return <Skeleton className="h-10 w-full rounded-xl" />;
+
+                    const dropdowns = [];
+                    const excludedFromSelection = editingCategory
+                      ? [editingCategory._id, ...getDescendants(editingCategory._id)]
+                      : [];
+
+                    const rootCategories = categories.filter(
+                      (c) => !c.parentId && !excludedFromSelection.includes(c._id)
+                    );
+                    dropdowns.push(
+                      <div key="level-0">
+                        <Select
+                          value={categoryChain[0] || ""}
+                          onValueChange={(value) => handleCategoryChange(0, value)}
+                        >
+                          <SelectTrigger className="rounded-xl">
+                            <SelectValue placeholder="اختر الفئة الرئيسية" />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-2xl">
+                            {rootCategories.map((opt) => (
+                              <SelectItem key={opt._id} value={opt._id}>
+                                {opt.nameAr}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    );
+
+                    categoryChain.forEach((catId, i) => {
+                      const subcategories = categories.filter(
+                        (c) =>
+                          c.parentId === catId &&
+                          !excludedFromSelection.includes(c._id)
+                      );
+                      if (subcategories.length > 0) {
+                        dropdowns.push(
+                          <div key={`level-${i + 1}`} className="mt-2">
+                            <Select
+                              value={categoryChain[i + 1] || ""}
+                              onValueChange={(value) =>
+                                handleCategoryChange(i + 1, value)
+                              }
+                            >
+                              <SelectTrigger className="rounded-xl">
+                                <SelectValue placeholder="اختر الفئة الفرعية" />
+                              </SelectTrigger>
+                              <SelectContent className="rounded-2xl">
+                                {subcategories.map((opt) => (
+                                  <SelectItem key={opt._id} value={opt._id}>
+                                    {opt.nameAr}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        );
+                      }
+                    });
+
+                    return <div className="space-y-2 mt-1">{dropdowns}</div>;
+                  })()}
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                className="w-full bg-black hover:bg-black/90 text-white font-bold rounded-xl h-11"
+                disabled={createMutation.isPending || updateMutation.isPending}
+              >
+                {createMutation.isPending || updateMutation.isPending
+                  ? "جاري الحفظ..."
+                  : editingCategory
+                    ? "حفظ التعديلات"
+                    : "إضافة الفئة"}
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+          <DialogContent className="max-w-sm rounded-3xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-rose-600 font-black">
+                <AlertTriangle className="h-5 w-5" /> تأكيد حذف الفئة
+              </DialogTitle>
+              <DialogDescription className="text-right pt-2">
+                هل أنت متأكد من حذف "<strong>{deleteTarget?.nameAr}</strong>"؟
+                <br />
+                سيتم حذف كافة الفئات الفرعية والمنتجات المرتبطة بها نهائياً.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex-row gap-2 sm:gap-2 pt-2">
+              <Button
+                variant="outline"
+                className="flex-1 rounded-xl"
+                onClick={() => setDeleteTarget(null)}
+              >
+                إلغاء
+              </Button>
+              <Button
+                variant="destructive"
+                className="flex-1 font-bold rounded-xl bg-rose-600 hover:bg-rose-700"
+                disabled={deleteMutation.isPending}
+                onClick={() => {
+                  if (deleteTarget) {
+                    deleteMutation.mutate(deleteTarget._id);
+                    setDeleteTarget(null);
+                  }
+                }}
+              >
+                {deleteMutation.isPending ? "جاري الحذف..." : "تأكيد الحذف"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminLayout>
   );
 }
+
+// --- Tree Renderers ---
 
 interface CategoryTreeProps {
   categories: Category[];
@@ -546,7 +545,7 @@ interface CategoryTreeProps {
   onAddSub: (parentId: string) => void;
   expanded: Record<string, boolean>;
   onToggle: (id: string) => void;
-  path?: Set<string>; // To detect circular dependencies
+  path?: Set<string>;
 }
 
 function CategoryTree({
@@ -563,24 +562,14 @@ function CategoryTree({
   if (!children.length) return null;
 
   return (
-    <div className={parentId ? "pl-4 border-l-2 border-primary/20 ml-4" : ""}>
+    <div className={parentId ? "pl-4 border-l-2 border-black/10 ml-4 space-y-1.5 pt-1" : "space-y-1.5"}>
       {children.map((cat) => {
-        if (path.has(cat._id)) {
-          console.error(
-            "Circular dependency detected in categories for ID:",
-            cat._id,
-          );
-          return (
-            <div key={cat._id} className="text-destructive text-xs pl-4">
-              Error: Circular reference detected.
-            </div>
-          );
-        }
+        if (path.has(cat._id)) return null;
         const newPath = new Set(path);
         newPath.add(cat._id);
 
         return (
-          <div key={cat._id} className="my-1">
+          <div key={cat._id}>
             <CategoryItem
               category={cat}
               onEdit={onEdit}
@@ -636,7 +625,7 @@ function CategoryItem({
       apiRequest("PUT", `/api/categories/${id}`, { isActive }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["/api/categories"] });
-      toast({ title: "تم تحديث حالة الفئة" });
+      toast({ title: "تم تحديث حالة الفئة ✓" });
     },
     onError: (err) =>
       toast({
@@ -648,15 +637,15 @@ function CategoryItem({
 
   return (
     <div
-      className={`flex items-center justify-between p-2 rounded-lg border bg-background hover:bg-muted/50 transition-colors ${
+      className={`flex items-center justify-between p-3 rounded-2xl border bg-white hover:border-black/30 transition-all ${
         !category.isActive ? "opacity-50" : ""
       }`}
     >
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         <Button
           variant="ghost"
           size="icon"
-          className="h-7 w-7"
+          className="h-8 w-8 rounded-xl"
           onClick={onToggle}
           disabled={!hasChildren}
         >
@@ -665,25 +654,28 @@ function CategoryItem({
               className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
             />
           ) : (
-            <span className="w-4" /> // Placeholder for alignment
+            <span className="w-4" />
           )}
         </Button>
-        <div className="h-8 w-8 rounded-lg overflow-hidden bg-primary/10 flex items-center justify-center text-lg shrink-0">
+
+        <div className="h-9 w-9 rounded-xl overflow-hidden bg-black/5 flex items-center justify-center text-lg shrink-0 border">
           {category.image ? (
             <img src={category.image} alt={category.nameAr} className="h-full w-full object-cover" />
           ) : (
             <span>{category.icon || "📦"}</span>
           )}
         </div>
+
         <div>
-          <p className="font-medium text-sm">{category.nameAr}</p>
+          <p className="font-bold text-sm text-foreground">{category.nameAr}</p>
         </div>
       </div>
-      <div className="flex items-center">
+
+      <div className="flex items-center gap-1">
         <Button
           variant="ghost"
           size="icon"
-          className="h-7 w-7"
+          className="h-8 w-8 rounded-xl"
           title={category.isActive ? "قفل الفئة" : "فتح الفئة"}
           onClick={() =>
             toggleMutation.mutate({
@@ -694,32 +686,35 @@ function CategoryItem({
           disabled={toggleMutation.isPending}
         >
           {category.isActive ? (
-            <Unlock className="h-4 w-4" />
+            <Unlock className="h-4 w-4 text-black" />
           ) : (
             <Lock className="h-4 w-4 text-muted-foreground" />
           )}
         </Button>
+
         <Button
           variant="ghost"
           size="icon"
-          className="h-7 w-7"
+          className="h-8 w-8 rounded-xl hover:bg-black/5"
           title="إضافة فئة فرعية"
           onClick={() => onAddSub(category._id)}
         >
-          <Plus className="h-4 w-4 text-foreground font-black" />
+          <FolderPlus className="h-4 w-4 text-black" />
         </Button>
+
         <Button
           variant="ghost"
           size="icon"
-          className="h-7 w-7"
+          className="h-8 w-8 rounded-xl hover:bg-black/5"
           onClick={() => onEdit(category)}
         >
           <Edit className="h-4 w-4" />
         </Button>
+
         <Button
           variant="ghost"
           size="icon"
-          className="h-7 w-7 text-destructive hover:bg-destructive/10"
+          className="h-8 w-8 rounded-xl text-rose-600 hover:bg-rose-50"
           onClick={() => onDelete(category)}
         >
           <Trash2 className="h-4 w-4" />
