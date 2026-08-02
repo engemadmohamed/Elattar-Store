@@ -205,8 +205,6 @@ export default function SignUp() {
 
   return (
     <div className="min-h-[90vh] flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Firebase reCAPTCHA invisible container */}
-      <div id="recaptcha-container"></div>
       {/* Background pattern */}
       <div
         className="absolute inset-0 opacity-[0.025]"
@@ -374,8 +372,10 @@ export default function SignUp() {
                 )}
               </div>
 
-              {/* Firebase reCAPTCHA visible container */}
-              <div id="recaptcha-container" className="my-4 flex justify-center min-h-[78px]"></div>
+              {/* Firebase reCAPTCHA visible container directly under password */}
+              <div className="my-4 flex justify-center items-center w-full min-h-[78px] overflow-visible">
+                <div id="recaptcha-container" className="flex justify-center"></div>
+              </div>
 
               <Button type="submit" className="w-full h-11 rounded-xl font-bold text-base gap-2 group">
                 التالي — تأكيد الهاتف
