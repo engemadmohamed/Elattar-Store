@@ -36,7 +36,7 @@ export function setupRecaptcha(containerId: string = "recaptcha-container") {
   }
 
   const verifier = new RecaptchaVerifier(firebaseAuth, containerId, {
-    size: "invisible", // Invisible reCAPTCHA - no ugly image puzzles
+    size: "invisible", // Invisible reCAPTCHA
     callback: () => {
       console.log("[Firebase Auth] reCAPTCHA verified automatically");
     },
@@ -71,6 +71,13 @@ export async function sendFirebasePhoneOtp(
   const appVerifier = setupRecaptcha(containerId);
   if (!appVerifier) {
     throw new Error("فشل إعداد reCAPTCHA الفاحص");
+  }
+
+  // Pre-render verifier to ensure container initialization
+  try {
+    await appVerifier.render();
+  } catch (err) {
+    console.warn("[Firebase Auth] Render warning:", err);
   }
 
   console.log(`[Firebase Phone Auth] Sending SMS via Firebase to ${formattedPhone}...`);

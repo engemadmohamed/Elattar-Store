@@ -33,7 +33,7 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<Step>("info");
   const [showPassword, setShowPassword] = useState(false);
-  const [otp, setOtp] = useState(["", "", "", ""]);
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [otpError, setOtpError] = useState(false);
   const [countdown, setCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
@@ -68,53 +68,38 @@ export default function SignUp() {
 
   const generateAndSendOtp = async () => {
     try {
-      // 1. Try Firebase Phone Authentication (SMS directly from Google)
-      try {
-        console.log("[SignUp] Sending SMS via Firebase Phone Auth...");
-        const confirmation = await sendFirebasePhoneOtp(form.phone, "recaptcha-container");
-        setConfirmationResult(confirmation);
-        toast({
-          title: "📱 تم إرسال كود التحقق عبر Firebase",
-          description: "يرجى فحص الرسائل النصية على هاتفك لإدخال الرمز",
-        });
-        return true;
-      } catch (fbErr: any) {
-        console.error("[SignUp] Firebase Phone Auth Error:", fbErr);
-        const code = fbErr?.code || "";
-        const message = fbErr?.message || "";
-        if (code.includes("operation-not-allowed") || message.includes("operation-not-allowed")) {
-          toast({
-            title: "⚠️ تفعيل Phone Auth في Firebase",
-            description: "ادخل على Firebase Console -> Authentication -> Sign-in method وقم بتفعيل خيار Phone",
-            variant: "destructive",
-          });
-        } else if (message) {
-          toast({
-            title: "تنبيه إرسال SMS عبر Firebase",
-            description: message,
-            variant: "destructive",
-          });
-        }
-      }
-
-      // 2. Server API fallback
-      const res = await apiRequest<{ success: boolean; message: string; smsError?: string }>(
-        "POST",
-        "/api/customer-auth/send-otp",
-        { phone: form.phone }
-      );
-
+      console.log("[SignUp] Sending SMS via Firebase Phone Auth...");
+      const confirmation = await sendFirebasePhoneOtp(form.phone, "recaptcha-container");
+      setConfirmationResult(confirmation);
       toast({
-        title: "📱 تم إرسال رمز التحقق",
-        description: res.message || "يرجى فحص رسائل هاتفك لإدخال الرمز",
+        title: "📱 تم إرسال كود التحقق عبر Firebase",
+        description: "يرجى فحص الرسائل النصية على هاتفك لإدخال الرمز المكون من 6 أرقام",
       });
       return true;
-    } catch (error) {
-      toast({
-        title: "فشل إرسال كود التحقق",
-        description: error instanceof Error ? error.message : "تعذر الاتصال بالخادم",
-        variant: "destructive",
-      });
+    } catch (fbErr: any) {
+      console.error("[SignUp] Firebase Phone Auth Error:", fbErr);
+      const code = fbErr?.code || "";
+      const message = fbErr?.message || "";
+
+      if (code.includes("operation-not-allowed") || message.includes("operation-not-allowed")) {
+        toast({
+          title: "⚠️ تفعيل Phone Auth في Firebase",
+          description: "ادخل على Firebase Console -> Authentication -> Sign-in method وقم بتفعيل خيار Phone",
+          variant: "destructive",
+        });
+      } else if (code.includes("domain-not-allowed") || message.includes("domain-not-allowed")) {
+        toast({
+          title: "⚠️ النطاق غير مصرح به في Firebase",
+          description: "أضف localhost و 127.0.0.1 ورابط موقعك إلى Authorized Domains في Firebase Console",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "فشل إرسال كود التحقق عبر Firebase",
+          description: message || code || "تعذر إرسال SMS، تحقق من اتصال الإنترنت أو إعدادات الحساب",
+          variant: "destructive",
+        });
+      }
       return false;
     }
   };
@@ -153,7 +138,7 @@ export default function SignUp() {
     newOtp[index] = value.slice(-1);
     setOtp(newOtp);
     setOtpError(false);
-    if (value && index < 3) {
+    if (value && index < 5) {
       otpRefs.current[index + 1]?.focus();
     }
   };
@@ -166,18 +151,17 @@ export default function SignUp() {
 
   const handleOtpPaste = (e: React.ClipboardEvent) => {
     const paste = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    if (paste.length >= 4) {
-      const chars = paste.split("").slice(0, 4);
-      setOtp(chars);
+    if (paste.length === 6) {
+      setOtp(paste.split(""));
     }
   };
 
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const enteredOtp = otp.join("");
-    if (enteredOtp.length < 4) {
+    if (enteredOtp.length < 6) {
       setOtpError(true);
-      toast({ title: "يرجى إدخال الرمز المكون من 4 أرقام على الأقل", variant: "destructive" });
+      toast({ title: "يرجى إدخال الرمز المكون من 6 أرقام كاملة", variant: "destructive" });
       return;
     }
 
@@ -421,8 +405,8 @@ export default function SignUp() {
             </div>
 
             <form onSubmit={handleOtpSubmit}>
-              {/* OTP Input */}
-              <div className="flex items-center justify-center gap-3 mb-6" onPaste={handleOtpPaste}>
+              {/* OTP Input - 6 Digits for Firebase */}
+              <div className="flex items-center justify-center gap-1.5 sm:gap-2.5 mb-6" onPaste={handleOtpPaste}>
                 {otp.map((digit, index) => (
                   <input
                     key={index}
@@ -433,7 +417,7 @@ export default function SignUp() {
                     value={digit}
                     onChange={(e) => handleOtpChange(index, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                    className={`h-14 w-14 text-center text-2xl font-black rounded-2xl border-2 outline-none transition-all duration-200 ${
+                    className={`h-11 w-11 sm:h-13 sm:w-13 text-center text-xl sm:text-2xl font-black rounded-xl sm:rounded-2xl border-2 outline-none transition-all duration-200 ${
                       otpError
                         ? "border-destructive bg-destructive/5 animate-bounce-in"
                         : digit
