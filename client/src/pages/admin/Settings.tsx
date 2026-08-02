@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Settings as SettingsIcon, Save, RotateCcw, Eye, EyeOff, Palette, Database, Smartphone, Monitor, RefreshCw, ExternalLink } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
@@ -57,6 +57,50 @@ const defaultSettings: StoreSettings = {
   showDiscountBanner: true,
 };
 
+function hexToHsl(hex: string): string {
+  if (!hex || !hex.startsWith("#") || hex.length < 7) return "0 0% 7%";
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h = 0;
+  let s = 0;
+  const l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
+  }
+  return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+}
+
+function hexToHslRaw(hex: string): string {
+  if (!hex || !hex.startsWith("#") || hex.length < 7) return "0 0% 100%";
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h = 0;
+  let s = 0;
+  const l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
+  }
+  return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+}
+
 export default function AdminSettings() {
   const qc = useQueryClient();
   const { toast } = useToast();
@@ -65,6 +109,40 @@ export default function AdminSettings() {
   const [showPreview, setShowPreview] = useState(true);
   const [deviceMode, setDeviceMode] = useState<"desktop" | "mobile">("desktop");
   const [iframeKey, setIframeKey] = useState(0);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+
+  const applyColorsToIframe = () => {
+    try {
+      const iframe = iframeRef.current;
+      if (!iframe) return;
+      const doc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (!doc || !doc.documentElement) return;
+
+      const root = doc.documentElement;
+      if (form.primaryColor) {
+        const hsl = hexToHsl(form.primaryColor);
+        root.style.setProperty("--primary", hsl);
+        root.style.setProperty("--ring", hsl);
+        root.style.setProperty("--sidebar-primary", hsl);
+        root.style.setProperty("--sidebar-ring", hsl);
+      }
+      if (form.primaryForeground) {
+        root.style.setProperty("--primary-foreground", hexToHslRaw(form.primaryForeground));
+      }
+      if (form.backgroundColor) {
+        root.style.setProperty("--background", hexToHslRaw(form.backgroundColor));
+      }
+      if (form.cardBackground) {
+        root.style.setProperty("--card", hexToHslRaw(form.cardBackground));
+      }
+    } catch (e) {
+      console.warn("Could not update preview colors live:", e);
+    }
+  };
+
+  useEffect(() => {
+    applyColorsToIframe();
+  }, [form.primaryColor, form.primaryForeground, form.backgroundColor, form.cardBackground, iframeKey, deviceMode]);
 
   const { data, isLoading } = useQuery<StoreSettings>({
     queryKey: ["/api/settings"],
@@ -434,9 +512,11 @@ export default function AdminSettings() {
                   </div>
                   {/* Storefront Iframe */}
                   <iframe
+                    ref={iframeRef}
                     key={iframeKey}
                     src="/"
                     title="Desktop Preview"
+                    onLoad={applyColorsToIframe}
                     className="w-full flex-1 border-none bg-white"
                   />
                 </div>
@@ -450,9 +530,11 @@ export default function AdminSettings() {
                   {/* Screen */}
                   <div className="w-full h-full bg-white rounded-[32px] overflow-hidden pt-4 flex flex-col border">
                     <iframe
+                      ref={iframeRef}
                       key={iframeKey}
                       src="/"
                       title="Mobile Preview"
+                      onLoad={applyColorsToIframe}
                       className="w-full flex-1 border-none bg-white"
                     />
                   </div>

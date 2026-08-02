@@ -342,18 +342,19 @@ export default function Home() {
 
       {/* ===== CATEGORIES SECTION ===== */}
       {settings.showCategories && (
-        <section className="py-16 px-4 bg-white">
+        <section className="py-16 px-4 bg-white overflow-hidden">
           <div className="mx-auto max-w-7xl">
-            <div data-reveal className="flex items-end justify-between mb-10">
-              <div className={"animate-fade-in-up"}>
-                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                  {t("فئاتنا", "Our Categories")}
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10 overflow-hidden">
+              <div className="animate-slide-from-outside">
+                <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-foreground animate-text-fill-in">
+                  {t("تسوق بالفئة", "Shop by Category")}
+                </h2>
+                <p className="text-sm sm:text-base text-muted-foreground mt-2 font-medium animate-text-fill-in-delayed">
+                  {t("اختر الفئة التي تناسب احتياجاتك", "Choose what fits your needs")}
                 </p>
-                <h2 className="text-3xl font-black">{t("تسوق بالفئة", "Shop by Category")}</h2>
-                <p className="text-sm text-muted-foreground mt-2">{t("اختر الفئة التي تناسب احتياجاتك", "Choose what fits your needs")}</p>
               </div>
               <Link href="/shop">
-                <Button variant="outline" size="sm" className={"gap-1.5 border-2 rounded-xl group animate-fade-in stagger-3"}>
+                <Button variant="outline" size="sm" className="gap-1.5 border-2 rounded-xl group font-bold animate-fade-in stagger-3">
                   {t("الكل", "All")}
                   <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180 transition-transform duration-300 group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1" />
                 </Button>
