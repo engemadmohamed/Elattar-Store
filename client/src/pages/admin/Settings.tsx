@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Settings as SettingsIcon, Save, RotateCcw, Eye, EyeOff } from "lucide-react";
+import { Settings as SettingsIcon, Save, RotateCcw, Eye, EyeOff, Palette, Database } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { StoreSettings } from "@/lib/store-settings-context";
+import { useStoreSettings, type StoreSettings } from "@/lib/store-settings-context";
 
 const defaultSettings: StoreSettings = {
   storeName: "المهندس",
@@ -60,6 +60,7 @@ const defaultSettings: StoreSettings = {
 export default function AdminSettings() {
   const qc = useQueryClient();
   const { toast } = useToast();
+  const { refreshSettings } = useStoreSettings();
   const [form, setForm] = useState<StoreSettings>(defaultSettings);
   const [showPreview, setShowPreview] = useState(true);
 
@@ -74,9 +75,10 @@ export default function AdminSettings() {
 
   const saveMutation = useMutation({
     mutationFn: (data: StoreSettings) => apiRequest("PUT", "/api/settings", data),
-    onSuccess: () => {
+    onSuccess: async () => {
       qc.invalidateQueries({ queryKey: ["/api/settings"] });
-      toast({ title: "تم حفظ التغييرات ✓" });
+      await refreshSettings();
+      toast({ title: "تم حفظ التغييرات وانعكست على الموقع بنجاح ✓" });
     },
     onError: (err) =>
       toast({ title: "فشل الحفظ", description: String(err), variant: "destructive" }),
@@ -87,9 +89,26 @@ export default function AdminSettings() {
 
   const handleSave = () => saveMutation.mutate(form);
 
-  const handleReset = () => {
-    setForm(defaultSettings);
-    toast({ title: "تمت إعادة الألوان والبيانات للوضع الافتراضي" });
+  const handleResetData = () => {
+    setForm((f) => ({
+      ...defaultSettings,
+      primaryColor: f.primaryColor,
+      primaryForeground: f.primaryForeground,
+      backgroundColor: f.backgroundColor,
+      cardBackground: f.cardBackground,
+    }));
+    toast({ title: "تمت إعادة تعيين بيانات المتجر للوضع الافتراضي ✓" });
+  };
+
+  const handleResetColors = () => {
+    setForm((f) => ({
+      ...f,
+      primaryColor: defaultSettings.primaryColor,
+      primaryForeground: defaultSettings.primaryForeground,
+      backgroundColor: defaultSettings.backgroundColor,
+      cardBackground: defaultSettings.cardBackground,
+    }));
+    toast({ title: "تمت إعادة تعيين الألوان للوضع الافتراضي ✓" });
   };
 
   if (isLoading) {
@@ -106,7 +125,7 @@ export default function AdminSettings() {
     <AdminLayout title="إعدادات المتجر" subtitle="تخصيص نصوص وشكل وتصميم المتجر">
       <div className="space-y-6">
         {/* Header Actions */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-xl font-bold flex items-center gap-2">
               <SettingsIcon className="h-5 w-5" /> تخصيص المتجر
@@ -115,12 +134,15 @@ export default function AdminSettings() {
               تحكم في الهوية البصرية والنصوص والميزات الظاهرة للموقع من مكان واحد
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="gap-1" onClick={handleReset}>
-              <RotateCcw className="h-3.5 w-3.5" /> إعادة الألوان / البيانات
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" className="gap-1.5 rounded-xl border-2" onClick={handleResetData}>
+              <Database className="h-3.5 w-3.5" /> إعادة تعيين البيانات
             </Button>
-            <Button size="sm" className="gap-1" onClick={handleSave} disabled={saveMutation.isPending}>
-              <Save className="h-3.5 w-3.5" /> حفظ التغييرات
+            <Button variant="outline" size="sm" className="gap-1.5 rounded-xl border-2" onClick={handleResetColors}>
+              <Palette className="h-3.5 w-3.5" /> إعادة تعيين الألوان
+            </Button>
+            <Button size="sm" className="gap-1.5 rounded-xl bg-black hover:bg-black/90 text-white font-bold px-4" onClick={handleSave} disabled={saveMutation.isPending}>
+              <Save className="h-3.5 w-3.5" /> {saveMutation.isPending ? "جاري الحفظ..." : "حفظ التغييرات"}
             </Button>
           </div>
         </div>

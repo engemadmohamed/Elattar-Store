@@ -92,15 +92,17 @@ const defaultSettings: StoreSettings = {
 interface StoreSettingsContextType {
   settings: StoreSettings;
   isLoading: boolean;
+  refreshSettings: () => Promise<void>;
 }
 
 const StoreSettingsContext = createContext<StoreSettingsContextType>({
   settings: defaultSettings,
   isLoading: true,
+  refreshSettings: async () => {},
 });
 
 function hexToHsl(hex: string): string {
-  if (!hex || !hex.startsWith("#")) return "217 91% 60%";
+  if (!hex || !hex.startsWith("#")) return "0 0% 7%";
   const r = parseInt(hex.slice(1, 3), 16) / 255;
   const g = parseInt(hex.slice(3, 5), 16) / 255;
   const b = parseInt(hex.slice(5, 7), 16) / 255;
@@ -147,27 +149,44 @@ export function StoreSettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<StoreSettings>(defaultSettings);
   const [isLoading, setIsLoading] = useState(true);
 
+  const refreshSettings = async () => {
+    try {
+      const data = await apiRequest<StoreSettings>("GET", "/api/settings");
+      setSettings({ ...defaultSettings, ...data });
+    } catch (e) {
+      console.warn("Failed to refresh settings:", e);
+    }
+  };
+
   useEffect(() => {
-    apiRequest<StoreSettings>("GET", "/api/settings")
-      .then((data) => setSettings({ ...defaultSettings, ...data }))
-      .catch(() => {})
-      .finally(() => setIsLoading(false));
+    refreshSettings().finally(() => setIsLoading(false));
   }, []);
 
-  // LOCKED: always force pure black & white — ignore any DB color settings
+  // Dynamically apply settings colors to CSS root variables
   useEffect(() => {
+    if (!settings) return;
     const root = document.documentElement;
-    root.style.setProperty("--primary", "0 0% 7%");
-    root.style.setProperty("--primary-foreground", "0 0% 100%");
-    root.style.setProperty("--background", "0 0% 100%");
-    root.style.setProperty("--card", "0 0% 100%");
-    root.style.setProperty("--ring", "0 0% 7%");
-    root.style.setProperty("--sidebar-primary", "0 0% 7%");
-    root.style.setProperty("--sidebar-ring", "0 0% 7%");
-  }, []);
+
+    if (settings.primaryColor) {
+      const primaryHsl = hexToHsl(settings.primaryColor);
+      root.style.setProperty("--primary", primaryHsl);
+      root.style.setProperty("--ring", primaryHsl);
+      root.style.setProperty("--sidebar-primary", primaryHsl);
+      root.style.setProperty("--sidebar-ring", primaryHsl);
+    }
+    if (settings.primaryForeground) {
+      root.style.setProperty("--primary-foreground", hexToHslRaw(settings.primaryForeground));
+    }
+    if (settings.backgroundColor) {
+      root.style.setProperty("--background", hexToHslRaw(settings.backgroundColor));
+    }
+    if (settings.cardBackground) {
+      root.style.setProperty("--card", hexToHslRaw(settings.cardBackground));
+    }
+  }, [settings]);
 
   return (
-    <StoreSettingsContext.Provider value={{ settings, isLoading }}>
+    <StoreSettingsContext.Provider value={{ settings, isLoading, refreshSettings }}>
       {children}
     </StoreSettingsContext.Provider>
   );
