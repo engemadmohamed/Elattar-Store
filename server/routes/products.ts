@@ -7,8 +7,9 @@ import { Category } from "../models/Category.js";
 
 const router = Router();
 
-function getBaseUrl(req: Request): string {
-  if (process.env.APP_BASE_URL) {
+function getBaseUrl(_req: Request): string {
+  // Always use the public-facing URL for QR codes
+  if (process.env.APP_BASE_URL && !process.env.APP_BASE_URL.includes("localhost")) {
     return process.env.APP_BASE_URL.replace(/\/+$/, "");
   }
   return "https://almohandesstore.vercel.app";
@@ -173,6 +174,29 @@ router.get("/:id/qr", async (req: Request, res: Response) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Failed to generate QR code" });
+  }
+});
+
+// Regenerate QR codes for ALL products with new production URL (admin only)
+router.post("/admin/regenerate-qr", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const products = await Product.find({});
+    let updated = 0;
+    for (const product of products) {
+      const productUrl = `${getBaseUrl(req)}/product/${product._id}`;
+      const qrDataUrl = await QRCode.toDataURL(productUrl, {
+        width: 300,
+        margin: 2,
+        color: { dark: "#000000", light: "#ffffff" },
+      });
+      product.qrCode = qrDataUrl;
+      await product.save();
+      updated++;
+    }
+    return res.json({ message: `تم تحديث QR Code لـ ${updated} منتج بنجاح`, count: updated });
+  } catch (error) {
+    console.error("Regenerate QR error:", error);
+    return res.status(500).json({ message: "فشل تحديث QR Codes" });
   }
 });
 

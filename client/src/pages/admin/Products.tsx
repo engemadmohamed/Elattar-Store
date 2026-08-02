@@ -103,6 +103,15 @@ export default function AdminProducts() {
       qc.invalidateQueries({ queryKey: ["/api/products/admin/all"] }),
   });
 
+  const regenerateQrMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/products/admin/regenerate-qr"),
+    onSuccess: (data: any) => {
+      qc.invalidateQueries({ queryKey: ["/api/products/admin/all"] });
+      toast({ title: `✅ ${data?.message || "تم تحديث QR Codes بنجاح"}` });
+    },
+    onError: () => toast({ title: "فشل تحديث QR Codes", variant: "destructive" }),
+  });
+
   const handleDelete = (product: Product) => {
     setDeleteTarget(product);
   };
@@ -145,8 +154,21 @@ export default function AdminProducts() {
               </p>
             </div>
             <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="gap-2 border-2"
+                onClick={() => {
+                  if (confirm("سيتم إعادة توليد QR Code لكل المنتجات بالرابط الجديد. تأكيد؟")) {
+                    regenerateQrMutation.mutate();
+                  }
+                }}
+                disabled={regenerateQrMutation.isPending}
+              >
+                <QrCode className="h-4 w-4" />
+                {regenerateQrMutation.isPending ? "جاري التحديث..." : "تحديث QR Codes"}
+              </Button>
               <Link href={`${ADMIN_BASE}/products/add`}>
-                <Button className="gap-2">
+                <Button className="gap-2 bg-foreground text-background hover:bg-foreground/90">
                   <Plus className="h-4 w-4" /> إضافة منتج
                 </Button>
               </Link>
