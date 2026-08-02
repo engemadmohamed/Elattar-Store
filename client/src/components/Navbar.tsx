@@ -425,34 +425,6 @@ export default function Navbar() {
 
             {/* Actions */}
             <div className="flex items-center gap-1">
-              {/* Language Switcher */}
-              <div className="relative hidden sm:block" ref={langRef}>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="gap-1 px-2 h-9 rounded-lg"
-                  onClick={() => setLangOpen((o) => !o)}
-                >
-                  <Globe className="h-3.5 w-3.5" />
-                  <span className="text-xs font-bold">{lang === "ar" ? "ع" : "EN"}</span>
-                </Button>
-                {langOpen && (
-                  <div className="absolute mt-2 w-32 rounded-xl border bg-white shadow-[0_8px_24px_hsl(0_0%_0%/0.12)] z-50 overflow-hidden animate-nav-slide-down origin-top">
-                    {[
-                      { code: "ar", label: "العربية", sub: "RTL" },
-                      { code: "en", label: "English", sub: "LTR" },
-                    ].map((l) => (
-                      <button
-                        key={l.code}
-                        className={`w-full flex items-center justify-between px-3 py-2.5 text-sm hover:bg-accent transition-colors ${lang === l.code ? "font-bold text-primary" : ""}`}
-                        onClick={() => { setLang(l.code as "ar" | "en"); setLangOpen(false); }}
-                      >
-                        {l.label} <span className="text-xs text-muted-foreground">{l.sub}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
 
               {/* Cart */}
               <Button
