@@ -47,6 +47,7 @@ interface Order {
     price: number;
     quantity: number;
     image?: string;
+    color?: string;
   }>;
   subtotal: number;
   shippingCost: number;
@@ -397,10 +398,17 @@ export default function AdminOrders() {
               <Separator />
               <div className="space-y-2">
                 {selectedOrder.items.map((item, i) => (
-                  <div key={i} className="flex justify-between text-sm">
-                    <span>
-                      {item.nameAr} × {item.quantity}
-                    </span>
+                  <div key={i} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <span>
+                        {item.nameAr} × {item.quantity}
+                      </span>
+                      {item.color && (
+                        <Badge variant="outline" className="text-xs bg-muted font-bold">
+                          اللون: {item.color}
+                        </Badge>
+                      )}
+                    </div>
                     <span className="font-semibold">
                       {formatPrice(item.price * item.quantity)}
                     </span>

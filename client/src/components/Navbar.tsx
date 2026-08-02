@@ -12,9 +12,11 @@ import {
   X,
   LayoutGrid,
   Lock,
+  Heart,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useCart } from "@/lib/cart-context";
+import { useWishlist } from "@/lib/wishlist-context";
 import { useCustomerAuth } from "@/lib/customer-auth-context";
 import { useStoreSettings } from "@/lib/store-settings-context";
 import { useLanguage } from "@/lib/language-context";
@@ -39,6 +41,7 @@ interface Category {
 
 export default function Navbar() {
   const { count } = useCart();
+  const { count: wishlistCount } = useWishlist();
   const { customer, isAuthenticated, logout } = useCustomerAuth();
   const { settings } = useStoreSettings();
   const { lang, setLang, t } = useLanguage();
@@ -425,6 +428,23 @@ export default function Navbar() {
 
             {/* Actions */}
             <div className="flex items-center gap-1">
+
+              {/* Wishlist */}
+              <Link href="/wishlist">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative h-9 w-9 rounded-lg transition-all duration-200 hover:scale-110"
+                  title="المفضلة"
+                >
+                  <Heart className={`h-4 w-4 ${wishlistCount > 0 ? "text-rose-500 fill-rose-500" : ""}`} />
+                  {wishlistCount > 0 && (
+                    <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-rose-500 text-[10px] text-white flex items-center justify-center font-bold animate-bounce-in">
+                      {wishlistCount > 9 ? "9+" : wishlistCount}
+                    </span>
+                  )}
+                </Button>
+              </Link>
 
               {/* Cart */}
               <Button

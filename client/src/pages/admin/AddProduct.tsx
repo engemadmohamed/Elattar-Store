@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
-import { ArrowLeft, Plus, X, Upload, QrCode } from "lucide-react";
+import { ArrowLeft, Plus, X, Upload, QrCode, Copy } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,10 +62,11 @@ interface ExistingProduct {
   price: number;
   salePrice?: number;
   stock: number;
-  categoryId: { _id: string; name: string; nameAr: string; slug: string };
+  categoryId: { _id: string; name: string; nameAr: string; slug: string } | string;
   sku: string;
   brand?: string;
   saleUnit?: string;
+  colors?: string[];
   images: string[];
   isActive: boolean;
 }
@@ -85,12 +86,14 @@ export default function AddProduct() {
     price: "",
     salePrice: "",
     stock: "0",
-    categoryId: "", // This will be the ID of the most specific category
+    categoryId: "",
     brand: "",
     saleUnit: "piece",
+    colors: [] as string[],
     images: [] as string[],
     isActive: true,
   });
+  const [colorInput, setColorInput] = useState("");
   const [categoryChain, setCategoryChain] = useState<string[]>([]);
   const [imageUrl, setImageUrl] = useState("");
   const [savedProductId, setSavedProductId] = useState<string | null>(null);
@@ -128,7 +131,8 @@ export default function AddProduct() {
 
   useEffect(() => {
     if (existingProduct && categories && !formPopulated) {
-      const productCategoryId = existingProduct.categoryId._id;
+      const rawCat = existingProduct.categoryId;
+      const productCategoryId = typeof rawCat === "object" && rawCat !== null ? rawCat._id : String(rawCat);
       setSavedProductSku(existingProduct.sku);
 
       // Find the full path for the category and set the chain
@@ -136,20 +140,21 @@ export default function AddProduct() {
       setCategoryChain(path);
 
       setForm({
-        name: existingProduct.name,
-        nameAr: existingProduct.nameAr,
-        description: existingProduct.description,
-        descriptionAr: existingProduct.descriptionAr,
-        price: String(existingProduct.price),
+        name: existingProduct.name || "",
+        nameAr: existingProduct.nameAr || "",
+        description: existingProduct.description || "",
+        descriptionAr: existingProduct.descriptionAr || "",
+        price: String(existingProduct.price || ""),
         salePrice: existingProduct.salePrice
           ? String(existingProduct.salePrice)
           : "",
-        stock: String(existingProduct.stock),
+        stock: String(existingProduct.stock || "0"),
         categoryId: productCategoryId,
         brand: existingProduct.brand || "",
         saleUnit: existingProduct.saleUnit || "piece",
+        colors: existingProduct.colors || [],
         images: existingProduct.images || [],
-        isActive: existingProduct.isActive,
+        isActive: existingProduct.isActive ?? true,
       });
       setFormPopulated(true);
     }
@@ -157,6 +162,13 @@ export default function AddProduct() {
 
   const set = (key: string, val: unknown) =>
     setForm((f) => ({ ...f, [key]: val as any }));
+
+  const addColor = () => {
+    if (colorInput.trim()) {
+      set("colors", [...form.colors, colorInput.trim()]);
+      setColorInput("");
+    }
+  };
 
   const addImageUrl = () => {
     if (imageUrl.trim()) {
@@ -219,19 +231,37 @@ export default function AddProduct() {
       );
     },
     onSuccess: (updatedProduct) => {
-      // Invalidate the list view for admin products page
       qc.invalidateQueries({ queryKey: ["/api/products/admin/all"] });
 
       if (isEdit) {
-        // Manually update the cache for the product detail page to ensure it's fresh
         qc.setQueryData(["/api/products", id], updatedProduct);
+      } else {
+        // Reset form for creating a new product so admin can add another without reloading
+        setForm({
+          name: "",
+          nameAr: "",
+          description: "",
+          descriptionAr: "",
+          price: "",
+          salePrice: "",
+          stock: "0",
+          categoryId: "",
+          brand: "",
+          saleUnit: "piece",
+          colors: [],
+          images: [],
+          isActive: true,
+        });
+        setCategoryChain([]);
+        setColorInput("");
+        setImageUrl("");
       }
 
       setSavedProductId(updatedProduct._id);
       setSavedProductSku(updatedProduct.sku);
       toast({
-        title: isEdit ? "تم تحديث المنتج ✓" : "تم إضافة المنتج ✓",
-        description: "يمكنك الآن طباعة QR Code",
+        title: isEdit ? "تم تحديث المنتج ✓" : "تم إضافة المنتج بنجاح ✓",
+        description: isEdit ? "تم حفظ جميع التعديلات" : "تم تفريغ الحقول لإمكانية إضافة منتج جديد",
       });
     },
     onError: (err) =>
@@ -385,9 +415,51 @@ export default function AddProduct() {
                           <SelectItem value="jar">برطمان</SelectItem>
                           <SelectItem value="stand">استاند</SelectItem>
                           <SelectItem value="carton">كرتونة</SelectItem>
+                          <SelectItem value="dozen">دستة</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
+                  </CardContent>
+                </Card>
+
+                {/* Colors */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">ألوان المنتج المتاحة (اختياري)</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex gap-2">
+                      <Input
+                        value={colorInput}
+                        onChange={(e) => setColorInput(e.target.value)}
+                        placeholder="أدخل لوناً (مثلاً: أحمر، أسود، أزرق)..."
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            addColor();
+                          }
+                        }}
+                      />
+                      <Button type="button" variant="outline" onClick={addColor}>
+                        <Plus className="h-4 w-4" /> إضافة
+                      </Button>
+                    </div>
+                    {form.colors.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-2">
+                        {form.colors.map((c, i) => (
+                          <Badge key={i} variant="secondary" className="gap-1.5 px-3 py-1 text-xs font-bold rounded-lg border">
+                            {c}
+                            <button
+                              type="button"
+                              onClick={() => set("colors", form.colors.filter((_, j) => j !== i))}
+                              className="text-muted-foreground hover:text-destructive transition-colors"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -398,23 +470,37 @@ export default function AddProduct() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {form.images.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-3">
                         {form.images.map((img, i) => (
-                          <div key={i} className="relative h-20 w-20">
+                          <div key={i} className="relative h-20 w-20 group">
                             <img
                               src={img}
                               alt=""
-                              className="h-full w-full object-cover rounded-lg border"
+                              className="h-full w-full object-cover rounded-xl border shadow-sm"
                             />
+                            {/* Copy URL Button */}
                             <button
                               type="button"
+                              title="نسخ رابط الصورة"
+                              onClick={() => {
+                                navigator.clipboard.writeText(img);
+                                toast({ title: "تم نسخ رابط الصورة بنجاح ✓" });
+                              }}
+                              className="absolute -top-1.5 -left-1.5 h-6 w-6 rounded-full bg-black text-white flex items-center justify-center shadow hover:scale-110 transition-transform"
+                            >
+                              <Copy className="h-3 w-3" />
+                            </button>
+                            {/* Delete Button */}
+                            <button
+                              type="button"
+                              title="حذف الصورة"
                               onClick={() =>
                                 set(
                                   "images",
                                   form.images.filter((_, j) => j !== i),
                                 )
                               }
-                              className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-destructive text-white flex items-center justify-center"
+                              className="absolute -top-1.5 -right-1.5 h-6 w-6 rounded-full bg-destructive text-white flex items-center justify-center shadow hover:scale-110 transition-transform"
                             >
                               <X className="h-3 w-3" />
                             </button>

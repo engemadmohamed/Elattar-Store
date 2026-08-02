@@ -1,6 +1,7 @@
-import { ShoppingCart, Eye, Star } from "lucide-react";
+import { ShoppingCart, Eye, Star, Heart } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useCart } from "@/lib/cart-context";
+import { useWishlist } from "@/lib/wishlist-context";
 import { useCustomerAuth } from "@/lib/customer-auth-context";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/utils";
@@ -8,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
-interface Product {
+export interface Product {
   _id: string;
   name: string;
   nameAr: string;
@@ -17,7 +18,7 @@ interface Product {
   stock: number;
   images: string[];
   brand?: string;
-  categoryId?: { name: string; nameAr: string };
+  categoryId?: { name: string; nameAr: string } | string;
 }
 
 interface ReviewSummary {
@@ -54,20 +55,35 @@ function StarRating({ average, count }: { average: number; count: number }) {
 
 export default function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();
+  const { isInWishlist, toggleWishlist } = useWishlist();
   const { isAuthenticated } = useCustomerAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
 
+  const isFav = isInWishlist(product._id);
   const price = product.salePrice || product.price;
   const hasDiscount = product.salePrice && product.salePrice < product.price;
   const inStock = product.stock > 0;
+
+  const categoryName = typeof product.categoryId === "object" && product.categoryId !== null
+    ? product.categoryId.nameAr
+    : null;
 
   // Fetch review summary for this product
   const { data: reviewSummary } = useQuery<ReviewSummary>({
     queryKey: [`/api/reviews/product/${product._id}/summary`],
     queryFn: () => apiRequest("GET", `/api/reviews/product/${product._id}/summary`),
-    staleTime: 5 * 60 * 1000, // 5 min cache
+    staleTime: 5 * 60 * 1000,
   });
+
+  const handleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleWishlist(product._id);
+    toast({
+      title: isFav ? "تم الإزالة من المفضلة" : "تم الإضافة للمفضلة ❤️",
+    });
+  };
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -110,6 +126,16 @@ export default function ProductCard({ product }: { product: Product }) {
             </div>
           )}
 
+          {/* Wishlist Heart Button */}
+          <button
+            type="button"
+            onClick={handleWishlist}
+            className="absolute top-2.5 rtl:left-2.5 ltr:right-2.5 z-10 h-8 w-8 rounded-full bg-white/90 backdrop-blur-xs flex items-center justify-center shadow-md hover:scale-110 transition-transform"
+            title={isFav ? "إزالة من المفضلة" : "إضافة للمفضلة"}
+          >
+            <Heart className={`h-4 w-4 ${isFav ? "text-rose-500 fill-rose-500" : "text-muted-foreground"}`} />
+          </button>
+
           {/* Discount badge */}
           {hasDiscount && (
             <div className="absolute top-2.5 rtl:right-2.5 ltr:left-2.5 bg-foreground text-background text-[11px] font-black px-2 py-0.5 rounded-full">
@@ -146,12 +172,19 @@ export default function ProductCard({ product }: { product: Product }) {
 
         {/* Info */}
         <div className="p-3.5">
-          {product.brand && (
-            <p className="text-[11px] text-muted-foreground font-medium mb-1 uppercase tracking-wide">
-              {product.brand}
-            </p>
-          )}
-          <h3 className="text-sm font-semibold leading-snug line-clamp-2 mb-1.5">
+          <div className="flex items-center justify-between gap-1 mb-1">
+            {categoryName ? (
+              <span className="inline-block text-[10px] font-extrabold text-foreground/80 bg-muted px-2 py-0.5 rounded-md truncate max-w-[120px]">
+                {categoryName}
+              </span>
+            ) : product.brand ? (
+              <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide truncate">
+                {product.brand}
+              </p>
+            ) : null}
+          </div>
+
+          <h3 className="text-sm font-bold leading-snug line-clamp-2 mb-1">
             {product.nameAr}
           </h3>
 

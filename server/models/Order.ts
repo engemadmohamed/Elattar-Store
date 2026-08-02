@@ -10,6 +10,7 @@ export interface IOrderItem {
   price: number;
   quantity: number;
   image?: string;
+  color?: string;
 }
 
 export interface IShippingInfo {
@@ -53,6 +54,7 @@ const OrderItemSchema = new Schema<IOrderItem>({
   price: { type: Number, required: true },
   quantity: { type: Number, required: true, min: 1 },
   image: { type: String },
+  color: { type: String },
 });
 
 const ShippingInfoSchema = new Schema<IShippingInfo>({

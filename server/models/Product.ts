@@ -17,6 +17,7 @@ export interface IProduct extends Document {
   weight?: number;
   dimensions?: { width: number; height: number; depth: number };
   tags: string[];
+  colors?: string[];
   isActive: boolean;
   saleUnit: string;
   ratingAverage: number;
@@ -48,6 +49,7 @@ const ProductSchema = new Schema<IProduct>(
       depth: Number,
     },
     tags: [{ type: String }],
+    colors: [{ type: String }],
     isActive: { type: Boolean, default: true },
     saleUnit: { type: String, default: "piece" },
     ratingAverage: { type: Number, default: 0 },

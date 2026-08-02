@@ -5,6 +5,7 @@ import { ThemeProvider } from "./lib/theme-provider";
 import { AuthProvider, useAuth } from "./lib/auth-context";
 import { CustomerAuthProvider } from "./lib/customer-auth-context";
 import { CartProvider } from "./lib/cart-context";
+import { WishlistProvider } from "./lib/wishlist-context";
 import { StoreSettingsProvider } from "./lib/store-settings-context";
 import { LanguageProvider } from "./lib/language-context";
 import { Toaster } from "./components/ui/toaster";
@@ -16,6 +17,7 @@ import Home from "./pages/Home";
 import Shop from "./pages/Shop";
 import ProductDetail from "./pages/ProductDetail";
 import Checkout from "./pages/Checkout";
+import Wishlist from "./pages/Wishlist";
 import CustomerLogin from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import Profile from "./pages/Profile";
@@ -73,6 +75,9 @@ function Router() {
       <Route path="/checkout">
         <ShopLayout><Checkout /></ShopLayout>
       </Route>
+      <Route path="/wishlist">
+        <ShopLayout><Wishlist /></ShopLayout>
+      </Route>
       <Route path="/login">
         <ShopLayout><CustomerLogin /></ShopLayout>
       </Route>
@@ -104,7 +109,7 @@ function Router() {
         <ShopLayout><Privacy /></ShopLayout>
       </Route>
 
-      {/* Admin routes — served under a non-obvious, configurable URL (see .env: VITE_ADMIN_PATH) */}
+      {/* Admin routes */}
       <Route path={`${ADMIN_BASE}/login`} component={AdminLogin} />
       <Route path={ADMIN_BASE}>
         <AdminRoute component={AdminDashboard} />
@@ -145,14 +150,16 @@ export default function App() {
       <ThemeProvider>
         <LanguageProvider>
           <StoreSettingsProvider>
-          <AuthProvider>
-            <CustomerAuthProvider>
-              <CartProvider>
-                <Router />
-                <Toaster />
-              </CartProvider>
-            </CustomerAuthProvider>
-          </AuthProvider>
+            <AuthProvider>
+              <CustomerAuthProvider>
+                <WishlistProvider>
+                  <CartProvider>
+                    <Router />
+                    <Toaster />
+                  </CartProvider>
+                </WishlistProvider>
+              </CustomerAuthProvider>
+            </AuthProvider>
           </StoreSettingsProvider>
         </LanguageProvider>
       </ThemeProvider>

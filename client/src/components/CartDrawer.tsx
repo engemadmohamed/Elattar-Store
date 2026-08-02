@@ -76,26 +76,31 @@ export default function CartDrawer({ open, onClose }: Props) {
                 <div className="flex-1 min-w-0 flex flex-col justify-between">
                   <div>
                     <p className="text-sm font-bold truncate leading-tight">{item.nameAr}</p>
+                    {item.color && (
+                      <span className="inline-block mt-0.5 px-2 py-0.5 text-[10px] font-bold rounded-md bg-accent text-accent-foreground border">
+                        اللون: {item.color}
+                      </span>
+                    )}
                     <p className="text-sm font-black text-foreground mt-1">{formatPrice(item.price)}</p>
                   </div>
                   <div className="flex items-center justify-between mt-2 pt-2 border-t">
                     <div className="flex items-center gap-1.5 bg-muted rounded-xl p-1">
                       <button
-                        onClick={() => updateQty(item.productId, item.quantity - 1)}
+                        onClick={() => updateQty(item.productId, item.quantity - 1, item.color)}
                         className="h-6 w-6 rounded-lg bg-white flex items-center justify-center hover:bg-foreground hover:text-background transition-colors text-xs font-bold shadow-xs"
                       >
                         <Minus className="h-3 w-3" />
                       </button>
                       <span className="text-xs font-bold w-6 text-center">{item.quantity}</span>
                       <button
-                        onClick={() => updateQty(item.productId, item.quantity + 1)}
+                        onClick={() => updateQty(item.productId, item.quantity + 1, item.color)}
                         className="h-6 w-6 rounded-lg bg-white flex items-center justify-center hover:bg-foreground hover:text-background transition-colors text-xs font-bold shadow-xs"
                       >
                         <Plus className="h-3 w-3" />
                       </button>
                     </div>
                     <button
-                      onClick={() => removeItem(item.productId)}
+                      onClick={() => removeItem(item.productId, item.color)}
                       className="text-xs text-destructive hover:bg-destructive/10 p-1.5 rounded-lg transition-colors flex items-center gap-1 font-semibold"
                     >
                       <Trash2 className="h-3.5 w-3.5" /> حذف

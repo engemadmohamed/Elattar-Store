@@ -106,45 +106,6 @@ export default function AdminSettings() {
   const { toast } = useToast();
   const { refreshSettings } = useStoreSettings();
   const [form, setForm] = useState<StoreSettings>(defaultSettings);
-  const [showPreview, setShowPreview] = useState(true);
-  const [deviceMode, setDeviceMode] = useState<"desktop" | "mobile">("desktop");
-  const desktopIframeRef = useRef<HTMLIFrameElement | null>(null);
-  const mobileIframeRef = useRef<HTMLIFrameElement | null>(null);
-
-  const applyColorsToIframes = () => {
-    const iframes = [desktopIframeRef.current, mobileIframeRef.current];
-    for (const iframe of iframes) {
-      try {
-        if (!iframe) continue;
-        const doc = iframe.contentDocument || iframe.contentWindow?.document;
-        if (!doc || !doc.documentElement) continue;
-
-        const root = doc.documentElement;
-        if (form.primaryColor) {
-          const hsl = hexToHsl(form.primaryColor);
-          root.style.setProperty("--primary", hsl);
-          root.style.setProperty("--ring", hsl);
-          root.style.setProperty("--sidebar-primary", hsl);
-          root.style.setProperty("--sidebar-ring", hsl);
-        }
-        if (form.primaryForeground) {
-          root.style.setProperty("--primary-foreground", hexToHslRaw(form.primaryForeground));
-        }
-        if (form.backgroundColor) {
-          root.style.setProperty("--background", hexToHslRaw(form.backgroundColor));
-        }
-        if (form.cardBackground) {
-          root.style.setProperty("--card", hexToHslRaw(form.cardBackground));
-        }
-      } catch (e) {
-        console.warn("Could not update preview colors live:", e);
-      }
-    }
-  };
-
-  useEffect(() => {
-    applyColorsToIframes();
-  }, [form.primaryColor, form.primaryForeground, form.backgroundColor, form.cardBackground]);
 
   const { data, isLoading } = useQuery<StoreSettings>({
     queryKey: ["/api/settings"],
@@ -156,15 +117,21 @@ export default function AdminSettings() {
   }, [data]);
 
   const saveMutation = useMutation({
-    mutationFn: (data: StoreSettings) => apiRequest("PUT", "/api/settings", data),
+    mutationFn: (data: StoreSettings) => {
+      const cleanData = { ...data } as Record<string, unknown>;
+      delete cleanData._id;
+      delete cleanData.__v;
+      delete cleanData.createdAt;
+      delete cleanData.updatedAt;
+      return apiRequest("PUT", "/api/settings", cleanData);
+    },
     onSuccess: async () => {
       qc.invalidateQueries({ queryKey: ["/api/settings"] });
       await refreshSettings();
-      applyColorsToIframes();
-      toast({ title: "تم حفظ التغييرات وانعكست على المعاينة المباشرة والموقع بنجاح ✓" });
+      toast({ title: "تم حفظ التغييرات بنجاح ✓" });
     },
     onError: (err) =>
-      toast({ title: "فشل الحفظ", description: String(err), variant: "destructive" }),
+      toast({ title: "فشل الحفظ", description: err instanceof Error ? err.message : String(err), variant: "destructive" }),
   });
 
   const set = (key: keyof StoreSettings, value: string | boolean) =>
@@ -173,25 +140,10 @@ export default function AdminSettings() {
   const handleSave = () => saveMutation.mutate(form);
 
   const handleResetData = () => {
-    setForm((f) => ({
+    setForm(() => ({
       ...defaultSettings,
-      primaryColor: f.primaryColor,
-      primaryForeground: f.primaryForeground,
-      backgroundColor: f.backgroundColor,
-      cardBackground: f.cardBackground,
     }));
     toast({ title: "تمت إعادة تعيين بيانات المتجر للوضع الافتراضي ✓" });
-  };
-
-  const handleResetColors = () => {
-    setForm((f) => ({
-      ...f,
-      primaryColor: defaultSettings.primaryColor,
-      primaryForeground: defaultSettings.primaryForeground,
-      backgroundColor: defaultSettings.backgroundColor,
-      cardBackground: defaultSettings.cardBackground,
-    }));
-    toast({ title: "تمت إعادة تعيين الألوان للوضع الافتراضي ✓" });
   };
 
   if (isLoading) {
@@ -221,9 +173,6 @@ export default function AdminSettings() {
             <Button variant="outline" size="sm" className="gap-1.5 rounded-xl border-2" onClick={handleResetData}>
               <Database className="h-3.5 w-3.5" /> إعادة تعيين البيانات
             </Button>
-            <Button variant="outline" size="sm" className="gap-1.5 rounded-xl border-2" onClick={handleResetColors}>
-              <Palette className="h-3.5 w-3.5" /> إعادة تعيين الألوان
-            </Button>
             <Button size="sm" className="gap-1.5 rounded-xl bg-black hover:bg-black/90 text-white font-bold px-4" onClick={handleSave} disabled={saveMutation.isPending}>
               <Save className="h-3.5 w-3.5" /> {saveMutation.isPending ? "جاري الحفظ..." : "حفظ التغييرات"}
             </Button>
@@ -238,7 +187,6 @@ export default function AdminSettings() {
                 <TabsTrigger value="identity" className="rounded-xl font-semibold">الهوية الأساسية</TabsTrigger>
                 <TabsTrigger value="hero" className="rounded-xl font-semibold">النصوص الرئيسية</TabsTrigger>
                 <TabsTrigger value="banners" className="rounded-xl font-semibold">البنرات والتواصل</TabsTrigger>
-                <TabsTrigger value="colors" className="rounded-xl font-semibold">الألوان والتنسيق</TabsTrigger>
                 <TabsTrigger value="visibility" className="rounded-xl font-semibold">العناصر الظاهرة</TabsTrigger>
               </TabsList>
 
@@ -323,82 +271,6 @@ export default function AdminSettings() {
                 </Card>
               </TabsContent>
 
-              {/* Colors */}
-              <TabsContent value="colors">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">الألوان والتنسيق</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <ColorField label="اللون الأساسي" value={form.primaryColor} onChange={(v) => set("primaryColor", v)} />
-                      <ColorField label="لون النص على اللون الأساسي" value={form.primaryForeground} onChange={(v) => set("primaryForeground", v)} />
-                      <ColorField label="خلفية الصفحة" value={form.backgroundColor} onChange={(v) => set("backgroundColor", v)} />
-                      <ColorField label="خلفية البطاقات" value={form.cardBackground} onChange={(v) => set("cardBackground", v)} />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 pt-4">
-                      <div>
-                        <Label className="mb-2 block">نمط الأزرار</Label>
-                        <div className="flex gap-2">
-                          {["rounded", "outline"].map((s) => (
-                            <Button
-                              key={s}
-                              type="button"
-                              size="sm"
-                              variant={form.buttonStyle === s ? "default" : "outline"}
-                              onClick={() => set("buttonStyle", s)}
-                            >
-                              {s === "rounded" ? "مملوء" : "حدود فقط"}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <Label className="mb-2 block">شكل الهيرو</Label>
-                        <div className="flex gap-2 flex-wrap">
-                          {[
-                            { v: "classic", l: "كلاسيكي" },
-                            { v: "split", l: "مقسم" },
-                            { v: "minimal", l: "مبسط" },
-                          ].map((s) => (
-                            <Button
-                              key={s.v}
-                              type="button"
-                              size="sm"
-                              variant={form.heroShape === s.v ? "default" : "outline"}
-                              onClick={() => set("heroShape", s.v)}
-                            >
-                              {s.l}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <Label className="mb-2 block">تباعد الأقسام</Label>
-                        <div className="flex gap-2">
-                          {[
-                            { v: "compact", l: "مضغوط" },
-                            { v: "normal", l: "عادي" },
-                            { v: "wide", l: "واسع" },
-                          ].map((s) => (
-                            <Button
-                              key={s.v}
-                              type="button"
-                              size="sm"
-                              variant={form.sectionSpacing === s.v ? "default" : "outline"}
-                              onClick={() => set("sectionSpacing", s.v)}
-                            >
-                              {s.l}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
               {/* Visibility */}
               <TabsContent value="visibility">
                 <Card>
@@ -434,100 +306,6 @@ export default function AdminSettings() {
                 </Card>
               </TabsContent>
             </Tabs>
-          </div>
-
-          {/* ===== LIVE DEVICE PREVIEW SECTION ===== */}
-          <div className="mt-12 space-y-4 pt-8 border-t">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-3xl border shadow-sm">
-              <div>
-                <h2 className="text-lg font-black flex items-center gap-2">
-                  <Eye className="h-5 w-5" /> معاينة المتجر المباشرة (Live Preview)
-                </h2>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  شاهد التعديلات والألوان وتنسيق المتجر حياً كأنك على جهاز عميلك بدون مغادرة صفحة الإعدادات
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {/* Device Switcher */}
-                <div className="flex items-center bg-muted p-1 rounded-2xl border">
-                  <button
-                    type="button"
-                    onClick={() => setDeviceMode("desktop")}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                      deviceMode === "desktop"
-                        ? "bg-black text-white shadow-sm"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    <Monitor className="h-3.5 w-3.5" /> كمبيوتر
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDeviceMode("mobile")}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                      deviceMode === "mobile"
-                        ? "bg-black text-white shadow-sm"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    <Smartphone className="h-3.5 w-3.5" /> موبايل
-                  </button>
-                </div>
-
-                {/* Open in new tab */}
-                <a href="/" target="_blank" rel="noreferrer">
-                  <Button variant="ghost" size="sm" className="rounded-2xl gap-1 text-xs font-bold text-muted-foreground hover:text-foreground">
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </Button>
-                </a>
-              </div>
-            </div>
-
-            {/* Preview Frame Container */}
-            <div className="flex justify-center bg-muted/40 p-4 sm:p-8 rounded-3xl border-2 border-dashed overflow-hidden min-h-[600px] transition-all">
-              {/* Desktop Browser Frame */}
-              <div className={`w-full max-w-5xl bg-white rounded-2xl border shadow-2xl overflow-hidden flex flex-col h-[650px] transition-all ${deviceMode === "desktop" ? "flex" : "hidden"}`}>
-                {/* Browser Bar */}
-                <div className="bg-muted/80 px-4 py-2.5 border-b flex items-center justify-between text-xs text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <span className="h-3 w-3 rounded-full bg-rose-500/80 inline-block" />
-                    <span className="h-3 w-3 rounded-full bg-amber-500/80 inline-block" />
-                    <span className="h-3 w-3 rounded-full bg-emerald-500/80 inline-block" />
-                  </div>
-                  <div className="bg-white/80 border rounded-lg px-4 py-1 font-mono text-[11px] w-72 text-center text-foreground/70 shadow-inner">
-                    https://almohandesstore.com
-                  </div>
-                  <div className="w-12 text-left font-bold text-[10px]">مباشر LIVE</div>
-                </div>
-                {/* Storefront Iframe */}
-                <iframe
-                  ref={desktopIframeRef}
-                  src="/"
-                  title="Desktop Preview"
-                  onLoad={applyColorsToIframes}
-                  className="w-full flex-1 border-none bg-white"
-                />
-              </div>
-
-              {/* Mobile Phone Frame */}
-              <div className={`w-[380px] bg-black p-3.5 rounded-[44px] shadow-2xl border-4 border-black/80 flex flex-col h-[680px] transition-all relative ${deviceMode === "mobile" ? "flex" : "hidden"}`}>
-                {/* Speaker Notch */}
-                <div className="absolute top-5 left-1/2 -translate-x-1/2 w-28 h-4 bg-black rounded-full z-20 flex items-center justify-center">
-                  <div className="w-10 h-1 bg-white/20 rounded-full" />
-                </div>
-                {/* Screen */}
-                <div className="w-full h-full bg-white rounded-[32px] overflow-hidden pt-4 flex flex-col border">
-                  <iframe
-                    ref={mobileIframeRef}
-                    src="/"
-                    title="Mobile Preview"
-                    onLoad={applyColorsToIframes}
-                    className="w-full flex-1 border-none bg-white"
-                  />
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -565,35 +343,6 @@ function Field({
           placeholder={placeholder}
         />
       )}
-    </div>
-  );
-}
-
-function ColorField({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <div>
-      <Label className="mb-1.5 block">{label}</Label>
-      <div className="flex items-center gap-2">
-        <input
-          type="color"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="h-9 w-12 rounded-md border cursor-pointer"
-        />
-        <Input
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="flex-1 font-mono text-sm"
-        />
-      </div>
     </div>
   );
 }

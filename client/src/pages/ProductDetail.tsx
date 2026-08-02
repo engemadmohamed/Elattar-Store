@@ -44,6 +44,7 @@ interface Product {
   brand?: string;
   sku: string;
   saleUnit?: string;
+  colors?: string[];
   qrCode?: string;
   categoryId?: { name: string; nameAr: string };
   ratingAverage?: number;
@@ -76,6 +77,7 @@ export default function ProductDetail() {
   const [selectedImg, setSelectedImg] = useState(0);
   const [qty, setQty] = useState(1);
   const [showQR, setShowQR] = useState(false);
+  const [selectedColor, setSelectedColor] = useState<string>("");
 
   // Review form state
   const [userRating, setUserRating] = useState(5);
@@ -194,6 +196,14 @@ export default function ProductDetail() {
       });
       return;
     }
+    if (product.colors && product.colors.length > 0 && !selectedColor) {
+      toast({
+        title: "الرجاء اختيار اللون",
+        description: "يرجى تحديد اللون المطلوب قبل الإضافة إلى السلة",
+        variant: "destructive",
+      });
+      return;
+    }
     for (let i = 0; i < qty; i++) {
       addItem({
         productId: product._id,
@@ -201,6 +211,7 @@ export default function ProductDetail() {
         nameAr: product.nameAr,
         price,
         image: product.images[0],
+        color: selectedColor || undefined,
       });
     }
     toast({
@@ -349,6 +360,48 @@ export default function ProductDetail() {
                 {inStock ? `متوفر (${product.stock} قطعة)` : "نفدت الكمية"}
               </span>
             </div>
+
+            {/* Sale Unit Display (Item #8) */}
+            {product.saleUnit && (
+              <div className="flex items-center gap-2 text-sm bg-muted/40 px-3.5 py-2 rounded-xl border w-fit">
+                <Package className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">وحدة البيع:</span>
+                <span className="font-bold text-foreground">
+                  {product.saleUnit === "piece" ? "قطعة" :
+                   product.saleUnit === "box" ? "علبة" :
+                   product.saleUnit === "jar" ? "برطمان" :
+                   product.saleUnit === "stand" ? "استاند" :
+                   product.saleUnit === "carton" ? "كرتونة" :
+                   product.saleUnit === "dozen" ? "دستة" : product.saleUnit}
+                </span>
+              </div>
+            )}
+
+            {/* Colors Selector (Item #1) */}
+            {product.colors && product.colors.length > 0 && (
+              <div className="space-y-2 pt-2 border-t">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-sm">اختر اللون:</span>
+                  {selectedColor && <Badge variant="secondary" className="font-bold">{selectedColor}</Badge>}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {product.colors.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setSelectedColor(c)}
+                      className={`px-3.5 py-1.5 rounded-xl border text-sm font-semibold transition-all ${
+                        selectedColor === c
+                          ? "bg-black text-white border-black shadow-sm scale-105"
+                          : "bg-background text-foreground hover:bg-accent border-input"
+                      }`}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <Separator />
 

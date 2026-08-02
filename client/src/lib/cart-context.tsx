@@ -6,14 +6,15 @@ export interface CartItem {
   nameAr: string;
   price: number;
   image?: string;
+  color?: string;
   quantity: number;
 }
 
 interface CartContextType {
   items: CartItem[];
   addItem: (item: Omit<CartItem, "quantity">) => void;
-  removeItem: (productId: string) => void;
-  updateQty: (productId: string, qty: number) => void;
+  removeItem: (productId: string, color?: string) => void;
+  updateQty: (productId: string, qty: number, color?: string) => void;
   clearCart: () => void;
   total: number;
   count: number;
@@ -44,10 +45,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addItem = (item: Omit<CartItem, "quantity">) => {
     setItems((prev) => {
-      const existing = prev.find((i) => i.productId === item.productId);
+      const existing = prev.find(
+        (i) => i.productId === item.productId && i.color === item.color
+      );
       if (existing)
         return prev.map((i) =>
-          i.productId === item.productId
+          i.productId === item.productId && i.color === item.color
             ? { ...i, quantity: i.quantity + 1 }
             : i,
         );
@@ -55,14 +58,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const removeItem = (productId: string) =>
-    setItems((prev) => prev.filter((i) => i.productId !== productId));
+  const removeItem = (productId: string, color?: string) =>
+    setItems((prev) =>
+      prev.filter((i) => !(i.productId === productId && i.color === color))
+    );
 
-  const updateQty = (productId: string, qty: number) => {
-    if (qty <= 0) return removeItem(productId);
+  const updateQty = (productId: string, qty: number, color?: string) => {
+    if (qty <= 0) return removeItem(productId, color);
     setItems((prev) =>
       prev.map((i) =>
-        i.productId === productId ? { ...i, quantity: qty } : i,
+        i.productId === productId && i.color === color
+          ? { ...i, quantity: qty }
+          : i,
       ),
     );
   };

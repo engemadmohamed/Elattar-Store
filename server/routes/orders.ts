@@ -44,6 +44,7 @@ router.post("/", attachCustomerIfPresent, async (req: CustomerAuthRequest, res: 
         price,
         quantity: item.quantity,
         image: product.images[0],
+        color: item.color || undefined,
       });
 
       // Decrement stock, increment sold count (used for the Best Sellers section)

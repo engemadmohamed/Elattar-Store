@@ -158,6 +158,7 @@ export default function Checkout() {
         items: items.map((i) => ({
           productId: i.productId,
           quantity: i.quantity,
+          color: i.color,
         })),
         shipping: {
           company: "شحن",
