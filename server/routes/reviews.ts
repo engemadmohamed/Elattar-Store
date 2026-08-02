@@ -72,6 +72,20 @@ router.get("/product/:productId", async (req: Request, res: Response) => {
   }
 });
 
+// 3b. Get lightweight rating summary for product cards (public)
+router.get("/product/:productId/summary", async (req: Request, res: Response) => {
+  try {
+    const reviews = await Review.find({ productId: req.params.productId }).select("rating").lean();
+    const count = reviews.length;
+    const average = count ? reviews.reduce((sum, r) => sum + r.rating, 0) / count : 0;
+    return res.json({ average: Math.round(average * 10) / 10, count });
+  } catch (error) {
+    console.error(error);
+    return res.json({ average: 0, count: 0 });
+  }
+});
+
+
 // 4. Submit or update a review (logged-in customer)
 router.post("/product/:productId", requireCustomerAuth, async (req: CustomerAuthRequest, res: Response) => {
   try {

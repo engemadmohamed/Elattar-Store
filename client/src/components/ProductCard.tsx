@@ -3,9 +3,10 @@ import { Link, useLocation } from "wouter";
 import { useCart } from "@/lib/cart-context";
 import { useCustomerAuth } from "@/lib/customer-auth-context";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 interface Product {
   _id: string;
@@ -19,6 +20,38 @@ interface Product {
   categoryId?: { name: string; nameAr: string };
 }
 
+interface ReviewSummary {
+  average: number;
+  count: number;
+}
+
+function StarRating({ average, count }: { average: number; count: number }) {
+  const fullStars = Math.floor(average);
+  const hasHalf = average - fullStars >= 0.5;
+
+  return (
+    <div className="flex items-center gap-1 mt-1.5">
+      <div className="flex items-center gap-0.5">
+        {[1, 2, 3, 4, 5].map((s) => (
+          <Star
+            key={s}
+            className={`h-3 w-3 ${
+              s <= fullStars
+                ? "fill-amber-400 text-amber-400"
+                : s === fullStars + 1 && hasHalf
+                ? "fill-amber-200 text-amber-400"
+                : "fill-transparent text-muted-foreground/40"
+            }`}
+          />
+        ))}
+      </div>
+      <span className="text-[10px] text-muted-foreground font-medium">
+        ({count})
+      </span>
+    </div>
+  );
+}
+
 export default function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();
   const { isAuthenticated } = useCustomerAuth();
@@ -28,6 +61,13 @@ export default function ProductCard({ product }: { product: Product }) {
   const price = product.salePrice || product.price;
   const hasDiscount = product.salePrice && product.salePrice < product.price;
   const inStock = product.stock > 0;
+
+  // Fetch review summary for this product
+  const { data: reviewSummary } = useQuery<ReviewSummary>({
+    queryKey: [`/api/reviews/product/${product._id}/summary`],
+    queryFn: () => apiRequest("GET", `/api/reviews/product/${product._id}/summary`),
+    staleTime: 5 * 60 * 1000, // 5 min cache
+  });
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -111,10 +151,16 @@ export default function ProductCard({ product }: { product: Product }) {
               {product.brand}
             </p>
           )}
-          <h3 className="text-sm font-semibold leading-snug line-clamp-2 mb-2.5">
+          <h3 className="text-sm font-semibold leading-snug line-clamp-2 mb-1.5">
             {product.nameAr}
           </h3>
-          <div className="flex items-center justify-between gap-2">
+
+          {/* Star rating */}
+          {reviewSummary && reviewSummary.count > 0 && (
+            <StarRating average={reviewSummary.average} count={reviewSummary.count} />
+          )}
+
+          <div className="flex items-center justify-between gap-2 mt-2">
             <div className="flex items-baseline gap-1.5">
               <span className="font-black text-base text-foreground">
                 {formatPrice(price)}
