@@ -374,6 +374,9 @@ export default function SignUp() {
                 )}
               </div>
 
+              {/* Firebase reCAPTCHA visible container */}
+              <div id="recaptcha-container" className="my-4 flex justify-center min-h-[78px]"></div>
+
               <Button type="submit" className="w-full h-11 rounded-xl font-bold text-base gap-2 group">
                 التالي — تأكيد الهاتف
                 <ArrowRight className="h-4 w-4 rtl:rotate-180 transition-transform group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1" />

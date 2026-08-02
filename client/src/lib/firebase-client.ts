@@ -41,9 +41,9 @@ export function setupRecaptcha(containerId: string = "recaptcha-container") {
   }
 
   const verifier = new RecaptchaVerifier(firebaseAuth, containerId, {
-    size: "invisible",
+    size: "normal", // Visible reCAPTCHA widget for 100% reliable real SMS dispatch
     callback: () => {
-      console.log("[Firebase Auth] reCAPTCHA verified automatically");
+      console.log("[Firebase Auth] reCAPTCHA verified successfully");
     },
     "expired-callback": () => {
       console.warn("[Firebase Auth] reCAPTCHA expired");
