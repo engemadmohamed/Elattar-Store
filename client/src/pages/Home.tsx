@@ -24,6 +24,7 @@ import {
   BookOpen,
   Palette,
   Phone,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -361,12 +362,29 @@ export default function Home() {
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
               {categories
-                ? rootCategories.map((cat, i) => (
-                    <Link key={cat._id} href={`/shop?category=${cat.slug}`}>
+                ? rootCategories.map((cat, i) => {
+                    const isLocked = cat.isActive === false;
+                    return (
                       <div
+                        key={cat._id}
+                        onClick={(e) => {
+                          if (isLocked) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            toast({
+                              title: "🔒 هذه الفئة مغلقة حالياً",
+                              description: "لا يمكن تصفح منتجات هذه الفئة في الوقت الحالي",
+                              variant: "destructive",
+                            });
+                          } else {
+                            window.location.href = `/shop?category=${cat.slug}`;
+                          }
+                        }}
                         data-reveal
                         data-reveal-delay={String(Math.min(i + 1, 8))}
-                        className="category-card card-shine group h-full overflow-hidden rounded-2xl border-2 border-transparent bg-white cursor-pointer"
+                        className={`category-card card-shine group h-full overflow-hidden rounded-2xl border-2 border-transparent bg-white cursor-pointer relative ${
+                          isLocked ? "opacity-85" : ""
+                        }`}
                         style={{ boxShadow: "0 4px 24px hsl(0 0% 0% / 0.07)" }}
                       >
                         {/* Image */}
@@ -375,7 +393,9 @@ export default function Home() {
                             <img
                               src={cat.image}
                               alt={catName(cat)}
-                              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-115"
+                              className={`h-full w-full object-cover transition-transform duration-700 ${
+                                isLocked ? "filter grayscale-[0.3]" : "group-hover:scale-115"
+                              }`}
                             />
                           ) : (
                             <div className="h-full w-full bg-gradient-to-br from-foreground/5 via-foreground/10 to-foreground/20 flex flex-col items-center justify-center p-4 text-foreground group-hover:scale-105 transition-transform duration-500">
@@ -383,34 +403,50 @@ export default function Home() {
                               <span className="text-xs font-bold text-muted-foreground">{catName(cat)}</span>
                             </div>
                           )}
-                          {/* Dark overlay with gradient */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
-                          
-                          {/* Floating interactive shape icon */}
-                          <div className="absolute top-3 rtl:right-3 ltr:left-3 h-8 w-8 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-400 -translate-y-2 group-hover:translate-y-0 group-hover:rotate-12">
-                            <Sparkles className="h-4 w-4 animate-spin" style={{ animationDuration: "8s" }} />
-                          </div>
 
-                          {/* Browse button slides up */}
-                          <div className="absolute bottom-0 inset-x-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-400 ease-out">
-                            <div className="flex items-center justify-center gap-1.5 text-white text-xs font-black bg-white/20 backdrop-blur-md rounded-xl py-2.5 shadow-lg border border-white/20">
-                              {t("تصفح الفئة الآن", "Browse Category")}
-                              <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180 transition-transform group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1" />
+                          {isLocked ? (
+                            /* Lock Badge Overlay */
+                            <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex flex-col items-center justify-center p-3 text-white">
+                              <div className="h-10 w-10 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center mb-1">
+                                <Lock className="h-5 w-5 text-white" />
+                              </div>
+                              <span className="text-xs font-black bg-black/60 px-3 py-1 rounded-full border border-white/20">
+                                الفئة مغلقة
+                              </span>
                             </div>
-                          </div>
+                          ) : (
+                            <>
+                              {/* Dark overlay with gradient */}
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
 
-                          {/* Category number badge */}
-                          <div className="absolute top-3 rtl:left-3 ltr:right-3 h-7 w-7 rounded-full bg-foreground text-background text-[11px] font-black flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100 shadow-md">
-                            0{i + 1}
-                          </div>
+                              {/* Floating interactive shape icon */}
+                              <div className="absolute top-3 rtl:right-3 ltr:left-3 h-8 w-8 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-400 -translate-y-2 group-hover:translate-y-0 group-hover:rotate-12">
+                                <Sparkles className="h-4 w-4 animate-spin" style={{ animationDuration: "8s" }} />
+                              </div>
+
+                              {/* Browse button slides up */}
+                              <div className="absolute bottom-0 inset-x-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-400 ease-out">
+                                <div className="flex items-center justify-center gap-1.5 text-white text-xs font-black bg-white/20 backdrop-blur-md rounded-xl py-2.5 shadow-lg border border-white/20">
+                                  {t("تصفح الفئة الآن", "Browse Category")}
+                                  <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180 transition-transform group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1" />
+                                </div>
+                              </div>
+
+                              {/* Category number badge */}
+                              <div className="absolute top-3 rtl:left-3 ltr:right-3 h-7 w-7 rounded-full bg-foreground text-background text-[11px] font-black flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100 shadow-md">
+                                0{i + 1}
+                              </div>
+                            </>
+                          )}
                         </div>
                         {/* Name */}
-                        <div className="px-3 py-3.5 text-center bg-white border-t transition-colors group-hover:bg-foreground/3">
+                        <div className="px-3 py-3.5 text-center bg-white border-t transition-colors group-hover:bg-foreground/3 flex items-center justify-center gap-1.5">
                           <p className="cat-name text-sm font-black leading-tight transition-transform duration-300 group-hover:-translate-y-0.5">{catName(cat)}</p>
+                          {isLocked && <Lock className="h-3.5 w-3.5 text-amber-600 shrink-0" />}
                         </div>
                       </div>
-                    </Link>
-                  ))
+                    );
+                  })
                 : Array.from({ length: 8 }).map((_, i) => (
                     <Skeleton key={i} className="aspect-[4/3] rounded-2xl" />
                   ))}

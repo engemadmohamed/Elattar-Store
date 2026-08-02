@@ -64,21 +64,21 @@ router.post("/", requireAuth, async (req: Request, res: Response) => {
 router.put("/:id", requireAuth, async (req: Request, res: Response) => {
   try {
     const { name, nameAr, slug, icon, parentId, image, isActive } = req.body;
-    const cleanParentId = parentId && mongoose.Types.ObjectId.isValid(parentId) ? parentId : null;
+    
+    const updateFields: Record<string, unknown> = {};
+    if (name !== undefined) updateFields.name = name;
+    if (nameAr !== undefined) updateFields.nameAr = nameAr;
+    if (slug !== undefined) updateFields.slug = slug;
+    if (icon !== undefined) updateFields.icon = icon;
+    if (image !== undefined) updateFields.image = image;
+    if (isActive !== undefined) updateFields.isActive = isActive;
+    if (parentId !== undefined) {
+      updateFields.parentId = parentId && mongoose.Types.ObjectId.isValid(parentId) ? parentId : null;
+    }
 
     const category = await Category.findByIdAndUpdate(
       req.params.id,
-      {
-        $set: {
-          ...(name && { name }),
-          ...(nameAr && { nameAr }),
-          ...(slug && { slug }),
-          ...(icon && { icon }),
-          parentId: cleanParentId,
-          ...(image !== undefined && { image }),
-          ...(isActive !== undefined && { isActive }),
-        },
-      },
+      { $set: updateFields },
       { new: true }
     );
 

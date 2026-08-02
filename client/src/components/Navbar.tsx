@@ -11,6 +11,7 @@ import {
   Menu,
   X,
   LayoutGrid,
+  Lock,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useCart } from "@/lib/cart-context";
@@ -59,7 +60,7 @@ export default function Navbar() {
     queryFn: () => apiRequest("GET", "/api/categories"),
   });
 
-  const rootCategories = categories?.filter((c) => !c.parentId && c.isActive) || [];
+  const rootCategories = categories?.filter((c) => !c.parentId) || [];
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -166,27 +167,52 @@ export default function Navbar() {
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-3">
             {t("الفئات", "Categories")}
           </p>
-          {rootCategories.map((cat, i) => (
-            <Link key={cat._id} href={`/shop?category=${cat.slug}`} onClick={() => setMobileMenuOpen(false)}>
+          {rootCategories.map((cat, i) => {
+            const isLocked = cat.isActive === false;
+            return (
               <div
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-accent transition-all duration-200 group cursor-pointer"
+                key={cat._id}
+                onClick={(e) => {
+                  if (isLocked) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toast({
+                      title: "🔒 هذه الفئة مغلقة حالياً",
+                      description: "لا يمكن تصفح منتجات هذه الفئة في الوقت الحالي",
+                      variant: "destructive",
+                    });
+                  } else {
+                    navigate(`/shop?category=${cat.slug}`);
+                    setMobileMenuOpen(false);
+                  }
+                }}
+                className={`flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer ${
+                  isLocked ? "bg-muted/50 opacity-80" : "hover:bg-accent"
+                }`}
                 style={{ animation: `fadeInUp 0.4s cubic-bezier(0.16,1,0.3,1) ${i * 0.04}s both` }}
               >
-                <div className="h-10 w-10 rounded-xl overflow-hidden bg-muted shrink-0 flex items-center justify-center">
-                  {cat.image ? (
-                    <img
-                      src={cat.image}
-                      alt={catName(cat)}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-base">{cat.icon || "📦"}</span>
-                  )}
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl overflow-hidden bg-muted shrink-0 flex items-center justify-center relative">
+                    {cat.image ? (
+                      <img
+                        src={cat.image}
+                        alt={catName(cat)}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-base">{cat.icon || "📦"}</span>
+                    )}
+                  </div>
+                  <span className="text-sm font-medium">{catName(cat)}</span>
                 </div>
-                <span className="text-sm font-medium">{catName(cat)}</span>
+                {isLocked && (
+                  <span className="flex items-center gap-1 text-xs font-bold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                    <Lock className="h-3 w-3" /> مغلقة
+                  </span>
+                )}
               </div>
-            </Link>
-          ))}
+            );
+          })}
           <div className="border-t mt-3 pt-3 space-y-1">
             <Link href="/" onClick={() => setMobileMenuOpen(false)}>
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-accent transition-colors text-sm cursor-pointer">
@@ -310,17 +336,31 @@ export default function Navbar() {
                     </div>
 
                     <div className="p-3 grid grid-cols-3 gap-2">
-                      {rootCategories.map((cat, i) => (
-                        <Link
-                          key={cat._id}
-                          href={`/shop?category=${cat.slug}`}
-                          onClick={() => setCatOpen(false)}
-                        >
+                      {rootCategories.map((cat, i) => {
+                        const isLocked = cat.isActive === false;
+                        return (
                           <div
-                            className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-accent transition-all duration-200 cursor-pointer group text-center"
+                            key={cat._id}
+                            onClick={(e) => {
+                              if (isLocked) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                toast({
+                                  title: "🔒 هذه الفئة مغلقة حالياً",
+                                  description: "لا يمكن تصفح منتجات هذه الفئة في الوقت الحالي",
+                                  variant: "destructive",
+                                });
+                              } else {
+                                navigate(`/shop?category=${cat.slug}`);
+                                setCatOpen(false);
+                              }
+                            }}
+                            className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-200 cursor-pointer text-center relative ${
+                              isLocked ? "bg-muted/50 opacity-80" : "hover:bg-accent group"
+                            }`}
                             style={{ animation: `fadeInUp 0.35s cubic-bezier(0.16,1,0.3,1) ${i * 0.04}s both` }}
                           >
-                            <div className="h-16 w-full rounded-lg overflow-hidden bg-muted transition-transform duration-300 group-hover:scale-105 flex items-center justify-center">
+                            <div className="h-16 w-full rounded-lg overflow-hidden bg-muted transition-transform duration-300 group-hover:scale-105 flex items-center justify-center relative">
                               {cat.image ? (
                                 <img
                                   src={cat.image}
@@ -330,11 +370,19 @@ export default function Navbar() {
                               ) : (
                                 <span className="text-2xl">{cat.icon || "📦"}</span>
                               )}
+                              {isLocked && (
+                                <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center">
+                                  <Lock className="h-5 w-5 text-white" />
+                                </div>
+                              )}
                             </div>
-                            <span className="text-xs font-semibold leading-tight">{catName(cat)}</span>
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs font-semibold leading-tight">{catName(cat)}</span>
+                              {isLocked && <Lock className="h-3 w-3 text-amber-600 shrink-0" />}
+                            </div>
                           </div>
-                        </Link>
-                      ))}
+                        );
+                      })}
                     </div>
 
                     {/* Menu Footer */}
