@@ -67,6 +67,7 @@ export default function SignUp() {
   }, [step]);
 
   const generateAndSendOtp = async () => {
+    // 1. Try Firebase Phone Authentication (SMS directly from Google)
     try {
       console.log("[SignUp] Sending SMS via Firebase Phone Auth...");
       const confirmation = await sendFirebasePhoneOtp(form.phone, "recaptcha-container");
@@ -77,29 +78,28 @@ export default function SignUp() {
       });
       return true;
     } catch (fbErr: any) {
-      console.error("[SignUp] Firebase Phone Auth Error:", fbErr);
-      const code = fbErr?.code || "";
-      const message = fbErr?.message || "";
+      console.warn("[SignUp] Firebase Phone Auth fallback to server:", fbErr);
+    }
 
-      if (code.includes("operation-not-allowed") || message.includes("operation-not-allowed")) {
-        toast({
-          title: "⚠️ تفعيل Phone Auth في Firebase",
-          description: "ادخل على Firebase Console -> Authentication -> Sign-in method وقم بتفعيل خيار Phone",
-          variant: "destructive",
-        });
-      } else if (code.includes("domain-not-allowed") || message.includes("domain-not-allowed")) {
-        toast({
-          title: "⚠️ النطاق غير مصرح به في Firebase",
-          description: "أضف localhost و 127.0.0.1 ورابط موقعك إلى Authorized Domains في Firebase Console",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "فشل إرسال كود التحقق عبر Firebase",
-          description: message || code || "تعذر إرسال SMS، تحقق من اتصال الإنترنت أو إعدادات الحساب",
-          variant: "destructive",
-        });
-      }
+    // 2. Server OTP fallback
+    try {
+      const res = await apiRequest<{ success: boolean; message: string; smsError?: string }>(
+        "POST",
+        "/api/customer-auth/send-otp",
+        { phone: form.phone }
+      );
+
+      toast({
+        title: "📱 تم إرسال كود التحقق",
+        description: res.message || "يرجى إدخال كود التحقق المكون من 6 أرقام لإكمال التسجيل",
+      });
+      return true;
+    } catch (error) {
+      toast({
+        title: "فشل إرسال كود التحقق",
+        description: error instanceof Error ? error.message : "تعذر الاتصال بالخادم",
+        variant: "destructive",
+      });
       return false;
     }
   };
