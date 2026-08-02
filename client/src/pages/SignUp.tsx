@@ -79,7 +79,22 @@ export default function SignUp() {
         });
         return true;
       } catch (fbErr: any) {
-        console.warn("[SignUp] Firebase Phone Auth error / fallback:", fbErr);
+        console.error("[SignUp] Firebase Phone Auth Error:", fbErr);
+        const code = fbErr?.code || "";
+        const message = fbErr?.message || "";
+        if (code.includes("operation-not-allowed") || message.includes("operation-not-allowed")) {
+          toast({
+            title: "⚠️ تفعيل Phone Auth في Firebase",
+            description: "ادخل على Firebase Console -> Authentication -> Sign-in method وقم بتفعيل خيار Phone",
+            variant: "destructive",
+          });
+        } else if (message) {
+          toast({
+            title: "تنبيه إرسال SMS عبر Firebase",
+            description: message,
+            variant: "destructive",
+          });
+        }
       }
 
       // 2. Server API fallback
