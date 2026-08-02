@@ -295,41 +295,37 @@ export default function Profile() {
       <div className="mx-auto max-w-5xl space-y-8">
         
         {/* ===== HERO PROFILE HEADER ===== */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-black via-gray-900 to-black text-white p-6 sm:p-8 shadow-2xl">
-          {/* Decorative circles */}
-          <div className="absolute -top-20 -right-20 w-60 h-60 bg-white/5 rounded-full blur-2xl" />
-          <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-white/5 rounded-full blur-2xl" />
-
+        <div className="relative overflow-hidden rounded-3xl bg-white border-2 p-6 sm:p-8 shadow-sm">
           <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="flex items-center gap-5">
               {/* User Avatar - circular */}
               <div className="relative shrink-0">
-                <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-white text-black font-black text-3xl sm:text-4xl flex items-center justify-center shadow-xl ring-4 ring-white/20">
+                <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-black text-white font-black text-3xl sm:text-4xl flex items-center justify-center shadow-lg">
                   {firstLetter}
                 </div>
-                <div className="absolute -bottom-1 -right-1 bg-emerald-500 text-white rounded-full p-1.5 border-3 border-black shadow-lg" title="حساب موثق">
+                <div className="absolute -bottom-1 -right-1 bg-black text-white rounded-full p-1.5 border-3 border-white shadow-md" title="حساب موثق">
                   <CheckCircle2 className="h-3.5 w-3.5" />
                 </div>
               </div>
 
               {/* User Info */}
               <div className="space-y-1.5">
-                <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
                   {customer?.name || "عميل المهندس"}
                 </h1>
-                <div className="flex items-center gap-3 text-white/70 text-sm flex-wrap">
-                  <span className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-full">
+                <div className="flex items-center gap-2 text-muted-foreground text-sm flex-wrap">
+                  <span className="flex items-center gap-1.5 bg-muted px-2.5 py-1 rounded-full text-xs font-medium">
                     <Phone className="h-3 w-3" />
                     <span dir="ltr">{customer?.phone}</span>
                   </span>
                   {customer?.libraryName && (
-                    <span className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-full">
+                    <span className="flex items-center gap-1.5 bg-muted px-2.5 py-1 rounded-full text-xs font-medium">
                       <Store className="h-3 w-3" />
                       {customer.libraryName}
                     </span>
                   )}
                   {customer?.libraryLocation && (
-                    <span className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-full">
+                    <span className="flex items-center gap-1.5 bg-muted px-2.5 py-1 rounded-full text-xs font-medium">
                       <MapPin className="h-3 w-3" />
                       {customer.libraryLocation}
                     </span>
@@ -343,7 +339,7 @@ export default function Profile() {
               <Button
                 variant="outline"
                 size="sm"
-                className="bg-white/10 hover:bg-white/20 text-white border-white/20 gap-1.5 rounded-xl text-xs"
+                className="gap-1.5 rounded-xl text-xs border-2 font-bold"
                 onClick={() => {
                   setEditing(true);
                   setActiveTab("info");
@@ -354,7 +350,7 @@ export default function Profile() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-red-400 hover:bg-red-500/15 hover:text-red-300 gap-1.5 rounded-xl text-xs"
+                className="text-rose-600 hover:bg-rose-50 hover:text-rose-700 gap-1.5 rounded-xl text-xs font-bold"
                 onClick={logout}
               >
                 <LogOut className="h-3 w-3" /> خروج
@@ -363,21 +359,21 @@ export default function Profile() {
           </div>
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-3 gap-3 pt-6 mt-6 border-t border-white/10 relative z-10">
-            <div className="text-center p-3 rounded-2xl bg-white/5 border border-white/10">
-              <Package className="h-5 w-5 mx-auto mb-1 text-white/60" />
-              <p className="text-2xl font-black">{orders?.length || 0}</p>
-              <p className="text-[10px] text-white/50 font-medium">إجمالي الطلبات</p>
+          <div className="grid grid-cols-3 gap-3 pt-6 mt-6 border-t relative z-10">
+            <div className="text-center p-3 rounded-2xl bg-muted/50 border">
+              <Package className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
+              <p className="text-2xl font-black text-foreground">{orders?.length || 0}</p>
+              <p className="text-[10px] text-muted-foreground font-medium">إجمالي الطلبات</p>
             </div>
-            <div className="text-center p-3 rounded-2xl bg-white/5 border border-white/10">
-              <Truck className="h-5 w-5 mx-auto mb-1 text-amber-400/80" />
-              <p className="text-2xl font-black">{activeOrdersCount}</p>
-              <p className="text-[10px] text-white/50 font-medium">طلبات جارية</p>
+            <div className="text-center p-3 rounded-2xl bg-muted/50 border">
+              <Truck className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
+              <p className="text-2xl font-black text-foreground">{activeOrdersCount}</p>
+              <p className="text-[10px] text-muted-foreground font-medium">طلبات جارية</p>
             </div>
-            <div className="text-center p-3 rounded-2xl bg-white/5 border border-white/10">
-              <Store className="h-5 w-5 mx-auto mb-1 text-emerald-400/80" />
-              <p className="text-sm font-bold truncate mt-1">{customer?.libraryName || "—"}</p>
-              <p className="text-[10px] text-white/50 font-medium">المكتبة</p>
+            <div className="text-center p-3 rounded-2xl bg-muted/50 border">
+              <Store className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
+              <p className="text-sm font-bold truncate mt-1 text-foreground">{customer?.libraryName || "—"}</p>
+              <p className="text-[10px] text-muted-foreground font-medium">المكتبة</p>
             </div>
           </div>
         </div>

@@ -155,10 +155,8 @@ export default function ProductCard({ product }: { product: Product }) {
             {product.nameAr}
           </h3>
 
-          {/* Star rating */}
-          {reviewSummary && reviewSummary.count > 0 && (
-            <StarRating average={reviewSummary.average} count={reviewSummary.count} />
-          )}
+          {/* Star rating - always visible */}
+          <StarRating average={reviewSummary?.average || 0} count={reviewSummary?.count || 0} />
 
           <div className="flex items-center justify-between gap-2 mt-2">
             <div className="flex items-baseline gap-1.5">
