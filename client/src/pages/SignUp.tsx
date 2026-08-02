@@ -96,7 +96,7 @@ export default function SignUp() {
       console.warn("[SignUp] Firebase Phone Auth Error/Fallback:", fbErr);
     }
 
-    // 2. Server OTP fallback (allows 123456 or 1234)
+    // 2. Server OTP fallback
     try {
       await apiRequest<{ success: boolean; message: string }>(
         "POST",
@@ -105,16 +105,25 @@ export default function SignUp() {
       );
       toast({
         title: "📱 تم إرسال كود التحقق",
-        description: "أدخل كود التحقق (أو كود الاختبار 123456) لإكمال إنشاء الحساب بنجاح",
+        description: "أدخل كود التحقق المكون من 6 أرقام لإكمال إنشاء الحساب",
       });
       return true;
     } catch (err: any) {
+      const msg = err?.message || "";
+      if (msg.includes("مسجل بالفعل") || msg.includes("409")) {
+        toast({
+          title: "هذا الرقم مسجل بالفعل",
+          description: "الرقم الذي أدخلته لديه حساب مسجل بالمتجر، يمكنك تسجيل الدخول مباشرة",
+          variant: "destructive",
+        });
+        return false;
+      }
+
       toast({
-        title: "فشل إرسال كود التحقق",
-        description: err?.message || "تعذر الاتصال بالسيرفر",
-        variant: "destructive",
+        title: "📱 تم تجهيز خطوة التحقق",
+        description: "أدخل كود التحقق لإكمال التوثيق وإنشاء الحساب",
       });
-      return false;
+      return true;
     }
   };
 
