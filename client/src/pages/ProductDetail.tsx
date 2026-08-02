@@ -219,7 +219,7 @@ export default function ProductDetail() {
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className={`h-4 w-4 ${i < Math.round(product.rating || 0) ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground/50"}`}
+                    className={`h-4 w-4 ${i < Math.round(product.rating || 0) ? "text-foreground fill-foreground" : "text-muted-foreground/50"}`}
                   />
                 ))}
               </div>
@@ -238,35 +238,24 @@ export default function ProductDetail() {
             )}
 
             {/* Price */}
-            <div className="flex items-center gap-3">
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold text-primary">
-                  {formatPrice(price)}
-                </span>
-                <span className="text-base text-muted-foreground">
-                  / {saleUnitMap[product.saleUnit || "piece"]}
-                </span>
-              </div>
+            <div className="flex items-baseline gap-3 my-2">
+              <span className="text-3xl font-bold text-foreground">
+                {formatPrice(price)}
+              </span>
               {hasDiscount && (
                 <span className="text-lg text-muted-foreground line-through">
                   {formatPrice(product.price)}
                 </span>
-              )}
-              {hasDiscount && (
-                <Badge className="bg-destructive">
-                  وفر{" "}
-                  {Math.round(((product.price - price) / product.price) * 100)}%
-                </Badge>
               )}
             </div>
 
             {/* Stock */}
             <div className="flex items-center gap-2">
               <div
-                className={`h-2 w-2 rounded-full ${inStock ? "bg-green-500" : "bg-red-500"}`}
+                className={`h-2 w-2 rounded-full ${inStock ? "bg-foreground" : "bg-red-500"}`}
               />
               <span
-                className={`text-sm font-medium ${inStock ? "text-green-600" : "text-red-500"}`}
+                className={`text-sm font-semibold ${inStock ? "text-foreground" : "text-red-500"}`}
               >
                 {inStock ? `متوفر (${product.stock} قطعة)` : "نفدت الكمية"}
               </span>

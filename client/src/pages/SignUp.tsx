@@ -63,38 +63,24 @@ export default function SignUp() {
     return () => clearInterval(interval);
   }, [step]);
 
-  const [devCode, setDevCode] = useState<string>("");      // visible OTP hint in dev/fallback
-
   const generateAndSendOtp = async () => {
     try {
-      const res = await apiRequest<{ success: boolean; message: string; code?: string; smsError?: string; provider?: string }>(
+      const res = await apiRequest<{ success: boolean; message: string; smsError?: string }>(
         "POST",
         "/api/customer-auth/send-otp",
         { phone: form.phone }
       );
 
-      // If server sends back code (dev mode or SMS failed), show it prominently
-      if (res.code) {
-        setDevCode(res.code);
-        // Auto-fill OTP fields
-        setOtp(res.code.split(""));
-        toast({
-          title: "📱 رمز التحقق",
-          description: `الكود هو: ${res.code}`,
-        });
-      } else if (res.smsError) {
-        // SMS gateway error – inform user
+      if (res.smsError) {
         toast({
           title: "⚠️ تعذّر إرسال SMS",
-          description: "الرجاء التواصل مع الدعم أو المحاولة لاحقاً",
+          description: res.smsError,
           variant: "destructive",
         });
-        setDevCode("");
       } else {
-        setDevCode("");
         toast({
           title: "📱 تم إرسال رمز التحقق",
-          description: res.message || "يرجى فحص رسائل هاتفك",
+          description: res.message || "يرجى فحص رسائل هاتفك لإدخال الرمز",
         });
       }
       return true;
@@ -423,14 +409,6 @@ export default function SignUp() {
                 <p className="text-center text-destructive text-sm font-medium mb-4 animate-fade-in-up">
                   ❌ الرمز غير صحيح، حاول مرة أخرى
                 </p>
-              )}
-
-              {/* Dev/Fallback: show code visually on screen */}
-              {devCode && (
-                <div className="mb-4 p-3 rounded-xl border-2 border-amber-300 bg-amber-50 text-center">
-                  <p className="text-xs text-amber-700 font-medium mb-1">رمز التحقق الخاص بك</p>
-                  <p className="text-3xl font-black tracking-[0.3em] text-amber-900">{devCode}</p>
-                </div>
               )}
 
               {/* Countdown */}

@@ -37,10 +37,10 @@ function StarRating({ average, count }: { average: number; count: number }) {
             key={s}
             className={`h-3 w-3 ${
               s <= fullStars
-                ? "fill-amber-400 text-amber-400"
+                ? "fill-foreground text-foreground"
                 : s === fullStars + 1 && hasHalf
-                ? "fill-amber-200 text-amber-400"
-                : "fill-transparent text-muted-foreground/40"
+                ? "fill-foreground/40 text-foreground"
+                : "fill-transparent text-muted-foreground/30"
             }`}
           />
         ))}

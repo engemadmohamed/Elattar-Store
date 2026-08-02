@@ -34,7 +34,6 @@ router.post("/send-otp", async (req: Request, res: Response) => {
       message: `تم إرسال رمز التحقق إلى الرقم ${cleanedPhone}`,
       provider: smsResult.provider,
       smsError: smsResult.error,
-      code: process.env.NODE_ENV === "production" ? undefined : code,
     });
   } catch (error) {
     console.error("Send OTP Error:", error);

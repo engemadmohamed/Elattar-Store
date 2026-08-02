@@ -53,7 +53,7 @@ export default function AdminSidebar() {
             E
           </div>
           <div>
-            <p className="font-bold text-sm leading-tight">Elattar Store</p>
+            <p className="font-bold text-sm leading-tight">متجر المهندس</p>
             <p className="text-xs text-muted-foreground leading-tight">لوحة الإدارة</p>
           </div>
         </Link>
