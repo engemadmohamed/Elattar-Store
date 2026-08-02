@@ -140,6 +140,6 @@ export async function sendSmsOtp(phone: string, code: string): Promise<SmsResult
   return {
     success: false,
     provider: "sms-misr",
-    error: "فشل إرسال الرسالة عبر بوابة SMS Misr. تحقق من اسم المرسل ورصيد الحساب.",
+    error: "تعذر إرسال رمز التحقق إلى هاتفك حالياً. يرجى التأكد من الرقم والمحاولة لاحقاً.",
   };
 }
