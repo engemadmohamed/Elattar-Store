@@ -163,10 +163,28 @@ router.put("/my-orders/:id/cancel", requireCustomerAuth, async (req: CustomerAut
       await Product.findByIdAndUpdate(item.productId, { $inc: { stock: item.quantity } });
     }
 
-    order.status = "cancelled";
+  order.status = "cancelled";
     (order as any).cancelledBy = "customer";
     await order.save();
     return res.json(order);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Customer deletes their own order from history (only delivered/cancelled)
+router.delete("/my-orders/:id", requireCustomerAuth, async (req: CustomerAuthRequest, res: Response) => {
+  try {
+    const order = await Order.findOne({ _id: req.params.id, customerId: req.customerId });
+    if (!order) return res.status(404).json({ message: "الطلب غير موجود" });
+
+    if (!["delivered", "cancelled"].includes(order.status)) {
+      return res.status(400).json({ message: "لا يمكن حذف طلب لم يكتمل أو لم يُلغَ بعد" });
+    }
+
+    await Order.findByIdAndDelete(order._id);
+    return res.json({ message: "تم حذف الطلب بنجاح" });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Server error" });

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link, Redirect } from "wouter";
+import { Link, Redirect, useLocation } from "wouter";
 import {
   Package,
   User as UserIcon,
@@ -17,7 +17,13 @@ import {
   Clock,
   Truck,
   ShoppingBag,
-  Sparkles,
+  Lock,
+  Eye,
+  EyeOff,
+  Trash2,
+  X,
+  Shield,
+  KeyRound,
 } from "lucide-react";
 import { useCustomerAuth } from "@/lib/customer-auth-context";
 import { useCart } from "@/lib/cart-context";
@@ -111,6 +117,7 @@ export default function Profile() {
   const { toast } = useToast();
   const qc = useQueryClient();
   const { addItem } = useCart();
+  const [, navigate] = useLocation();
   const [editing, setEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("orders");
   const [form, setForm] = useState({
@@ -121,6 +128,17 @@ export default function Profile() {
   });
   const [invoiceOrder, setInvoiceOrder] = useState<Order | null>(null);
   const [cancelTarget, setCancelTarget] = useState<Order | null>(null);
+  const [deleteOrderTarget, setDeleteOrderTarget] = useState<Order | null>(null);
+  const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
+  const [showPasswordSection, setShowPasswordSection] = useState(false);
+  const [showCurrentPw, setShowCurrentPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [pwForm, setPwForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  const [hiddenBuyAgain, setHiddenBuyAgain] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("hidden-buy-again") || "[]");
+    } catch { return []; }
+  });
 
   useEffect(() => {
     if (customer) {
@@ -170,6 +188,56 @@ export default function Profile() {
       }),
   });
 
+  const deleteOrderMutation = useMutation({
+    mutationFn: (orderId: string) =>
+      customerRequest("DELETE", `/api/orders/my-orders/${orderId}`),
+    onSuccess: () => {
+      toast({ title: "تم حذف الطلب من السجل ✓" });
+      qc.invalidateQueries({ queryKey: ["/api/orders/my-orders"] });
+      setDeleteOrderTarget(null);
+    },
+    onError: (err) =>
+      toast({
+        title: "فشل حذف الطلب",
+        description: String(err),
+        variant: "destructive",
+      }),
+  });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: () =>
+      customerRequest("PUT", "/api/customer-auth/change-password", {
+        currentPassword: pwForm.currentPassword,
+        newPassword: pwForm.newPassword,
+      }),
+    onSuccess: () => {
+      toast({ title: "✅ تم تغيير كلمة المرور بنجاح" });
+      setPwForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setShowPasswordSection(false);
+    },
+    onError: (err) =>
+      toast({
+        title: "فشل تغيير كلمة المرور",
+        description: err instanceof Error ? err.message : String(err),
+        variant: "destructive",
+      }),
+  });
+
+  const deleteAccountMutation = useMutation({
+    mutationFn: () => customerRequest("DELETE", "/api/customer-auth/me"),
+    onSuccess: () => {
+      toast({ title: "تم حذف حسابك بنجاح" });
+      logout();
+      navigate("/");
+    },
+    onError: (err) =>
+      toast({
+        title: "فشل حذف الحساب",
+        description: String(err),
+        variant: "destructive",
+      }),
+  });
+
   if (!isLoading && !isAuthenticated) {
     return <Redirect to="/login" />;
   }
@@ -182,7 +250,9 @@ export default function Profile() {
     const seen = new Map<string, OrderItem>();
     for (const order of orders) {
       for (const item of order.items) {
-        if (!seen.has(item.productId)) seen.set(item.productId, item);
+        if (!seen.has(item.productId) && !hiddenBuyAgain.includes(item.productId)) {
+          seen.set(item.productId, item);
+        }
       }
     }
     return Array.from(seen.values()).slice(0, 8);
@@ -199,57 +269,68 @@ export default function Profile() {
     toast({ title: "تم الإضافة للسلة ✓", description: item.nameAr });
   };
 
+  const handleRemoveBuyAgain = (productId: string) => {
+    const updated = [...hiddenBuyAgain, productId];
+    setHiddenBuyAgain(updated);
+    localStorage.setItem("hidden-buy-again", JSON.stringify(updated));
+    toast({ title: "تم إزالة المنتج من القائمة" });
+  };
+
+  const handleChangePassword = () => {
+    if (pwForm.newPassword !== pwForm.confirmPassword) {
+      toast({ title: "كلمتا المرور غير متطابقتين", variant: "destructive" });
+      return;
+    }
+    if (pwForm.newPassword.length < 6) {
+      toast({ title: "كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل", variant: "destructive" });
+      return;
+    }
+    changePasswordMutation.mutate();
+  };
+
   const firstLetter = customer?.name ? customer.name.trim().charAt(0).toUpperCase() : "م";
 
   return (
     <div className="min-h-screen bg-muted/20 py-8 px-4 sm:px-6">
       <div className="mx-auto max-w-5xl space-y-8">
         
-        {/* ===== HERO PROFILE HEADER CARD ===== */}
-        <div className="relative overflow-hidden rounded-3xl bg-black text-white p-6 sm:p-8 shadow-2xl border border-white/10">
-          {/* Subtle grid pattern background */}
-          <div
-            className="absolute inset-0 opacity-[0.06] pointer-events-none"
-            style={{
-              backgroundImage: `linear-gradient(hsl(0 0% 100%) 1px, transparent 1px), linear-gradient(90deg, hsl(0 0% 100%) 1px, transparent 1px)`,
-              backgroundSize: "24px 24px",
-            }}
-          />
+        {/* ===== HERO PROFILE HEADER ===== */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-black via-gray-900 to-black text-white p-6 sm:p-8 shadow-2xl">
+          {/* Decorative circles */}
+          <div className="absolute -top-20 -right-20 w-60 h-60 bg-white/5 rounded-full blur-2xl" />
+          <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-white/5 rounded-full blur-2xl" />
 
           <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="flex items-center gap-5">
-              {/* User Avatar */}
+              {/* User Avatar - circular */}
               <div className="relative shrink-0">
-                <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-2xl bg-white text-black font-black text-3xl sm:text-4xl flex items-center justify-center shadow-lg border-2 border-white/20">
+                <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-white text-black font-black text-3xl sm:text-4xl flex items-center justify-center shadow-xl ring-4 ring-white/20">
                   {firstLetter}
                 </div>
-                <div className="absolute -bottom-1 -right-1 bg-emerald-500 text-white rounded-full p-1 border-2 border-black" title="حساب موثق">
-                  <CheckCircle2 className="h-4 w-4" />
+                <div className="absolute -bottom-1 -right-1 bg-emerald-500 text-white rounded-full p-1.5 border-3 border-black shadow-lg" title="حساب موثق">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
                 </div>
               </div>
 
-              {/* User Info & Library */}
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-                    {customer?.name || "عميل المهندس"}
-                  </h1>
-                </div>
-
-                <div className="flex items-center gap-4 text-white/80 text-sm flex-wrap pt-1">
-                  <span className="flex items-center gap-1">
-                    <Phone className="h-3.5 w-3.5 text-white/60" />
+              {/* User Info */}
+              <div className="space-y-1.5">
+                <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+                  {customer?.name || "عميل المهندس"}
+                </h1>
+                <div className="flex items-center gap-3 text-white/70 text-sm flex-wrap">
+                  <span className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-full">
+                    <Phone className="h-3 w-3" />
                     <span dir="ltr">{customer?.phone}</span>
                   </span>
                   {customer?.libraryName && (
-                    <span className="flex items-center gap-1 font-semibold text-white">
-                      <Store className="h-3.5 w-3.5 text-amber-400" />
+                    <span className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-full">
+                      <Store className="h-3 w-3" />
                       {customer.libraryName}
                     </span>
                   )}
                   {customer?.libraryLocation && (
-                    <span className="flex items-center gap-1 text-white/70">
-                      <MapPin className="h-3.5 w-3.5 text-white/60" />
+                    <span className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-full">
+                      <MapPin className="h-3 w-3" />
                       {customer.libraryLocation}
                     </span>
                   )}
@@ -258,59 +339,45 @@ export default function Profile() {
             </div>
 
             {/* Header Action Buttons */}
-            <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+            <div className="flex items-center gap-2 w-full md:w-auto justify-end">
               <Button
                 variant="outline"
                 size="sm"
-                className="bg-white/10 hover:bg-white/20 text-white border-white/20 gap-2 rounded-xl"
+                className="bg-white/10 hover:bg-white/20 text-white border-white/20 gap-1.5 rounded-xl text-xs"
                 onClick={() => {
                   setEditing(true);
                   setActiveTab("info");
                 }}
               >
-                <Pencil className="h-3.5 w-3.5" /> تعديل البيانات
+                <Pencil className="h-3 w-3" /> تعديل البيانات
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-red-400 hover:bg-red-500/10 hover:text-red-300 gap-1.5 rounded-xl"
+                className="text-red-400 hover:bg-red-500/15 hover:text-red-300 gap-1.5 rounded-xl text-xs"
                 onClick={logout}
               >
-                <LogOut className="h-3.5 w-3.5" /> خروج
+                <LogOut className="h-3 w-3" /> خروج
               </Button>
             </div>
           </div>
 
-          {/* Quick Stats Footer Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-6 mt-6 border-t border-white/10">
-            <div className="bg-white/5 rounded-2xl p-3.5 border border-white/10 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
-                <Package className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <p className="text-xs text-white/60 font-medium">إجمالي الطلبات</p>
-                <p className="text-lg font-black text-white">{orders?.length || 0}</p>
-              </div>
+          {/* Quick Stats */}
+          <div className="grid grid-cols-3 gap-3 pt-6 mt-6 border-t border-white/10 relative z-10">
+            <div className="text-center p-3 rounded-2xl bg-white/5 border border-white/10">
+              <Package className="h-5 w-5 mx-auto mb-1 text-white/60" />
+              <p className="text-2xl font-black">{orders?.length || 0}</p>
+              <p className="text-[10px] text-white/50 font-medium">إجمالي الطلبات</p>
             </div>
-
-            <div className="bg-white/5 rounded-2xl p-3.5 border border-white/10 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
-                <Truck className="h-5 w-5 text-amber-400" />
-              </div>
-              <div>
-                <p className="text-xs text-white/60 font-medium">طلبات جارية</p>
-                <p className="text-lg font-black text-white">{activeOrdersCount}</p>
-              </div>
+            <div className="text-center p-3 rounded-2xl bg-white/5 border border-white/10">
+              <Truck className="h-5 w-5 mx-auto mb-1 text-amber-400/80" />
+              <p className="text-2xl font-black">{activeOrdersCount}</p>
+              <p className="text-[10px] text-white/50 font-medium">طلبات جارية</p>
             </div>
-
-            <div className="bg-white/5 rounded-2xl p-3.5 border border-white/10 flex items-center gap-3 col-span-2 sm:col-span-1">
-              <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
-                <Store className="h-5 w-5 text-emerald-400" />
-              </div>
-              <div className="truncate">
-                <p className="text-xs text-white/60 font-medium">المكتبة المسجلة</p>
-                <p className="text-sm font-bold text-white truncate">{customer?.libraryName || "مكتبة فردية"}</p>
-              </div>
+            <div className="text-center p-3 rounded-2xl bg-white/5 border border-white/10">
+              <Store className="h-5 w-5 mx-auto mb-1 text-emerald-400/80" />
+              <p className="text-sm font-bold truncate mt-1">{customer?.libraryName || "—"}</p>
+              <p className="text-[10px] text-white/50 font-medium">المكتبة</p>
             </div>
           </div>
         </div>
@@ -334,7 +401,7 @@ export default function Profile() {
               value="info"
               className="rounded-xl py-3 font-bold gap-2 data-[state=active]:bg-black data-[state=active]:text-white transition-all"
             >
-              <UserIcon className="h-4 w-4" /> بيانات الحساب
+              <UserIcon className="h-4 w-4" /> الحساب
             </TabsTrigger>
           </TabsList>
 
@@ -354,6 +421,7 @@ export default function Profile() {
                     dotClass: "bg-gray-400",
                   };
                   const canCancel = !["delivered", "cancelled"].includes(order.status);
+                  const canDelete = ["delivered", "cancelled"].includes(order.status);
 
                   return (
                     <Card key={order._id} className="rounded-3xl border shadow-sm hover:shadow-md transition-all overflow-hidden bg-white">
@@ -424,17 +492,29 @@ export default function Profile() {
                             <span className="text-lg font-black text-foreground">{formatPrice(order.total)}</span>
                           </div>
 
-                          {canCancel && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 gap-1 rounded-xl font-bold"
-                              disabled={cancelMutation.isPending}
-                              onClick={() => setCancelTarget(order)}
-                            >
-                              <XCircle className="h-4 w-4" /> إلغاء الطلب
-                            </Button>
-                          )}
+                          <div className="flex items-center gap-2">
+                            {canDelete && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-muted-foreground hover:text-rose-600 hover:bg-rose-50 gap-1 rounded-xl"
+                                onClick={() => setDeleteOrderTarget(order)}
+                              >
+                                <Trash2 className="h-4 w-4" /> حذف
+                              </Button>
+                            )}
+                            {canCancel && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 gap-1 rounded-xl font-bold"
+                                disabled={cancelMutation.isPending}
+                                onClick={() => setCancelTarget(order)}
+                              >
+                                <XCircle className="h-4 w-4" /> إلغاء الطلب
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -464,7 +544,16 @@ export default function Profile() {
             {buyAgainItems.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {buyAgainItems.map((item) => (
-                  <Card key={item.productId} className="rounded-3xl border shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col bg-white">
+                  <Card key={item.productId} className="rounded-3xl border shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col bg-white group relative">
+                    {/* Remove button */}
+                    <button
+                      onClick={() => handleRemoveBuyAgain(item.productId)}
+                      className="absolute top-2 right-2 z-10 h-7 w-7 rounded-full bg-black/60 hover:bg-red-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
+                      title="إزالة من القائمة"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+
                     <CardContent className="p-4 flex flex-col flex-1">
                       <Link href={`/product/${item.productId}`}>
                         <div className="aspect-square bg-muted rounded-2xl overflow-hidden mb-3 border">
@@ -495,8 +584,9 @@ export default function Profile() {
             )}
           </TabsContent>
 
-          {/* ----- TAB 3: PERSONAL INFO ----- */}
-          <TabsContent value="info">
+          {/* ----- TAB 3: ACCOUNT INFO ----- */}
+          <TabsContent value="info" className="space-y-6">
+            {/* Personal Info Card */}
             <Card className="rounded-3xl border shadow-sm bg-white p-6 sm:p-8">
               <div className="flex items-center justify-between mb-6 pb-4 border-b">
                 <div>
@@ -578,28 +668,144 @@ export default function Profile() {
                   </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div className="p-4 rounded-2xl bg-muted/30 border space-y-1">
                     <span className="text-xs font-bold text-muted-foreground block">الاسم</span>
                     <span className="text-base font-black text-foreground">{customer?.name}</span>
                   </div>
-
                   <div className="p-4 rounded-2xl bg-muted/30 border space-y-1">
                     <span className="text-xs font-bold text-muted-foreground block">رقم الهاتف</span>
                     <span className="text-base font-black text-foreground dir-ltr block text-right" dir="ltr">{customer?.phone}</span>
                   </div>
-
                   <div className="p-4 rounded-2xl bg-muted/30 border space-y-1">
                     <span className="text-xs font-bold text-muted-foreground block">اسم المكتبة</span>
                     <span className="text-base font-black text-foreground">{customer?.libraryName || "غير محدد"}</span>
                   </div>
-
                   <div className="p-4 rounded-2xl bg-muted/30 border space-y-1">
                     <span className="text-xs font-bold text-muted-foreground block">موقع المكتبة</span>
                     <span className="text-base font-black text-foreground">{customer?.libraryLocation || "غير محدد"}</span>
                   </div>
                 </div>
               )}
+            </Card>
+
+            {/* Change Password Card */}
+            <Card className="rounded-3xl border shadow-sm bg-white p-6 sm:p-8">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-black/5 flex items-center justify-center">
+                    <KeyRound className="h-5 w-5 text-foreground" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black">تغيير كلمة المرور</h3>
+                    <p className="text-xs text-muted-foreground">تحديث كلمة المرور الخاصة بحسابك</p>
+                  </div>
+                </div>
+                {!showPasswordSection && (
+                  <Button
+                    variant="outline"
+                    className="rounded-xl gap-1.5 font-bold"
+                    onClick={() => setShowPasswordSection(true)}
+                  >
+                    <Lock className="h-3.5 w-3.5" /> تغيير
+                  </Button>
+                )}
+              </div>
+
+              {showPasswordSection && (
+                <div className="space-y-4 max-w-lg pt-4 border-t">
+                  <div>
+                    <Label className="font-bold">كلمة المرور الحالية</Label>
+                    <div className="relative mt-1.5">
+                      <Input
+                        type={showCurrentPw ? "text" : "password"}
+                        className="rounded-xl pr-10"
+                        value={pwForm.currentPassword}
+                        onChange={(e) => setPwForm({ ...pwForm, currentPassword: e.target.value })}
+                        placeholder="أدخل كلمة المرور الحالية"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowCurrentPw(!showCurrentPw)}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showCurrentPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="font-bold">كلمة المرور الجديدة</Label>
+                    <div className="relative mt-1.5">
+                      <Input
+                        type={showNewPw ? "text" : "password"}
+                        className="rounded-xl pr-10"
+                        value={pwForm.newPassword}
+                        onChange={(e) => setPwForm({ ...pwForm, newPassword: e.target.value })}
+                        placeholder="6 أحرف على الأقل"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPw(!showNewPw)}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showNewPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="font-bold">تأكيد كلمة المرور الجديدة</Label>
+                    <Input
+                      type="password"
+                      className="rounded-xl mt-1.5"
+                      value={pwForm.confirmPassword}
+                      onChange={(e) => setPwForm({ ...pwForm, confirmPassword: e.target.value })}
+                      placeholder="أعد إدخال كلمة المرور الجديدة"
+                    />
+                  </div>
+                  <div className="flex gap-3 pt-2">
+                    <Button
+                      className="bg-black hover:bg-black/90 text-white rounded-xl px-6 font-bold gap-1.5"
+                      disabled={changePasswordMutation.isPending}
+                      onClick={handleChangePassword}
+                    >
+                      <Shield className="h-4 w-4" />
+                      {changePasswordMutation.isPending ? "جاري التحديث..." : "حفظ كلمة المرور"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="rounded-xl"
+                      onClick={() => {
+                        setShowPasswordSection(false);
+                        setPwForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+                      }}
+                    >
+                      إلغاء
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </Card>
+
+            {/* Danger Zone - Delete Account */}
+            <Card className="rounded-3xl border border-rose-200 shadow-sm bg-rose-50/30 p-6 sm:p-8">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-rose-100 flex items-center justify-center">
+                    <AlertTriangle className="h-5 w-5 text-rose-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-rose-700">منطقة الخطر</h3>
+                    <p className="text-xs text-rose-600/70">حذف الحساب نهائياً مع جميع البيانات والتقييمات</p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  className="rounded-xl border-rose-300 text-rose-600 hover:bg-rose-100 hover:text-rose-700 gap-1.5 font-bold"
+                  onClick={() => setDeleteAccountOpen(true)}
+                >
+                  <Trash2 className="h-3.5 w-3.5" /> حذف الحساب
+                </Button>
+              </div>
             </Card>
           </TabsContent>
         </Tabs>
@@ -650,6 +856,76 @@ export default function Profile() {
               }}
             >
               {cancelMutation.isPending ? "جاري الإلغاء..." : "تأكيد الإلغاء"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Order Confirmation Dialog */}
+      <Dialog open={!!deleteOrderTarget} onOpenChange={() => setDeleteOrderTarget(null)}>
+        <DialogContent className="max-w-sm rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-muted-foreground font-black">
+              <Trash2 className="h-5 w-5" /> حذف الطلب من السجل
+            </DialogTitle>
+            <DialogDescription className="text-right pt-2">
+              هل تريد حذف طلب <strong>#{deleteOrderTarget?.orderNumber}</strong> من سجل طلباتك؟
+              <br />
+              لن يتم حذفه من سجلات الإدارة.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-row gap-2 sm:gap-2 pt-2">
+            <Button
+              variant="outline"
+              className="flex-1 rounded-xl"
+              onClick={() => setDeleteOrderTarget(null)}
+            >
+              رجوع
+            </Button>
+            <Button
+              variant="destructive"
+              className="flex-1 rounded-xl font-bold"
+              disabled={deleteOrderMutation.isPending}
+              onClick={() => {
+                if (deleteOrderTarget) {
+                  deleteOrderMutation.mutate(deleteOrderTarget._id);
+                }
+              }}
+            >
+              {deleteOrderMutation.isPending ? "جاري الحذف..." : "حذف الطلب"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Account Confirmation Dialog */}
+      <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
+        <DialogContent className="max-w-sm rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-rose-600 font-black">
+              <AlertTriangle className="h-5 w-5" /> حذف الحساب نهائياً
+            </DialogTitle>
+            <DialogDescription className="text-right pt-2">
+              هل أنت متأكد من حذف حسابك بالكامل؟
+              <br />
+              سيتم حذف جميع بياناتك وتقييماتك نهائياً ولا يمكن التراجع عن هذا الإجراء.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-row gap-2 sm:gap-2 pt-2">
+            <Button
+              variant="outline"
+              className="flex-1 rounded-xl"
+              onClick={() => setDeleteAccountOpen(false)}
+            >
+              رجوع
+            </Button>
+            <Button
+              variant="destructive"
+              className="flex-1 rounded-xl bg-rose-600 hover:bg-rose-700 font-bold"
+              disabled={deleteAccountMutation.isPending}
+              onClick={() => deleteAccountMutation.mutate()}
+            >
+              {deleteAccountMutation.isPending ? "جاري الحذف..." : "حذف الحساب نهائياً"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -199,4 +199,53 @@ router.put("/me", requireCustomerAuth, async (req: CustomerAuthRequest, res: Res
   }
 });
 
+// 7. Change password
+router.put("/change-password", requireCustomerAuth, async (req: CustomerAuthRequest, res: Response) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: "كلمة المرور الحالية والجديدة مطلوبتان" });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: "كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل" });
+    }
+
+    const customer = await Customer.findById(req.customerId);
+    if (!customer) return res.status(404).json({ message: "الحساب غير موجود" });
+
+    const isMatch = await customer.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(401).json({ message: "كلمة المرور الحالية غير صحيحة" });
+    }
+
+    customer.password = newPassword;
+    await customer.save(); // Will auto-hash via pre-save hook
+
+    return res.json({ message: "تم تغيير كلمة المرور بنجاح" });
+  } catch (error) {
+    console.error("Change password error:", error);
+    return res.status(500).json({ message: "حدث خطأ في الخادم" });
+  }
+});
+
+// 8. Delete account
+router.delete("/me", requireCustomerAuth, async (req: CustomerAuthRequest, res: Response) => {
+  try {
+    const customer = await Customer.findById(req.customerId);
+    if (!customer) return res.status(404).json({ message: "الحساب غير موجود" });
+
+    // Delete customer's reviews
+    const { Review } = await import("../models/Review.js");
+    await Review.deleteMany({ customerId: req.customerId });
+
+    // Delete customer account
+    await Customer.findByIdAndDelete(req.customerId);
+
+    return res.json({ message: "تم حذف الحساب بنجاح" });
+  } catch (error) {
+    console.error("Delete account error:", error);
+    return res.status(500).json({ message: "حدث خطأ في الخادم" });
+  }
+});
+
 export default router;
