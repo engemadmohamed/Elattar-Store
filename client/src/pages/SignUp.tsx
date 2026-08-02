@@ -67,37 +67,23 @@ export default function SignUp() {
   }, [step]);
 
   const generateAndSendOtp = async () => {
-    // 1. Try Firebase Phone Authentication (SMS directly from Google)
     try {
-      console.log("[SignUp] Sending SMS via Firebase Phone Auth...");
+      console.log("[SignUp] Attempting Firebase Phone Auth SMS dispatch to:", form.phone);
       const confirmation = await sendFirebasePhoneOtp(form.phone, "recaptcha-container");
       setConfirmationResult(confirmation);
       toast({
-        title: "📱 تم إرسال كود التحقق عبر Firebase",
-        description: "يرجى فحص الرسائل النصية على هاتفك لإدخال الرمز المكون من 6 أرقام",
+        title: "📱 تم إرسال كود التحقق من جوجل Firebase",
+        description: `وصلك الآن رمز مكون من 6 أرقام على الرقم ${form.phone}`,
       });
       return true;
     } catch (fbErr: any) {
-      console.warn("[SignUp] Firebase Phone Auth fallback to server:", fbErr);
-    }
-
-    // 2. Server OTP fallback
-    try {
-      const res = await apiRequest<{ success: boolean; message: string; smsError?: string }>(
-        "POST",
-        "/api/customer-auth/send-otp",
-        { phone: form.phone }
-      );
+      console.error("[SignUp] Firebase Phone Auth Error details:", fbErr);
+      const code = fbErr?.code || "";
+      const message = fbErr?.message || String(fbErr);
 
       toast({
-        title: "📱 تم إرسال كود التحقق",
-        description: res.message || "يرجى إدخال كود التحقق المكون من 6 أرقام لإكمال التسجيل",
-      });
-      return true;
-    } catch (error) {
-      toast({
-        title: "فشل إرسال كود التحقق",
-        description: error instanceof Error ? error.message : "تعذر الاتصال بالخادم",
+        title: "⚠️ تنبيه من Firebase",
+        description: `خطأ Firebase: ${code || message}`,
         variant: "destructive",
       });
       return false;
