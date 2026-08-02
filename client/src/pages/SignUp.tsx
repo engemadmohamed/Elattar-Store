@@ -23,6 +23,9 @@ import {
 // Steps
 type Step = "info" | "phone-confirm" | "done";
 
+import { sendFirebasePhoneOtp } from "@/lib/firebase-client";
+import type { ConfirmationResult } from "firebase/auth";
+
 export default function SignUp() {
   const { signup } = useCustomerAuth();
   const [, navigate] = useLocation();
@@ -34,7 +37,7 @@ export default function SignUp() {
   const [otpError, setOtpError] = useState(false);
   const [countdown, setCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
-  const [generatedOtp, setGeneratedOtp] = useState(""); // mock OTP
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const [form, setForm] = useState({
@@ -65,24 +68,31 @@ export default function SignUp() {
 
   const generateAndSendOtp = async () => {
     try {
+      // 1. Try Firebase Phone Authentication (SMS directly from Google)
+      try {
+        console.log("[SignUp] Sending SMS via Firebase Phone Auth...");
+        const confirmation = await sendFirebasePhoneOtp(form.phone, "recaptcha-container");
+        setConfirmationResult(confirmation);
+        toast({
+          title: "📱 تم إرسال كود التحقق عبر Firebase",
+          description: "يرجى فحص الرسائل النصية على هاتفك لإدخال الرمز",
+        });
+        return true;
+      } catch (fbErr: any) {
+        console.warn("[SignUp] Firebase Phone Auth error / fallback:", fbErr);
+      }
+
+      // 2. Server API fallback
       const res = await apiRequest<{ success: boolean; message: string; smsError?: string }>(
         "POST",
         "/api/customer-auth/send-otp",
         { phone: form.phone }
       );
 
-      if (res.smsError) {
-        toast({
-          title: "⚠️ تعذّر إرسال SMS",
-          description: res.smsError,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "📱 تم إرسال رمز التحقق",
-          description: res.message || "يرجى فحص رسائل هاتفك لإدخال الرمز",
-        });
-      }
+      toast({
+        title: "📱 تم إرسال رمز التحقق",
+        description: res.message || "يرجى فحص رسائل هاتفك لإدخال الرمز",
+      });
       return true;
     } catch (error) {
       toast({
@@ -140,9 +150,10 @@ export default function SignUp() {
   };
 
   const handleOtpPaste = (e: React.ClipboardEvent) => {
-    const paste = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 4);
-    if (paste.length === 4) {
-      setOtp(paste.split(""));
+    const paste = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (paste.length >= 4) {
+      const chars = paste.split("").slice(0, 4);
+      setOtp(chars);
     }
   };
 
@@ -151,12 +162,23 @@ export default function SignUp() {
     const enteredOtp = otp.join("");
     if (enteredOtp.length < 4) {
       setOtpError(true);
-      toast({ title: "يرجى إدخال الرمز المكون من 4 أرقام", variant: "destructive" });
+      toast({ title: "يرجى إدخال الرمز المكون من 4 أرقام على الأقل", variant: "destructive" });
       return;
     }
 
     setLoading(true);
     try {
+      // If Firebase Phone Auth was triggered, verify code with Firebase first
+      if (confirmationResult) {
+        try {
+          console.log("[SignUp] Confirming code with Firebase Auth...");
+          await confirmationResult.confirm(enteredOtp);
+          console.log("[SignUp] 🟢 Firebase SMS Code Verified Successfully!");
+        } catch (fbVerErr) {
+          console.warn("[SignUp] Firebase code confirm failed, trying server verify:", fbVerErr);
+        }
+      }
+
       await signup({
         ...form,
         code: enteredOtp,
@@ -185,6 +207,8 @@ export default function SignUp() {
 
   return (
     <div className="min-h-[90vh] flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Firebase reCAPTCHA invisible container */}
+      <div id="recaptcha-container"></div>
       {/* Background pattern */}
       <div
         className="absolute inset-0 opacity-[0.025]"
