@@ -21,22 +21,27 @@ export const firebaseAuth = getAuth(app);
 firebaseAuth.languageCode = "ar";
 
 /**
- * Creates or resets an invisible RecaptchaVerifier on the specified container button or element ID
+ * Safely creates or resets an invisible RecaptchaVerifier on containerId
  */
 export function setupRecaptcha(containerId: string = "recaptcha-container") {
   if (typeof window === "undefined") return null;
 
-  // Clear existing verifier if any attached to window
+  const container = document.getElementById(containerId);
+  if (container) {
+    container.innerHTML = ""; // Clear existing iframe/elements to prevent 'already rendered' error
+  }
+
   if ((window as any).recaptchaVerifier) {
     try {
       (window as any).recaptchaVerifier.clear();
     } catch {
       // ignore
     }
+    (window as any).recaptchaVerifier = null;
   }
 
   const verifier = new RecaptchaVerifier(firebaseAuth, containerId, {
-    size: "invisible", // Invisible reCAPTCHA
+    size: "invisible",
     callback: () => {
       console.log("[Firebase Auth] reCAPTCHA verified automatically");
     },
@@ -50,9 +55,7 @@ export function setupRecaptcha(containerId: string = "recaptcha-container") {
 }
 
 /**
- * Sends SMS verification code via Firebase Phone Authentication
- * @param phone E.164 formatted phone number e.g. +201012345678
- * @param containerId DOM element ID for reCAPTCHA
+ * Sends SMS verification code via Firebase Phone Authentication with automatic reCAPTCHA retry handling
  */
 export async function sendFirebasePhoneOtp(
   phone: string,
@@ -68,20 +71,28 @@ export async function sendFirebasePhoneOtp(
     formattedPhone = `+${formattedPhone}`;
   }
 
-  const appVerifier = setupRecaptcha(containerId);
-  if (!appVerifier) {
-    throw new Error("فشل إعداد reCAPTCHA الفاحص");
-  }
-
-  // Pre-render verifier to ensure container initialization
   try {
-    await appVerifier.render();
-  } catch (err) {
-    console.warn("[Firebase Auth] Render warning:", err);
-  }
+    const appVerifier = setupRecaptcha(containerId);
+    if (!appVerifier) {
+      throw new Error("فشل إعداد reCAPTCHA الفاحص");
+    }
 
-  console.log(`[Firebase Phone Auth] Sending SMS via Firebase to ${formattedPhone}...`);
-  const confirmationResult = await signInWithPhoneNumber(firebaseAuth, formattedPhone, appVerifier);
-  console.log(`[Firebase Phone Auth] 🟢 Verification SMS dispatched by Firebase!`);
-  return confirmationResult;
+    console.log(`[Firebase Phone Auth] Sending SMS via Firebase to ${formattedPhone}...`);
+    const confirmationResult = await signInWithPhoneNumber(firebaseAuth, formattedPhone, appVerifier);
+    console.log(`[Firebase Phone Auth] 🟢 Verification SMS dispatched by Firebase!`);
+    return confirmationResult;
+  } catch (err: any) {
+    if (err?.message?.includes("already been rendered") || err?.code?.includes("already-rendered")) {
+      console.warn("[Firebase Phone Auth] Retrying with fresh recaptcha container...");
+      const container = document.getElementById(containerId);
+      if (container) container.innerHTML = "";
+      (window as any).recaptchaVerifier = null;
+
+      const freshVerifier = setupRecaptcha(containerId);
+      if (freshVerifier) {
+        return await signInWithPhoneNumber(firebaseAuth, formattedPhone, freshVerifier);
+      }
+    }
+    throw err;
+  }
 }
