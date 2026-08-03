@@ -342,26 +342,34 @@ export default function Home() {
 
       {/* ===== CATEGORIES SECTION ===== */}
       {settings.showCategories && (
-        <section className="py-16 px-4 bg-white overflow-hidden">
-          <div className="mx-auto max-w-7xl">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10 overflow-hidden">
+        <section className="py-20 px-4 bg-gradient-to-b from-white via-muted/20 to-white overflow-hidden relative">
+          {/* Ambient Background Glows */}
+          <div className="absolute top-1/4 -right-20 w-80 h-80 bg-foreground/3 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-10 -left-20 w-80 h-80 bg-foreground/3 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="mx-auto max-w-7xl relative z-10">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12 overflow-hidden">
               <div className="animate-slide-from-outside">
-                <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-foreground animate-text-fill-in">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/5 border border-black/10 text-xs font-bold text-foreground mb-3">
+                  <Sparkles className="h-3.5 w-3.5 text-foreground animate-spin" style={{ animationDuration: "6s" }} />
+                  <span>تصفح حسب الفئات</span>
+                </div>
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-foreground animate-text-fill-in">
                   {t("تسوق بالفئة", "Shop by Category")}
                 </h2>
-                <p className="text-sm sm:text-base text-muted-foreground mt-2 font-medium animate-text-fill-in-delayed">
-                  {t("اختر الفئة التي تناسب احتياجاتك", "Choose what fits your needs")}
+                <p className="text-sm sm:text-base text-muted-foreground mt-2.5 font-medium animate-text-fill-in-delayed max-w-lg">
+                  {t("اختر الفئة التي تناسب احتياجاتك من بين تشكيلتنا المميزة", "Choose what fits your needs from our collection")}
                 </p>
               </div>
               <Link href="/shop">
-                <Button variant="outline" size="sm" className="gap-1.5 border-2 rounded-xl group font-bold animate-fade-in stagger-3">
-                  {t("الكل", "All")}
-                  <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180 transition-transform duration-300 group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1" />
+                <Button variant="outline" size="lg" className="gap-2 border-2 rounded-2xl group font-black px-6 hover:bg-black hover:text-white transition-all duration-300 shadow-sm">
+                  {t("عرض جميع الفئات", "View All Categories")}
+                  <ArrowRight className="h-4 w-4 rtl:rotate-180 transition-transform duration-300 group-hover:ltr:translate-x-1.5 group-hover:rtl:-translate-x-1.5" />
                 </Button>
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
               {categories
                 ? rootCategories.map((cat, i) => {
                     const isLocked = cat.isActive === false;
@@ -383,73 +391,74 @@ export default function Home() {
                         }}
                         data-reveal
                         data-reveal-delay={String(Math.min(i + 1, 8))}
-                        className={`category-card card-shine group h-full overflow-hidden rounded-2xl border-2 border-transparent bg-white cursor-pointer relative ${
-                          isLocked ? "opacity-85" : ""
+                        className={`category-card-ultra card-shine group h-full overflow-hidden rounded-3xl border-2 border-border/60 bg-white cursor-pointer relative ${
+                          isLocked ? "opacity-85" : "hover:border-black/30"
                         }`}
-                        style={{ boxShadow: "0 4px 24px hsl(0 0% 0% / 0.07)" }}
+                        style={{ boxShadow: "0 8px 30px hsl(0 0% 0% / 0.06)" }}
                       >
-                        {/* Image */}
+                        {/* Image Container */}
                         <div className="relative aspect-[4/3] overflow-hidden bg-muted flex items-center justify-center">
                           {cat.image ? (
                             <img
                               src={cat.image}
                               alt={catName(cat)}
-                              className={`h-full w-full object-cover transition-transform duration-700 ${
+                              className={`h-full w-full object-cover transition-transform duration-700 ease-out ${
                                 isLocked ? "filter grayscale-[0.3]" : "group-hover:scale-115"
                               }`}
                             />
                           ) : (
-                            <div className="h-full w-full bg-gradient-to-br from-foreground/5 via-foreground/10 to-foreground/20 flex flex-col items-center justify-center p-4 text-foreground group-hover:scale-105 transition-transform duration-500">
-                              <span className="text-4xl mb-2">{cat.icon || "📦"}</span>
+                            <div className="h-full w-full bg-gradient-to-br from-muted via-accent to-muted/80 flex flex-col items-center justify-center p-4 text-foreground group-hover:scale-105 transition-transform duration-500">
+                              <span className="text-5xl mb-2 filter drop-shadow-sm transition-transform duration-300 group-hover:scale-110">{cat.icon || "📦"}</span>
                               <span className="text-xs font-bold text-muted-foreground">{catName(cat)}</span>
                             </div>
                           )}
 
                           {isLocked ? (
                             /* Lock Badge Overlay */
-                            <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex flex-col items-center justify-center p-3 text-white">
-                              <div className="h-10 w-10 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center mb-1">
+                            <div className="absolute inset-0 bg-black/50 backdrop-blur-[3px] flex flex-col items-center justify-center p-3 text-white">
+                              <div className="h-11 w-11 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center mb-1.5 shadow-lg">
                                 <Lock className="h-5 w-5 text-white" />
                               </div>
-                              <span className="text-xs font-black bg-black/60 px-3 py-1 rounded-full border border-white/20">
+                              <span className="text-xs font-black bg-black/70 px-3.5 py-1 rounded-full border border-white/20">
                                 الفئة مغلقة
                               </span>
                             </div>
                           ) : (
                             <>
-                              {/* Dark overlay with gradient */}
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
+                              {/* Dark gradient overlay on hover */}
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
 
-                              {/* Floating interactive shape icon */}
-                              <div className="absolute top-3 rtl:right-3 ltr:left-3 h-8 w-8 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-400 -translate-y-2 group-hover:translate-y-0 group-hover:rotate-12">
-                                <Sparkles className="h-4 w-4 animate-spin" style={{ animationDuration: "8s" }} />
+                              {/* Floating Sparkles Icon */}
+                              <div className="absolute top-3.5 rtl:right-3.5 ltr:left-3.5 h-8 w-8 rounded-2xl bg-white/25 backdrop-blur-md border border-white/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-400 -translate-y-2 group-hover:translate-y-0 group-hover:rotate-12 shadow-md">
+                                <Sparkles className="h-4 w-4 animate-spin" style={{ animationDuration: "7s" }} />
                               </div>
 
-                              {/* Browse button slides up */}
-                              <div className="absolute bottom-0 inset-x-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-400 ease-out">
-                                <div className="flex items-center justify-center gap-1.5 text-white text-xs font-black bg-white/20 backdrop-blur-md rounded-xl py-2.5 shadow-lg border border-white/20">
+                              {/* Action Bar Slides Up */}
+                              <div className="absolute bottom-0 inset-x-0 p-3.5 translate-y-full group-hover:translate-y-0 transition-transform duration-400 ease-out z-10">
+                                <div className="flex items-center justify-center gap-2 text-white text-xs font-black bg-black/90 backdrop-blur-md rounded-2xl py-2.5 shadow-xl border border-white/20 group-hover:bg-black transition-colors">
                                   {t("تصفح الفئة الآن", "Browse Category")}
-                                  <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180 transition-transform group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1" />
+                                  <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180 transition-transform group-hover:ltr:translate-x-1.5 group-hover:rtl:-translate-x-1.5" />
                                 </div>
                               </div>
 
-                              {/* Category number badge */}
-                              <div className="absolute top-3 rtl:left-3 ltr:right-3 h-7 w-7 rounded-full bg-foreground text-background text-[11px] font-black flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100 shadow-md">
+                              {/* Number Badge */}
+                              <div className="absolute top-3.5 rtl:left-3.5 ltr:right-3.5 h-7 w-7 rounded-full bg-black text-white text-[11px] font-black flex items-center justify-center opacity-80 group-hover:opacity-100 transition-all duration-300 scale-90 group-hover:scale-110 shadow-lg border border-white/20">
                                 0{i + 1}
                               </div>
                             </>
                           )}
                         </div>
-                        {/* Name */}
-                        <div className="px-3 py-3.5 text-center bg-white border-t transition-colors group-hover:bg-foreground/3 flex items-center justify-center gap-1.5">
-                          <p className="cat-name text-sm font-black leading-tight transition-transform duration-300 group-hover:-translate-y-0.5">{catName(cat)}</p>
-                          {isLocked && <Lock className="h-3.5 w-3.5 text-amber-600 shrink-0" />}
+
+                        {/* Title Footer */}
+                        <div className="px-4 py-4 text-center bg-white border-t transition-colors group-hover:bg-muted/30 flex items-center justify-center gap-2">
+                          <p className="cat-name text-base font-black leading-tight text-foreground transition-transform duration-300 group-hover:-translate-y-0.5">{catName(cat)}</p>
+                          {isLocked && <Lock className="h-4 w-4 text-amber-600 shrink-0" />}
                         </div>
                       </div>
                     );
                   })
                 : Array.from({ length: 8 }).map((_, i) => (
-                    <Skeleton key={i} className="aspect-[4/3] rounded-2xl" />
+                    <Skeleton key={i} className="aspect-[4/3] rounded-3xl" />
                   ))}
 
             </div>
