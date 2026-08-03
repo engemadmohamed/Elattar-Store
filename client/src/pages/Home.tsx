@@ -251,20 +251,36 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Animated Word-by-Word Title & Description */}
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight mb-5 leading-[1.15] flex flex-wrap items-center gap-x-3 gap-y-1">
-                {("    الجودة تبني الثقة وتصنع الجودة").split(" ").map((word, i) => (
-                  <span
-                    key={i}
-                    className="inline-block animate-word-appear"
-                    style={{
-                      animationDelay: `${0.1 + i * 0.12}s`,
-                      animationFillMode: "both",
-                    }}
-                  >
-                    {word}
-                  </span>
-                ))}
+              {/* Animated Word-by-Word Title (2 Right-Aligned Lines) */}
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight mb-6 text-right dir-rtl leading-[1.25]">
+                <div className="flex flex-wrap items-center justify-start gap-x-3 mb-2">
+                  {["الجودة", "تبني", "الثقة"].map((word, i) => (
+                    <span
+                      key={i}
+                      className="inline-block animate-word-appear"
+                      style={{
+                        animationDelay: `${0.1 + i * 0.12}s`,
+                        animationFillMode: "both",
+                      }}
+                    >
+                      {word}
+                    </span>
+                  ))}
+                </div>
+                <div className="flex flex-wrap items-center justify-start gap-x-3">
+                  {["وتصنع", "الجودة"].map((word, i) => (
+                    <span
+                      key={i + 3}
+                      className="inline-block animate-word-appear"
+                      style={{
+                        animationDelay: `${0.1 + (i + 3) * 0.12}s`,
+                        animationFillMode: "both",
+                      }}
+                    >
+                      {word}
+                    </span>
+                  ))}
+                </div>
               </h1>
               <p
                 className="text-muted-foreground text-base sm:text-lg mb-8 max-w-xl leading-relaxed font-medium animate-word-appear"

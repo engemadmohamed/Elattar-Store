@@ -80,6 +80,15 @@ export default function ProductCard({ product }: { product: Product }) {
   const handleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!isAuthenticated) {
+      toast({
+        title: "🔒 تسجيل الدخول مطلوب",
+        description: "يرجى تسجيل الدخول أولاً لإضافة المنتجات إلى المفضلة",
+        variant: "destructive",
+      });
+      navigate("/login");
+      return;
+    }
     toggleWishlist(product._id);
     toast({
       title: isFav ? "تم الإزالة من المفضلة" : "تم الإضافة للمفضلة ❤️",
@@ -119,16 +128,17 @@ export default function ProductCard({ product }: { product: Product }) {
 
   return (
     <Link href={`/product/${product._id}`}>
-      <div className="product-card-hover group relative rounded-2xl border-2 border-transparent bg-white overflow-hidden cursor-pointer will-change-transform"
-        style={{ boxShadow: "0 2px 16px hsl(0 0% 0% / 0.07)" }}
+      <div
+        className="product-card-ultra card-shine group relative rounded-3xl border border-border/60 bg-white overflow-hidden cursor-pointer will-change-transform flex flex-col h-full hover:border-black/20"
+        style={{ boxShadow: "0 4px 20px hsl(0 0% 0% / 0.05)" }}
       >
         {/* Image */}
-        <div className="relative aspect-square bg-muted overflow-hidden">
+        <div className="relative aspect-square bg-muted/40 overflow-hidden flex items-center justify-center">
           {product.images[0] ? (
             <img
               src={product.images[0]}
               alt={product.nameAr}
-              className="h-full w-full object-cover transition-transform duration-400 group-hover:scale-108"
+              className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
             />
           ) : (
             <div className="h-full w-full flex items-center justify-center">
@@ -140,39 +150,41 @@ export default function ProductCard({ product }: { product: Product }) {
           <button
             type="button"
             onClick={handleWishlist}
-            className="absolute top-2.5 rtl:left-2.5 ltr:right-2.5 z-10 h-8 w-8 rounded-full bg-white/90 backdrop-blur-xs flex items-center justify-center shadow-md hover:scale-110 transition-transform"
+            className="absolute top-3 rtl:left-3 ltr:right-3 z-10 h-8 w-8 rounded-full bg-white/85 backdrop-blur-md border border-white/60 flex items-center justify-center shadow-md hover:scale-115 transition-all duration-300 active:scale-95"
             title={isFav ? "إزالة من المفضلة" : "إضافة للمفضلة"}
           >
-            <Heart className={`h-4 w-4 ${isFav ? "text-black fill-black" : "text-muted-foreground"}`} />
+            <Heart className={`h-4 w-4 transition-colors ${isFav ? "text-black fill-black" : "text-foreground/70 group-hover:text-black"}`} />
           </button>
 
           {/* Discount badge */}
           {hasDiscount && (
-            <div className="absolute top-2.5 rtl:right-2.5 ltr:left-2.5 bg-foreground text-background text-[11px] font-black px-2 py-0.5 rounded-full">
+            <div className="absolute top-3 rtl:right-3 ltr:left-3 z-10 bg-black text-white text-[11px] font-black px-2.5 py-0.5 rounded-full shadow-md border border-white/20">
               -{Math.round(((product.price - price) / product.price) * 100)}%
             </div>
           )}
 
           {/* Out of stock overlay */}
           {!inStock && (
-            <div className="absolute inset-0 bg-white/75 backdrop-blur-sm flex items-center justify-center">
-              <span className="text-xs font-bold text-muted-foreground border-2 px-3 py-1 rounded-full">نفدت الكمية</span>
+            <div className="absolute inset-0 bg-white/80 backdrop-blur-xs flex items-center justify-center z-10">
+              <span className="text-xs font-black text-foreground bg-white border border-border px-3.5 py-1.5 rounded-full shadow-md">
+                نفدت الكمية 🔒
+              </span>
             </div>
           )}
 
-          {/* Quick view overlay */}
-          <div className="absolute inset-0 bg-black/30 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
-            <div className="bg-white rounded-full p-2.5 shadow-lg transform scale-75 group-hover:scale-100 transition-transform duration-300">
-              <Eye className="h-4 w-4 text-foreground" />
+          {/* Quick view overlay icon */}
+          <div className="absolute inset-0 bg-black/25 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center z-10">
+            <div className="bg-white text-black rounded-full p-3 shadow-xl transform scale-75 group-hover:scale-100 transition-all duration-300 hover:bg-black hover:text-white">
+              <Eye className="h-4 w-4" />
             </div>
           </div>
 
           {/* Add to cart — shown on hover */}
-          <div className="absolute bottom-0 inset-x-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out p-2">
+          <div className="absolute bottom-0 inset-x-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out p-2.5 z-20">
             <button
               onClick={handleAddToCart}
               disabled={!inStock}
-              className="w-full py-2 bg-foreground text-background text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 hover:bg-foreground/85 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-2.5 bg-black text-white text-xs font-black rounded-2xl flex items-center justify-center gap-2 hover:bg-black/90 shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-white/20"
             >
               <ShoppingCart className="h-3.5 w-3.5" />
               أضف للسلة
@@ -180,44 +192,47 @@ export default function ProductCard({ product }: { product: Product }) {
           </div>
         </div>
 
-        {/* Info */}
-        <div className="p-3.5">
-          <div className="flex items-center justify-between gap-1 mb-1">
-            {categoryName ? (
-              <span className="inline-block text-[10px] font-extrabold text-foreground/80 bg-muted px-2 py-0.5 rounded-md truncate max-w-[120px]">
-                {categoryName}
-              </span>
-            ) : product.brand ? (
-              <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide truncate">
-                {product.brand}
-              </p>
-            ) : null}
+        {/* Info Footer */}
+        <div className="p-4 flex flex-col justify-between flex-1 bg-white">
+          <div>
+            <div className="flex items-center justify-between gap-1 mb-1.5">
+              {categoryName ? (
+                <span className="inline-block text-[10px] font-extrabold text-foreground/90 bg-muted/80 px-2.5 py-0.5 rounded-full border border-black/5 truncate max-w-[130px]">
+                  {categoryName}
+                </span>
+              ) : product.brand ? (
+                <p className="text-[11px] text-muted-foreground font-bold uppercase tracking-wide truncate">
+                  {product.brand}
+                </p>
+              ) : null}
+            </div>
+
+            <h3 className="text-sm font-black text-foreground leading-snug line-clamp-2 mb-1.5 transition-colors group-hover:text-black">
+              {product.nameAr}
+            </h3>
+
+            {/* Star rating */}
+            <StarRating average={reviewSummary?.average || 0} count={reviewSummary?.count || 0} />
           </div>
 
-          <h3 className="text-sm font-bold leading-snug line-clamp-2 mb-1">
-            {product.nameAr}
-          </h3>
-
-          {/* Star rating - always visible */}
-          <StarRating average={reviewSummary?.average || 0} count={reviewSummary?.count || 0} />
-
-          <div className="flex items-center justify-between gap-2 mt-2">
+          <div className="flex items-center justify-between gap-2 mt-3 pt-2.5 border-t border-border/40">
             <div className="flex items-baseline gap-1.5">
               <span className="font-black text-base text-foreground">
                 {formatPrice(price)}
               </span>
               {hasDiscount && (
-                <span className="text-xs text-muted-foreground line-through">
+                <span className="text-xs text-muted-foreground/70 line-through font-semibold">
                   {formatPrice(product.price)}
                 </span>
               )}
             </div>
-            {/* Desktop add button */}
+            {/* Quick add button */}
             <Button
               size="sm"
-              className="h-8 w-8 p-0 rounded-xl opacity-0 group-hover:opacity-0 md:opacity-100 transition-opacity"
+              className="h-8 w-8 p-0 rounded-xl bg-black text-white hover:bg-black/80 shadow-xs"
               onClick={handleAddToCart}
               disabled={!inStock}
+              title="إضافة للسلة"
             >
               <ShoppingCart className="h-3.5 w-3.5" />
             </Button>

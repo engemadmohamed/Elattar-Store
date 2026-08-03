@@ -54,7 +54,7 @@ const defaultSettings: StoreSettings = {
   address: "القاهرة، مصر",
   announcementBar: "",
   heroBadge: "تشكيلة 2026 وصلت الآن",
-  heroTitle: "الجودة تبني الثقة وتصنع الفرق",
+  heroTitle: "الجودة تبني الثقة وتصنع الجودة",
   heroFeaturedTitle: "المهندس",
   heroDescription: "اكتشف تشكيلتنا الواسعة من الأدوات المكتبية وقراطيس من أفضل العلامات التجارية العالمية. جودة استثنائية وأسعار تنافسية وتوصيل سريع.",
   heroImageUrl: "",
