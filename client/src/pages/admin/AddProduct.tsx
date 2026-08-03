@@ -496,7 +496,7 @@ export default function AddProduct() {
                 {/* Colors */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">ألوان المنتج المتاحة (اختياري)</CardTitle>
+                    <CardTitle className="text-base">ألوان المنتج</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {/* Preset Color Choices */}
@@ -576,13 +576,10 @@ export default function AddProduct() {
                   </CardContent>
                 </Card>
 
-                {/* Images (3 Methods to Add Images) */}
+                {/* Images */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base flex items-center justify-between">
-                      <span>صور المنتج</span>
-                      <span className="text-xs font-normal text-muted-foreground">(3 طرق متاحة لإضافة الصور)</span>
-                    </CardTitle>
+                    <CardTitle className="text-base">صور المنتج</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {/* Render Uploaded Product Images */}
