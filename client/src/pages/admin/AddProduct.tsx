@@ -225,7 +225,12 @@ export default function AddProduct() {
         return;
       }
       set("images", [...form.images, data.url]);
-      toast({ title: "تم رفع الصورة ✓" });
+      try {
+        await navigator.clipboard.writeText(data.url);
+        toast({ title: "تم رفع الصورة ونسخ رابطها بنجاح 📋✓" });
+      } catch {
+        toast({ title: "تم رفع الصورة بنجاح ✓" });
+      }
     } catch (err) {
       toast({
         title: "فشل رفع الصورة",
@@ -425,11 +430,12 @@ export default function AddProduct() {
                     <div>
                       <Label>وحدة البيع</Label>
                       <Select
-                        value={form.saleUnit}
+                        key={`saleUnit-${form.saleUnit || "piece"}`}
+                        value={form.saleUnit || "piece"}
                         onValueChange={(v) => set("saleUnit", v)}
                       >
                         <SelectTrigger>
-                          <SelectValue />
+                          <SelectValue placeholder="اختر وحدة البيع" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="piece">قطعة</SelectItem>
@@ -536,37 +542,37 @@ export default function AddProduct() {
                     {form.images.length > 0 && (
                       <div className="flex flex-wrap gap-3">
                         {form.images.map((img, i) => (
-                          <div key={i} className="relative h-20 w-20 group">
-                            <img
-                              src={img}
-                              alt=""
-                              className="h-full w-full object-cover rounded-xl border shadow-sm"
-                            />
-                            {/* Copy URL Button */}
+                          <div key={i} className="relative group border rounded-xl p-1 bg-muted/20 flex flex-col items-center gap-1">
+                            <div className="relative h-20 w-20 overflow-hidden rounded-lg">
+                              <img
+                                src={img}
+                                alt=""
+                                className="h-full w-full object-cover shadow-sm"
+                              />
+                              {/* Delete Button */}
+                              <button
+                                type="button"
+                                title="حذف الصورة"
+                                onClick={() =>
+                                  set(
+                                    "images",
+                                    form.images.filter((_, j) => j !== i),
+                                  )
+                                }
+                                className="absolute top-1 right-1 h-5 w-5 rounded-full bg-destructive text-white flex items-center justify-center shadow hover:scale-110 transition-transform"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
                             <button
                               type="button"
-                              title="نسخ رابط الصورة"
                               onClick={() => {
                                 navigator.clipboard.writeText(img);
-                                toast({ title: "تم نسخ رابط الصورة بنجاح ✓" });
+                                toast({ title: "تم نسخ رابط الصورة بنجاح 📋✓" });
                               }}
-                              className="absolute -top-1.5 -left-1.5 h-6 w-6 rounded-full bg-black text-white flex items-center justify-center shadow hover:scale-110 transition-transform"
+                              className="w-full text-[10px] font-bold py-0.5 px-1 bg-black text-white rounded-md flex items-center justify-center gap-1 hover:bg-black/80 transition-colors"
                             >
-                              <Copy className="h-3 w-3" />
-                            </button>
-                            {/* Delete Button */}
-                            <button
-                              type="button"
-                              title="حذف الصورة"
-                              onClick={() =>
-                                set(
-                                  "images",
-                                  form.images.filter((_, j) => j !== i),
-                                )
-                              }
-                              className="absolute -top-1.5 -right-1.5 h-6 w-6 rounded-full bg-destructive text-white flex items-center justify-center shadow hover:scale-110 transition-transform"
-                            >
-                              <X className="h-3 w-3" />
+                              <Copy className="h-2.5 w-2.5" /> نسخ الرابط
                             </button>
                           </div>
                         ))}
@@ -639,6 +645,7 @@ export default function AddProduct() {
                         <div key="level-0">
                           <Label>الفئة الرئيسية *</Label>
                           <Select
+                            key={`cat-0-${categoryChain[0] || "empty"}`}
                             value={categoryChain[0] || ""}
                             onValueChange={(value) =>
                               handleCategoryChange(0, value)
@@ -649,7 +656,7 @@ export default function AddProduct() {
                             </SelectTrigger>
                             <SelectContent>
                               {rootCategories.map((opt) => (
-                                <SelectItem key={opt._id} value={opt._id}>
+                                <SelectItem key={opt._id} value={String(opt._id)}>
                                   {opt.nameAr}
                                 </SelectItem>
                               ))}
@@ -668,6 +675,7 @@ export default function AddProduct() {
                             <div key={`level-${i + 1}`}>
                               <Label>فئة فرعية</Label>
                               <Select
+                                key={`cat-${i + 1}-${categoryChain[i + 1] || "empty"}`}
                                 value={categoryChain[i + 1] || ""}
                                 onValueChange={(value) =>
                                   handleCategoryChange(i + 1, value)
@@ -678,7 +686,7 @@ export default function AddProduct() {
                                 </SelectTrigger>
                                 <SelectContent>
                                   {subcategories.map((opt) => (
-                                    <SelectItem key={opt._id} value={opt._id}>
+                                    <SelectItem key={opt._id} value={String(opt._id)}>
                                       {opt.nameAr}
                                     </SelectItem>
                                   ))}

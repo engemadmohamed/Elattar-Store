@@ -9,13 +9,17 @@ import { Button } from "@/components/ui/button";
 export default function Wishlist() {
   const { wishlist } = useWishlist();
 
-  const { data: allProducts, isLoading } = useQuery<Product[]>({
+  const { data: productsData, isLoading } = useQuery<any>({
     queryKey: ["/api/products"],
     queryFn: () => apiRequest("GET", "/api/products"),
   });
 
-  const favoriteProducts = (allProducts || []).filter((p) =>
-    wishlist.includes(p._id)
+  const productsList: Product[] = Array.isArray(productsData)
+    ? productsData
+    : productsData?.products || [];
+
+  const favoriteProducts = productsList.filter((p) =>
+    wishlist.includes(String(p._id))
   );
 
   return (
@@ -23,7 +27,7 @@ export default function Wishlist() {
       <div className="flex items-center justify-between mb-8 pb-4 border-b">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold flex items-center gap-2">
-            <Heart className="h-7 w-7 text-rose-500 fill-rose-500" /> المفضلة
+            <Heart className="h-7 w-7 text-black fill-black" /> المفضلة
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
             المنتجات التي قمت بحفظها للشراء لاحقاً ({favoriteProducts.length})
@@ -44,15 +48,15 @@ export default function Wishlist() {
         </div>
       ) : favoriteProducts.length === 0 ? (
         <div className="text-center py-20 bg-muted/20 rounded-3xl border border-dashed my-8">
-          <div className="h-16 w-16 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Heart className="h-8 w-8" />
+          <div className="h-16 w-16 bg-black/10 text-black rounded-full flex items-center justify-center mx-auto mb-4">
+            <Heart className="h-8 w-8 text-black fill-black" />
           </div>
           <h3 className="text-lg font-bold mb-1">قائمة المفضلة فارغة</h3>
           <p className="text-muted-foreground text-sm max-w-md mx-auto mb-6">
             لم تقم بـإضافة أي منتجات إلى قائمة المفضلة بعد. يمكنك تصفح المنتجات والضغط على أيقونة القلب للإضافة.
           </p>
           <Link href="/shop">
-            <Button className="rounded-xl gap-2 font-bold px-6">
+            <Button className="rounded-xl gap-2 font-bold px-6 bg-black text-white hover:bg-black/90">
               <ShoppingBag className="h-4 w-4" /> تصفح المنتجات الآن
             </Button>
           </Link>
