@@ -199,18 +199,15 @@ export default function AddProduct() {
     }
   };
 
-  const [lastUploadedUrl, setLastUploadedUrl] = useState<string>("");
   const [uploading, setUploading] = useState(false);
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const uploadFileObj = async (file: File) => {
     setUploading(true);
     const token = localStorage.getItem("al-mohandes-token");
     try {
       const compressedBlob = await compressImage(file);
       const formData = new FormData();
-      formData.append("image", compressedBlob, file.name || "product.jpg");
+      formData.append("image", compressedBlob, file.name || "pasted-image.jpg");
       const res = await fetch("/api/upload/image", {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -225,23 +222,67 @@ export default function AddProduct() {
         });
         return;
       }
-      set("images", [...form.images, data.url]);
-      setLastUploadedUrl(data.url);
-      try {
-        await navigator.clipboard.writeText(data.url);
-        toast({ title: "تم رفع الصورة ونسخ رابطها بنجاح 📋✓" });
-      } catch {
-        toast({ title: "تم رفع الصورة بنجاح ✓" });
-      }
-    } catch (err) {
+      setForm((f) => ({ ...f, images: [...f.images, data.url] }));
+      toast({ title: "تم رفع وضم الصورة بنجاح ✓" });
+    } catch {
       toast({
         title: "فشل رفع الصورة",
-        description: "تعذر الاتصال بالسيرفر، تأكد من الاتصال بالإنترنت",
+        description: "تعذر الاتصال بالسيرفر",
         variant: "destructive",
       });
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      await uploadFileObj(file);
       e.target.value = "";
+    }
+  };
+
+  const handlePasteImage = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.indexOf("image") !== -1) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (file) {
+          uploadFileObj(file);
+        }
+      }
+    }
+  };
+
+  const handleClipboardPasteButton = async () => {
+    try {
+      const items = await navigator.clipboard.read().catch(() => []);
+      let found = false;
+      for (const item of items) {
+        const imageType = item.types.find((t) => t.startsWith("image/"));
+        if (imageType) {
+          found = true;
+          const blob = await item.getType(imageType);
+          const file = new File([blob], "pasted-image.png", { type: imageType });
+          await uploadFileObj(file);
+          break;
+        }
+      }
+      if (!found) {
+        toast({
+          title: "اضغط Ctrl + V للصق الصورة مباشرة",
+          description: "تأكد من نسخ صورة أولاً ثم اضغط Ctrl + V للصقها في هذه الصفحة",
+        });
+      }
+    } catch {
+      toast({
+        title: "اضغط Ctrl + V للصق الصورة مباشرة",
+        description: "انسخ أي صورة ثم اضغط Ctrl + V في هذه الصفحة للصقها",
+      });
     }
   };
 
@@ -346,7 +387,7 @@ export default function AddProduct() {
             <Skeleton className="h-40 w-full rounded-xl" />
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="max-w-4xl space-y-6">
+          <form onSubmit={handleSubmit} onPaste={handlePasteImage} className="max-w-4xl space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Main Info */}
               <div className="lg:col-span-2 space-y-6">
@@ -535,79 +576,77 @@ export default function AddProduct() {
                   </CardContent>
                 </Card>
 
-                {/* Images */}
+                {/* Images (3 Methods to Add Images) */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">صور المنتج</CardTitle>
+                    <CardTitle className="text-base flex items-center justify-between">
+                      <span>صور المنتج</span>
+                      <span className="text-xs font-normal text-muted-foreground">(3 طرق متاحة لإضافة الصور)</span>
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    {/* Render Uploaded Product Images */}
                     {form.images.length > 0 && (
-                      <div className="flex flex-wrap gap-3">
+                      <div className="flex flex-wrap gap-3 p-3 bg-muted/20 rounded-xl border">
                         {form.images.map((img, i) => (
-                          <div key={i} className="relative group border rounded-xl p-1 bg-muted/20 flex flex-col items-center gap-1">
-                            <div className="relative h-20 w-20 overflow-hidden rounded-lg">
-                              <img
-                                src={img}
-                                alt=""
-                                className="h-full w-full object-cover shadow-sm"
-                              />
-                              {/* Delete Button */}
-                              <button
-                                type="button"
-                                title="حذف الصورة"
-                                onClick={() =>
-                                  set(
-                                    "images",
-                                    form.images.filter((_, j) => j !== i),
-                                  )
-                                }
-                                className="absolute top-1 right-1 h-5 w-5 rounded-full bg-destructive text-white flex items-center justify-center shadow hover:scale-110 transition-transform"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </div>
+                          <div key={i} className="relative h-20 w-20 overflow-hidden rounded-xl border group shadow-sm bg-white">
+                            <img
+                              src={img}
+                              alt=""
+                              className="h-full w-full object-cover"
+                            />
+                            {/* Delete Button */}
                             <button
                               type="button"
-                              onClick={() => {
-                                navigator.clipboard.writeText(img);
-                                toast({ title: "تم نسخ رابط الصورة بنجاح 📋✓" });
-                              }}
-                              className="w-full text-[10px] font-bold py-0.5 px-1 bg-black text-white rounded-md flex items-center justify-center gap-1 hover:bg-black/80 transition-colors"
+                              title="حذف الصورة"
+                              onClick={() =>
+                                set(
+                                  "images",
+                                  form.images.filter((_, j) => j !== i),
+                                )
+                              }
+                              className="absolute top-1 right-1 h-6 w-6 rounded-full bg-destructive text-white flex items-center justify-center shadow hover:scale-110 transition-transform"
                             >
-                              <Copy className="h-2.5 w-2.5" /> نسخ الرابط
+                              <X className="h-3.5 w-3.5" />
                             </button>
                           </div>
                         ))}
                       </div>
                     )}
-                    <div className="flex gap-2">
-                      <Input
-                        value={imageUrl}
-                        onChange={(e) => setImageUrl(e.target.value)}
-                        placeholder="رابط الصورة (URL)..."
-                      />
+
+                    {/* Method 1: Paste Image (Ctrl+V or Button) */}
+                    <div className="p-3 bg-muted/30 rounded-xl border space-y-2">
+                      <Label className="text-xs font-bold text-foreground block">
+                        الطريقة 1: لصق صورة من الحافظة (Paste / Ctrl+V):
+                      </Label>
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={addImageUrl}
+                        onClick={handleClipboardPasteButton}
+                        className="w-full h-11 border-2 border-dashed rounded-xl font-bold gap-2 hover:bg-accent hover:border-black transition-all"
                       >
-                        <Plus className="h-4 w-4" />
+                        <Copy className="h-4 w-4" /> اضغط هنا للصق صورة من الحافظة (أو استخدم Ctrl + V)
                       </Button>
                     </div>
-                    <div>
+
+                    {/* Method 2: Upload File from Computer */}
+                    <div className="p-3 bg-muted/30 rounded-xl border space-y-2">
+                      <Label className="text-xs font-bold text-foreground block">
+                        الطريقة 2: رفع صورة من الجهاز:
+                      </Label>
                       <Label
                         htmlFor="img-upload"
-                        className="flex items-center gap-2 cursor-pointer border-2 border-dashed rounded-lg p-4 hover:border-primary/50 transition-colors"
+                        className="flex items-center justify-center gap-2 cursor-pointer border-2 border-dashed rounded-xl p-3 bg-white hover:border-primary transition-colors text-center"
                       >
                         {uploading ? (
-                          <span className="text-sm text-primary">
+                          <span className="text-sm font-bold text-primary animate-pulse">
                             جاري رفع الصورة...
                           </span>
                         ) : (
                           <>
                             <Upload className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm text-muted-foreground">
-                              رفع صورة من الجهاز (حتى 5 ميجابايت)
+                            <span className="text-xs font-bold text-muted-foreground">
+                              اختر ملف صورة من الكمبيوتر (حتى 5 ميجابايت)
                             </span>
                           </>
                         )}
@@ -622,44 +661,25 @@ export default function AddProduct() {
                       />
                     </div>
 
-                    {/* Dedicated Copy Image URL Field (حقل نسخ رابط الصورة) */}
-                    <div className="pt-3 border-t space-y-2">
-                      <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                        <Copy className="h-3.5 w-3.5 text-primary" /> حقل نسخ رابط الصورة:
+                    {/* Method 3: Add Image via URL */}
+                    <div className="p-3 bg-muted/30 rounded-xl border space-y-2">
+                      <Label className="text-xs font-bold text-foreground block">
+                        الطريقة 3: إضافة برابط الصورة (URL):
                       </Label>
                       <div className="flex gap-2">
                         <Input
-                          readOnly
-                          value={
-                            lastUploadedUrl ||
-                            (form.images.length > 0
-                              ? form.images[form.images.length - 1]
-                              : "")
-                          }
-                          placeholder="سيظهر رابط الصورة المرفوعة هنا لنسخه بنقرة واحدة..."
-                          className="text-xs font-mono bg-muted/40 font-semibold dir-ltr"
-                          onClick={(e) => (e.target as HTMLInputElement).select()}
+                          value={imageUrl}
+                          onChange={(e) => setImageUrl(e.target.value)}
+                          placeholder="ضع رابط الصورة هنا (https://...)..."
+                          className="bg-white text-xs"
                         />
                         <Button
                           type="button"
-                          disabled={
-                            !lastUploadedUrl && form.images.length === 0
-                          }
-                          onClick={() => {
-                            const urlToCopy =
-                              lastUploadedUrl ||
-                              form.images[form.images.length - 1];
-                            if (urlToCopy) {
-                              navigator.clipboard.writeText(urlToCopy);
-                              toast({
-                                title: "تم نسخ رابط الصورة بنجاح 📋✓",
-                                description: urlToCopy,
-                              });
-                            }
-                          }}
-                          className="gap-1.5 font-bold shrink-0 bg-black text-white hover:bg-black/90 shadow-sm"
+                          variant="default"
+                          onClick={addImageUrl}
+                          className="bg-black text-white font-bold shrink-0"
                         >
-                          <Copy className="h-4 w-4" /> نسخ الرابط
+                          <Plus className="h-4 w-4" /> إضافة
                         </Button>
                       </div>
                     </div>

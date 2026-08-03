@@ -171,20 +171,6 @@ export default function AdminProducts() {
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
-              <Button
-                variant="outline"
-                className="gap-2 rounded-2xl border-2 font-bold"
-                onClick={() => {
-                  if (confirm("سيتم إعادة توليد QR Code لكل المنتجات بالرابط الجديد. تأكيد؟")) {
-                    regenerateQrMutation.mutate();
-                  }
-                }}
-                disabled={regenerateQrMutation.isPending}
-              >
-                <QrCode className="h-4 w-4" />
-                {regenerateQrMutation.isPending ? "جاري التحديث..." : "تحديث QR Codes"}
-              </Button>
-
               <Link href={`${ADMIN_BASE}/products/add`}>
                 <Button className="gap-2 bg-black hover:bg-black/90 text-white font-bold rounded-2xl px-5 shadow-md">
                   <Plus className="h-4 w-4" /> إضافة منتج

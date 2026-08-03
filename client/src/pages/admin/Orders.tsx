@@ -211,15 +211,15 @@ export default function AdminOrders() {
         {/* Table */}
         <div className="rounded-2xl border bg-card overflow-hidden shadow-xs">
           <Table>
-            <TableHeader className="bg-muted/40">
-              <TableRow>
-                <TableHead className="font-bold">رقم الطلب</TableHead>
-                <TableHead className="font-bold">العميل</TableHead>
-                <TableHead className="font-bold">المنتجات المطلوبة</TableHead>
-                <TableHead className="font-bold">الإجمالي</TableHead>
-                <TableHead className="font-bold">الحالة</TableHead>
-                <TableHead className="font-bold">التاريخ</TableHead>
-                <TableHead className="text-right font-bold">إجراءات</TableHead>
+            <TableHeader className="bg-muted/50 border-b">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="font-extrabold text-foreground text-right">رقم الطلب</TableHead>
+                <TableHead className="font-extrabold text-foreground text-right">العميل</TableHead>
+                <TableHead className="font-extrabold text-foreground text-right">المنتجات المطلوبة</TableHead>
+                <TableHead className="font-extrabold text-foreground text-center">الإجمالي</TableHead>
+                <TableHead className="font-extrabold text-foreground text-center">الحالة</TableHead>
+                <TableHead className="font-extrabold text-foreground text-center">التاريخ</TableHead>
+                <TableHead className="font-extrabold text-foreground text-left">إجراءات</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -247,10 +247,10 @@ export default function AdminOrders() {
                   const sc = getStatusConfig(order.status);
                   return (
                     <TableRow key={order._id} className="hover:bg-muted/20 transition-colors">
-                      <TableCell className="font-mono text-xs font-black">
+                      <TableCell className="font-mono text-xs font-black text-right align-middle">
                         {order.orderNumber}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-right align-middle">
                         <p className="text-sm font-bold leading-tight">
                           {order.customerName}
                         </p>
@@ -258,7 +258,7 @@ export default function AdminOrders() {
                           {order.customerPhone}
                         </p>
                       </TableCell>
-                      <TableCell className="max-w-[280px]">
+                      <TableCell className="max-w-[280px] text-right align-middle">
                         <div className="space-y-1">
                           {order.items.map((item, idx) => (
                             <div key={idx} className="flex items-center gap-1.5 text-xs">
@@ -277,21 +277,21 @@ export default function AdminOrders() {
                           ))}
                         </div>
                       </TableCell>
-                      <TableCell className="font-black text-sm text-foreground">
+                      <TableCell className="font-black text-sm text-foreground text-center align-middle whitespace-nowrap">
                         {formatPrice(order.total)}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-center align-middle whitespace-nowrap">
                         <span
-                          className={`text-xs px-2.5 py-1 rounded-full font-extrabold ${sc.color}`}
+                          className={`text-xs px-3 py-1 rounded-full font-extrabold inline-block ${sc.color}`}
                         >
                           {sc.label}
                         </span>
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground font-medium">
+                      <TableCell className="text-xs text-muted-foreground font-semibold text-center align-middle whitespace-nowrap">
                         {formatDate(order.createdAt)}
                       </TableCell>
-                      <TableCell>
-                        <div className="flex justify-end gap-2">
+                      <TableCell className="text-left align-middle">
+                        <div className="flex items-center justify-end gap-2">
                           <Select
                             value={order.status}
                             onValueChange={(v) =>
@@ -315,7 +315,7 @@ export default function AdminOrders() {
                           <Button
                             variant="outline"
                             size="icon"
-                            className="h-8 w-8 rounded-xl"
+                            className="h-8 w-8 rounded-xl shrink-0"
                             onClick={() => {
                               setSelectedOrder(order);
                               setTrackingNumber(
