@@ -505,29 +505,27 @@ export default function Home() {
         </section>
       )}
 
-      {/* ===== FEATURED PRODUCTS ===== */}
+      {/* ===== BEST SELLING PRODUCTS (الأكثر مبيعا) ===== */}
       {settings.showFeaturedProducts && (
-        <section className="py-16 px-4 bg-muted/30">
+        <section className="py-16 px-4 bg-muted/20 overflow-hidden border-t border-border/40">
           <div className="mx-auto max-w-7xl">
-            <div className="flex items-end justify-between mb-10 animate-fade-in-up">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                  {t("منتجاتنا", "Our Products")}
-                </p>
-                <h2 className="text-3xl font-black">{t("أشهر المنتجات", "Featured Products")}</h2>
-                <p className="text-sm text-muted-foreground mt-2">{t("منتجات مختارة بعناية لك", "Handpicked for you")}</p>
-              </div>
+            {/* Header matching Image 2 */}
+            <div className="flex items-center justify-between mb-8" data-reveal>
+              <h2 className="text-3xl sm:text-4xl font-black text-foreground">
+                {t("الأكثر مبيعاً", "Best Sellers")}
+              </h2>
               <Link href="/shop">
-                <Button variant="outline" size="sm" className="gap-1.5 border-2 rounded-xl group">
-                  {t("عرض كل شيء", "View All")}
+                <Button variant="outline" size="sm" className="gap-1.5 border-2 rounded-xl group font-black hover:bg-black hover:text-white transition-all">
+                  {t("عرض الكل", "View All")}
                   <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180 transition-transform duration-300 group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1" />
                 </Button>
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {productsData
-                ? productsData.products.map((p, i) => (
+            {/* Products Grid (8 Items in 2 Clean Rows) */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+              {(bestSellingData?.products || productsData?.products)
+                ? (bestSellingData?.products || productsData?.products || []).slice(0, 8).map((p, i) => (
                     <div
                       key={p._id}
                       data-reveal
@@ -537,55 +535,8 @@ export default function Home() {
                     </div>
                   ))
                 : Array.from({ length: 8 }).map((_, i) => (
-                    <Skeleton key={i} className="aspect-square rounded-xl" />
+                    <Skeleton key={i} className="aspect-square rounded-3xl" />
                   ))}
-            </div>
-
-            {productsData?.products.length === 0 && (
-              <div className="text-center py-16 text-muted-foreground">
-                <Package className="h-12 w-12 mx-auto mb-3 opacity-40" />
-                <p>{t("لم يتم إضافة منتجات بعد", "No products yet")}</p>
-              </div>
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* ===== BEST SELLING PRODUCTS (الأكثر مبيعا) ===== */}
-      {bestSellingData && bestSellingData.products.length > 0 && (
-        <section className="py-16 px-4 bg-white border-t border-border/40 overflow-hidden">
-          <div className="mx-auto max-w-7xl">
-            <div className="flex items-end justify-between mb-10 overflow-hidden" data-reveal>
-              <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 border border-amber-500/20 text-xs font-black mb-2">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  <span>الأكثر طلباً وحباً من عملائنا 🔥</span>
-                </div>
-                <h2 className="text-3xl sm:text-4xl font-black text-foreground">
-                  {t("الأكثر مبيعاً", "Best Sellers")}
-                </h2>
-                <p className="text-sm text-muted-foreground mt-2 font-medium">
-                  {t("المنتجات الأكثر مبيعاً وإقبالاً هذا الأسبوع", "Top rated and best selling items this week")}
-                </p>
-              </div>
-              <Link href="/shop?sort=best_selling">
-                <Button variant="outline" size="sm" className="gap-1.5 border-2 rounded-xl group font-black hover:bg-black hover:text-white transition-all">
-                  {t("عرض الكل", "View All")}
-                  <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180 transition-transform duration-300 group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1" />
-                </Button>
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
-              {bestSellingData.products.map((p, i) => (
-                <div
-                  key={p._id}
-                  data-reveal
-                  data-reveal-delay={String((i % 4) + 1)}
-                >
-                  <ProductCard product={p} />
-                </div>
-              ))}
             </div>
           </div>
         </section>
