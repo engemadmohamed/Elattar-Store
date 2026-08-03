@@ -253,7 +253,7 @@ export default function Home() {
 
               {/* Animated Word-by-Word Title & Description */}
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight mb-5 leading-[1.15] flex flex-wrap items-center gap-x-3 gap-y-1">
-                {("الجودة تبني الثقة وتصنع الفرق").split(" ").map((word, i) => (
+                {("    الجودة تبني الثقة وتصنع الجودة").split(" ").map((word, i) => (
                   <span
                     key={i}
                     className="inline-block animate-word-appear"
