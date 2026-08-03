@@ -251,13 +251,26 @@ export default function Home() {
                 </div>
               )}
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-5 leading-[1.12] animate-text-pop">
-                <span className="shimmer-text">{settings.heroFeaturedTitle}</span>
-                <br />
-                {settings.heroTitle}
+              {/* Animated Word-by-Word Title & Description */}
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight mb-5 leading-[1.15] flex flex-wrap items-center gap-x-3 gap-y-1">
+                {("الجودة تبني الثقة وتصنع الفرق").split(" ").map((word, i) => (
+                  <span
+                    key={i}
+                    className="inline-block animate-word-appear"
+                    style={{
+                      animationDelay: `${0.1 + i * 0.12}s`,
+                      animationFillMode: "both",
+                    }}
+                  >
+                    {word}
+                  </span>
+                ))}
               </h1>
-              <p className="text-muted-foreground text-lg mb-8 max-w-xl leading-relaxed animate-fade-in-up stagger-1">
-                {settings.heroDescription}
+              <p
+                className="text-muted-foreground text-base sm:text-lg mb-8 max-w-xl leading-relaxed font-medium animate-word-appear"
+                style={{ animationDelay: "0.85s", animationFillMode: "both" }}
+              >
+                اكتشف تشكيلتنا الواسعة من الأدوات المكتبية والقرطاسية من أفضل العلامات التجارية العالمية. جودة استثنائية وأسعار تنافسية وتوصيل سريع.
               </p>
               <div className="flex flex-wrap items-center gap-3 animate-fade-in-up stagger-2">
                 <Link href="/shop">

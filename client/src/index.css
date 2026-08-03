@@ -642,3 +642,21 @@ input:focus, textarea:focus, select:focus {
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
+@keyframes wordAppear {
+  0% {
+    opacity: 0;
+    transform: translateY(22px) scale(0.94);
+    filter: blur(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.animate-word-appear {
+  animation: wordAppear 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, transform, filter;
+}
+
