@@ -117,7 +117,7 @@ function useScrollReveal() {
           }
         });
       },
-      { threshold: 0.06, rootMargin: "0px 0px -30px 0px" }
+      { threshold: 0.02, rootMargin: "0px 0px -10px 0px" }
     );
 
     // Initial observe
@@ -133,7 +133,7 @@ function useScrollReveal() {
       intersectionObs.disconnect();
       mutationObs.disconnect();
     };
-  });
+  }, []);
 }
 
 

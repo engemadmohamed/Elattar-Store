@@ -288,7 +288,7 @@ export default function Shop() {
                 <div
                   key={p._id}
                   data-reveal
-                  data-reveal-delay={String(Math.min(i + 1, 8))}
+                  data-reveal-delay={String((i % 4) + 1)}
                 >
                   <ProductCard product={p} />
                 </div>

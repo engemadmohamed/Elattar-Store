@@ -531,7 +531,7 @@ export default function Home() {
                     <div
                       key={p._id}
                       data-reveal
-                      data-reveal-delay={String(Math.min(i + 1, 8))}
+                      data-reveal-delay={String((i % 4) + 1)}
                     >
                       <ProductCard product={p} />
                     </div>
@@ -555,8 +555,8 @@ export default function Home() {
       {bestSellingData && bestSellingData.products.length > 0 && (
         <section className="py-16 px-4 bg-white border-t border-border/40 overflow-hidden">
           <div className="mx-auto max-w-7xl">
-            <div className="flex items-end justify-between mb-10 overflow-hidden">
-              <div className="animate-slide-from-outside">
+            <div className="flex items-end justify-between mb-10 overflow-hidden" data-reveal>
+              <div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 border border-amber-500/20 text-xs font-black mb-2">
                   <Sparkles className="h-3.5 w-3.5" />
                   <span>الأكثر طلباً وحباً من عملائنا 🔥</span>
@@ -581,7 +581,7 @@ export default function Home() {
                 <div
                   key={p._id}
                   data-reveal
-                  data-reveal-delay={String(Math.min(i + 1, 8))}
+                  data-reveal-delay={String((i % 4) + 1)}
                 >
                   <ProductCard product={p} />
                 </div>
@@ -596,7 +596,7 @@ export default function Home() {
         <section className="py-20 px-4 bg-muted/20 overflow-hidden">
           <div className="mx-auto max-w-7xl space-y-12">
             {/* Banner */}
-            <div className="relative overflow-hidden rounded-3xl bg-foreground text-background p-8 sm:p-14 shadow-[0_24px_64px_hsl(0_0%_0%/0.20)]">
+            <div className="relative overflow-hidden rounded-3xl bg-foreground text-background p-8 sm:p-14 shadow-[0_24px_64px_hsl(0_0%_0%/0.20)]" data-reveal>
               {/* Subtle pattern */}
               <div
                 className="absolute inset-0 opacity-[0.04]"
@@ -610,7 +610,7 @@ export default function Home() {
               <div className="absolute bottom-0 ltr:left-0 rtl:right-0 w-48 h-48 bg-white/5 rounded-full blur-3xl translate-y-1/2 ltr:-translate-x-1/2 rtl:translate-x-1/2 animate-float" style={{ animationDelay: "1.5s" }} />
 
               <div className="relative grid sm:grid-cols-2 gap-8 items-center z-10">
-                <div className="animate-fade-in-up">
+                <div>
                   <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur rounded-full px-4 py-1.5 text-sm font-black mb-5 shadow-sm">
                     <Zap className="h-4 w-4 fill-amber-300 text-amber-300 animate-bounce" />
                     {t("خصم حقيقي تصل إلى", "Up to")} {settings.discountPercent}%
@@ -629,7 +629,7 @@ export default function Home() {
                   </Link>
                 </div>
 
-                <div className="flex sm:justify-end gap-3 animate-fade-in-up stagger-2">
+                <div className="flex sm:justify-end gap-3">
                   {[
                     { icon: Instagram, href: settings.instagram },
                     { icon: Facebook, href: settings.facebook },
@@ -652,10 +652,10 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Discounted Products Grid (مع أنيميشن الظهور data-reveal) */}
+            {/* Discounted Products Grid */}
             {onSaleData && onSaleData.products.length > 0 && (
               <div className="space-y-6">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between" data-reveal>
                   <h3 className="text-2xl font-black text-foreground flex items-center gap-2">
                     <Zap className="h-5 w-5 text-amber-500 fill-amber-500" />
                     <span>منتجات التخفيضات الكبرى</span>
@@ -669,7 +669,7 @@ export default function Home() {
                     <div
                       key={p._id}
                       data-reveal
-                      data-reveal-delay={String(Math.min(i + 1, 8))}
+                      data-reveal-delay={String((i % 4) + 1)}
                     >
                       <ProductCard product={p} />
                     </div>
