@@ -199,6 +199,7 @@ export default function AddProduct() {
     }
   };
 
+  const [lastUploadedUrl, setLastUploadedUrl] = useState<string>("");
   const [uploading, setUploading] = useState(false);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -225,6 +226,7 @@ export default function AddProduct() {
         return;
       }
       set("images", [...form.images, data.url]);
+      setLastUploadedUrl(data.url);
       try {
         await navigator.clipboard.writeText(data.url);
         toast({ title: "تم رفع الصورة ونسخ رابطها بنجاح 📋✓" });
@@ -618,6 +620,48 @@ export default function AddProduct() {
                         onChange={handleImageUpload}
                         disabled={uploading}
                       />
+                    </div>
+
+                    {/* Dedicated Copy Image URL Field (حقل نسخ رابط الصورة) */}
+                    <div className="pt-3 border-t space-y-2">
+                      <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                        <Copy className="h-3.5 w-3.5 text-primary" /> حقل نسخ رابط الصورة:
+                      </Label>
+                      <div className="flex gap-2">
+                        <Input
+                          readOnly
+                          value={
+                            lastUploadedUrl ||
+                            (form.images.length > 0
+                              ? form.images[form.images.length - 1]
+                              : "")
+                          }
+                          placeholder="سيظهر رابط الصورة المرفوعة هنا لنسخه بنقرة واحدة..."
+                          className="text-xs font-mono bg-muted/40 font-semibold dir-ltr"
+                          onClick={(e) => (e.target as HTMLInputElement).select()}
+                        />
+                        <Button
+                          type="button"
+                          disabled={
+                            !lastUploadedUrl && form.images.length === 0
+                          }
+                          onClick={() => {
+                            const urlToCopy =
+                              lastUploadedUrl ||
+                              form.images[form.images.length - 1];
+                            if (urlToCopy) {
+                              navigator.clipboard.writeText(urlToCopy);
+                              toast({
+                                title: "تم نسخ رابط الصورة بنجاح 📋✓",
+                                description: urlToCopy,
+                              });
+                            }
+                          }}
+                          className="gap-1.5 font-bold shrink-0 bg-black text-white hover:bg-black/90 shadow-sm"
+                        >
+                          <Copy className="h-4 w-4" /> نسخ الرابط
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
