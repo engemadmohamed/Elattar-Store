@@ -108,6 +108,16 @@ export default function Home() {
     queryFn: () => apiRequest("GET", "/api/products?limit=8&sort=newest"),
   });
 
+  const { data: bestSellingData } = useQuery<{ products: Product[] }>({
+    queryKey: ["/api/products", "bestSelling"],
+    queryFn: () => apiRequest("GET", "/api/products?limit=8&sort=best_selling"),
+  });
+
+  const { data: onSaleData } = useQuery<{ products: Product[] }>({
+    queryKey: ["/api/products", "onSale"],
+    queryFn: () => apiRequest("GET", "/api/products?limit=4&onSale=true"),
+  });
+
   const { data: featuredReviews } = useQuery<ReviewItem[]>({
     queryKey: ["/api/reviews/featured"],
     queryFn: () => apiRequest("GET", "/api/reviews/featured"),
@@ -541,12 +551,51 @@ export default function Home() {
         </section>
       )}
 
-
-
-      {/* ===== DISCOUNT BANNER ===== */}
-      {settings.showDiscountBanner && (
-        <section className="py-16 px-4 bg-muted/20">
+      {/* ===== BEST SELLING PRODUCTS (الأكثر مبيعا) ===== */}
+      {bestSellingData && bestSellingData.products.length > 0 && (
+        <section className="py-16 px-4 bg-white border-t border-border/40 overflow-hidden">
           <div className="mx-auto max-w-7xl">
+            <div className="flex items-end justify-between mb-10 overflow-hidden">
+              <div className="animate-slide-from-outside">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 border border-amber-500/20 text-xs font-black mb-2">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>الأكثر طلباً وحباً من عملائنا 🔥</span>
+                </div>
+                <h2 className="text-3xl sm:text-4xl font-black text-foreground">
+                  {t("الأكثر مبيعاً", "Best Sellers")}
+                </h2>
+                <p className="text-sm text-muted-foreground mt-2 font-medium">
+                  {t("المنتجات الأكثر مبيعاً وإقبالاً هذا الأسبوع", "Top rated and best selling items this week")}
+                </p>
+              </div>
+              <Link href="/shop?sort=best_selling">
+                <Button variant="outline" size="sm" className="gap-1.5 border-2 rounded-xl group font-black hover:bg-black hover:text-white transition-all">
+                  {t("عرض الكل", "View All")}
+                  <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180 transition-transform duration-300 group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1" />
+                </Button>
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+              {bestSellingData.products.map((p, i) => (
+                <div
+                  key={p._id}
+                  data-reveal
+                  data-reveal-delay={String(Math.min(i + 1, 8))}
+                >
+                  <ProductCard product={p} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ===== DISCOUNT BANNER & ON SALE PRODUCTS ===== */}
+      {settings.showDiscountBanner && (
+        <section className="py-20 px-4 bg-muted/20 overflow-hidden">
+          <div className="mx-auto max-w-7xl space-y-12">
+            {/* Banner */}
             <div className="relative overflow-hidden rounded-3xl bg-foreground text-background p-8 sm:p-14 shadow-[0_24px_64px_hsl(0_0%_0%/0.20)]">
               {/* Subtle pattern */}
               <div
@@ -560,22 +609,22 @@ export default function Home() {
               <div className="absolute top-0 ltr:right-0 rtl:left-0 w-72 h-72 bg-white/8 rounded-full blur-3xl -translate-y-1/2 ltr:translate-x-1/2 rtl:-translate-x-1/2 animate-float" />
               <div className="absolute bottom-0 ltr:left-0 rtl:right-0 w-48 h-48 bg-white/5 rounded-full blur-3xl translate-y-1/2 ltr:-translate-x-1/2 rtl:translate-x-1/2 animate-float" style={{ animationDelay: "1.5s" }} />
 
-              <div className="relative grid sm:grid-cols-2 gap-8 items-center">
+              <div className="relative grid sm:grid-cols-2 gap-8 items-center z-10">
                 <div className="animate-fade-in-up">
-                  <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur rounded-full px-4 py-1.5 text-sm font-bold mb-5">
-                    <Zap className="h-3.5 w-3.5" />
-                    {t("خصم", "Discount")} {settings.discountPercent}%
+                  <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur rounded-full px-4 py-1.5 text-sm font-black mb-5 shadow-sm">
+                    <Zap className="h-4 w-4 fill-amber-300 text-amber-300 animate-bounce" />
+                    {t("خصم حقيقي تصل إلى", "Up to")} {settings.discountPercent}%
                   </div>
-                  <h2 className="text-3xl sm:text-4xl font-black mb-3 leading-tight">
+                  <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4 leading-tight">
                     {settings.discountBannerTitle}
                   </h2>
-                  <p className="text-background/80 text-base mb-7 max-w-md">
+                  <p className="text-background/80 text-base sm:text-lg mb-8 max-w-md font-medium">
                     {settings.discountBannerDescription}
                   </p>
                   <Link href="/shop?onSale=true">
-                    <Button size="lg" className="bg-white text-foreground hover:bg-white/90 gap-2 rounded-xl font-bold shadow-lg group px-7">
+                    <Button size="lg" className="bg-white text-foreground hover:bg-white/90 gap-2 rounded-2xl font-black shadow-xl group px-8 py-6">
                       {settings.ctaButtonText}
-                      <ArrowRight className="h-4 w-4 rtl:rotate-180 transition-transform duration-300 group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1" />
+                      <ArrowRight className="h-4 w-4 rtl:rotate-180 transition-transform duration-300 group-hover:ltr:translate-x-1.5 group-hover:rtl:-translate-x-1.5" />
                     </Button>
                   </Link>
                 </div>
@@ -594,14 +643,40 @@ export default function Home() {
                         href={s.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="h-12 w-12 rounded-full bg-white/12 backdrop-blur flex items-center justify-center hover:bg-white/22 hover:scale-110 hover:-rotate-6 transition-all duration-300"
+                        className="h-12 w-12 rounded-2xl bg-white/12 backdrop-blur flex items-center justify-center hover:bg-white/25 hover:scale-110 transition-all duration-300 border border-white/10"
                       >
-                        <s.icon className="h-5 w-5" />
+                        <s.icon className="h-5 w-5 text-white" />
                       </a>
                     ))}
                 </div>
               </div>
             </div>
+
+            {/* Discounted Products Grid (مع أنيميشن الظهور data-reveal) */}
+            {onSaleData && onSaleData.products.length > 0 && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-2xl font-black text-foreground flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-amber-500 fill-amber-500" />
+                    <span>منتجات التخفيضات الكبرى</span>
+                  </h3>
+                  <Link href="/shop?onSale=true" className="text-sm font-bold text-muted-foreground hover:text-foreground">
+                    تصفح كل الخصومات ←
+                  </Link>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+                  {onSaleData.products.map((p, i) => (
+                    <div
+                      key={p._id}
+                      data-reveal
+                      data-reveal-delay={String(Math.min(i + 1, 8))}
+                    >
+                      <ProductCard product={p} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </section>
       )}

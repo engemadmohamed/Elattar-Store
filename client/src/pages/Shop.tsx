@@ -284,8 +284,14 @@ export default function Shop() {
         ) : (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-              {data?.products.map((p) => (
-                <ProductCard key={p._id} product={p} />
+              {data?.products.map((p, i) => (
+                <div
+                  key={p._id}
+                  data-reveal
+                  data-reveal-delay={String(Math.min(i + 1, 8))}
+                >
+                  <ProductCard product={p} />
+                </div>
               ))}
             </div>
 
