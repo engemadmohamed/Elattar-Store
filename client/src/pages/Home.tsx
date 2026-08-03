@@ -73,7 +73,7 @@ interface ReviewItem {
   createdAt: string;
 }
 
-// Intersection observer hook for scroll animations
+// Intersection observer hook for scroll animations (re-triggers on every scroll)
 function useInView(threshold = 0.1) {
   const ref = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
@@ -81,7 +81,9 @@ function useInView(threshold = 0.1) {
     const el = ref.current;
     if (!el) return;
     const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setInView(true); obs.disconnect(); } },
+      ([entry]) => {
+        setInView(entry.isIntersecting);
+      },
       { threshold }
     );
     obs.observe(el);

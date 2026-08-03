@@ -103,7 +103,7 @@ function WhatsAppButton() {
 function useScrollReveal() {
   useEffect(() => {
     const observeElements = (observer: IntersectionObserver) => {
-      document.querySelectorAll("[data-reveal]:not(.revealed)").forEach((el) => {
+      document.querySelectorAll("[data-reveal]").forEach((el) => {
         observer.observe(el);
       });
     };
@@ -113,11 +113,12 @@ function useScrollReveal() {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add("revealed");
-            intersectionObs.unobserve(entry.target);
+          } else {
+            entry.target.classList.remove("revealed");
           }
         });
       },
-      { threshold: 0.02, rootMargin: "0px 0px -10px 0px" }
+      { threshold: 0.05, rootMargin: "0px 0px -10px 0px" }
     );
 
     // Initial observe
