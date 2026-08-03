@@ -22,11 +22,19 @@ export default function RelatedProducts({ productId, title = "منتجات ذا�
   if (!data || data.length === 0) return null;
 
   return (
-    <div>
-      <h3 className="font-medium mb-4">{title}</h3>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {data.map((p) => (
-          <ProductCard key={p._id} product={p} />
+    <div className="mt-16 border-t pt-10 overflow-hidden">
+      <h2 className="text-2xl sm:text-3xl font-black mb-6 text-foreground" data-reveal>
+        {title}
+      </h2>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+        {data.map((p, i) => (
+          <div
+            key={p._id}
+            data-reveal
+            data-reveal-delay={String((i % 4) + 1)}
+          >
+            <ProductCard product={p} />
+          </div>
         ))}
       </div>
     </div>

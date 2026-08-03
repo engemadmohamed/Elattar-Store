@@ -36,23 +36,31 @@ export default function ProductSection({
   if (data && data.products.length === 0) return null;
 
   return (
-    <section className={`py-12 px-4 ${bgMuted ? "bg-muted/20" : ""}`}>
+    <section className={`py-16 px-4 overflow-hidden ${bgMuted ? "bg-muted/20" : "bg-white"} border-t border-border/40`}>
       <div className="mx-auto max-w-7xl">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">{title}</h2>
+        <div className="flex items-center justify-between mb-8" data-reveal>
+          <h2 className="text-3xl sm:text-4xl font-black text-foreground">{title}</h2>
           <Link href={`/shop?${query}`}>
-            <Button variant="ghost" size="sm" className="gap-1">
-              عرض الكل <ArrowRight className="h-4 w-4" />
+            <Button variant="outline" size="sm" className="gap-1.5 border-2 rounded-xl group font-black hover:bg-black hover:text-white transition-all shadow-xs">
+              عرض الكل <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180 transition-transform duration-300 group-hover:ltr:translate-x-1 group-hover:rtl:-translate-x-1" />
             </Button>
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
           {data ? (
-            data.products.map((p) => <ProductCard key={p._id} product={p} />)
+            data.products.map((p, i) => (
+              <div
+                key={p._id}
+                data-reveal
+                data-reveal-delay={String((i % 4) + 1)}
+              >
+                <ProductCard product={p} />
+              </div>
+            ))
           ) : (
             Array.from({ length: limit }).map((_, i) => (
-              <Skeleton key={i} className="aspect-square rounded-xl" />
+              <Skeleton key={i} className="aspect-square rounded-3xl" />
             ))
           )}
         </div>

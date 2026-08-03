@@ -505,14 +505,13 @@ export default function Home() {
         </section>
       )}
 
-      {/* ===== BEST SELLING PRODUCTS (الأكثر مبيعا) ===== */}
+      {/* ===== FEATURED PRODUCTS (أشهر المنتجات) ===== */}
       {settings.showFeaturedProducts && (
         <section className="py-16 px-4 bg-muted/20 overflow-hidden border-t border-border/40">
           <div className="mx-auto max-w-7xl">
-            {/* Header matching Image 2 */}
             <div className="flex items-center justify-between mb-8" data-reveal>
               <h2 className="text-3xl sm:text-4xl font-black text-foreground">
-                {t("الأكثر مبيعاً", "Best Sellers")}
+                {t("أشهر المنتجات", "Featured Products")}
               </h2>
               <Link href="/shop">
                 <Button variant="outline" size="sm" className="gap-1.5 border-2 rounded-xl group font-black hover:bg-black hover:text-white transition-all">
@@ -522,10 +521,9 @@ export default function Home() {
               </Link>
             </div>
 
-            {/* Products Grid (8 Items in 2 Clean Rows) */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
-              {(bestSellingData?.products || productsData?.products)
-                ? (bestSellingData?.products || productsData?.products || []).slice(0, 8).map((p, i) => (
+              {productsData?.products
+                ? productsData.products.slice(0, 8).map((p, i) => (
                     <div
                       key={p._id}
                       data-reveal
@@ -682,19 +680,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== BEST SELLERS ===== */}
+      {/* ===== BEST SELLING PRODUCTS (الأكثر مبيعا - قبل ماذا يقول عملاؤنا مباشرة) ===== */}
       <ProductSection
-        title={t("الأكثر مبيعًا", "Best Sellers")}
+        title={t("الأكثر مبيعةً", "Best Sellers")}
         query="sort=best_selling"
         limit={8}
-      />
-
-      {/* ===== DEALS ===== */}
-      <ProductSection
-        title={t("عروض وخصومات", "Deals & Discounts")}
-        query="onSale=true"
-        limit={8}
-        bgMuted
       />
 
       {/* ===== REVIEWS SECTION ===== */}
