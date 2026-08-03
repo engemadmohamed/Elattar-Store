@@ -21,6 +21,24 @@ export function formatDate(date: string | Date): string {
   }).format(new Date(date));
 }
 
+export function getSaleUnitName(unit?: string): string {
+  switch (unit) {
+    case "box":
+      return "علبة";
+    case "jar":
+      return "برطمان";
+    case "stand":
+      return "استاند";
+    case "carton":
+      return "كرتونة";
+    case "dozen":
+      return "دستة";
+    case "piece":
+    default:
+      return "قطعة";
+  }
+}
+
 /**
  * Compresses large images client-side before upload.
  * Reduces 10MB-100MB photos to crisp web-optimized ~300KB images.

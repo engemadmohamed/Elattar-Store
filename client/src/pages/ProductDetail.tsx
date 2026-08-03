@@ -27,7 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useCart } from "@/lib/cart-context";
 import { useCustomerAuth } from "@/lib/customer-auth-context";
 import { useToast } from "@/hooks/use-toast";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, getSaleUnitName } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 import RelatedProducts from "@/components/RelatedProducts";
 
@@ -357,22 +357,17 @@ export default function ProductDetail() {
               <span
                 className={`text-sm font-semibold ${inStock ? "text-foreground" : "text-red-500"}`}
               >
-                {inStock ? `متوفر (${product.stock} قطعة)` : "نفدت الكمية"}
+                {inStock ? `متوفر (${product.stock} ${getSaleUnitName(product.saleUnit)})` : "نفدت الكمية"}
               </span>
             </div>
 
-            {/* Sale Unit Display (Item #8) */}
+            {/* Sale Unit Display */}
             {product.saleUnit && (
               <div className="flex items-center gap-2 text-sm bg-muted/40 px-3.5 py-2 rounded-xl border w-fit">
                 <Package className="h-4 w-4 text-muted-foreground" />
                 <span className="text-muted-foreground">وحدة البيع:</span>
                 <span className="font-bold text-foreground">
-                  {product.saleUnit === "piece" ? "قطعة" :
-                   product.saleUnit === "box" ? "علبة" :
-                   product.saleUnit === "jar" ? "برطمان" :
-                   product.saleUnit === "stand" ? "استاند" :
-                   product.saleUnit === "carton" ? "كرتونة" :
-                   product.saleUnit === "dozen" ? "دستة" : product.saleUnit}
+                  {getSaleUnitName(product.saleUnit)}
                 </span>
               </div>
             )}

@@ -23,7 +23,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import { ADMIN_BASE } from "@/lib/admin-path";
-import { compressImage } from "@/lib/utils";
+import { compressImage, getSaleUnitName } from "@/lib/utils";
 
 interface Category {
   _id: string;
@@ -452,7 +452,7 @@ export default function AddProduct() {
                         />
                       </div>
                       <div>
-                        <Label>الكمية المتاحة *</Label>
+                        <Label>الكمية المتاحة (بالـ {getSaleUnitName(form.saleUnit)}) *</Label>
                         <Input
                           type="number"
                           min="0"
