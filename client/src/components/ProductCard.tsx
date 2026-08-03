@@ -18,6 +18,7 @@ export interface Product {
   stock: number;
   images: string[];
   brand?: string;
+  colors?: string[];
   categoryId?: { name: string; nameAr: string } | string;
 }
 
@@ -95,6 +96,15 @@ export default function ProductCard({ product }: { product: Product }) {
         variant: "destructive",
       });
       navigate("/login");
+      return;
+    }
+    // If product has color options, require customer to select color on details page
+    if (product.colors && product.colors.length > 0) {
+      toast({
+        title: "اختر اللون المطلوب 🎨",
+        description: "يرجى تحديد اللون قبل الإضافة إلى السلة",
+      });
+      navigate(`/product/${product._id}`);
       return;
     }
     addItem({

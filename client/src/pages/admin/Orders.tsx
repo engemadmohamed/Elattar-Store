@@ -209,17 +209,17 @@ export default function AdminOrders() {
         </div>
 
         {/* Table */}
-        <div className="rounded-xl border overflow-hidden">
+        <div className="rounded-2xl border bg-card overflow-hidden shadow-xs">
           <Table>
-            <TableHeader>
+            <TableHeader className="bg-muted/40">
               <TableRow>
-                <TableHead>رقم الطلب</TableHead>
-                <TableHead>العميل</TableHead>
-                <TableHead>المجموع</TableHead>
-                <TableHead>الشحن</TableHead>
-                <TableHead>الحالة</TableHead>
-                <TableHead>التاريخ</TableHead>
-                <TableHead className="text-right">إجراءات</TableHead>
+                <TableHead className="font-bold">رقم الطلب</TableHead>
+                <TableHead className="font-bold">العميل</TableHead>
+                <TableHead className="font-bold">المنتجات المطلوبة</TableHead>
+                <TableHead className="font-bold">الإجمالي</TableHead>
+                <TableHead className="font-bold">الحالة</TableHead>
+                <TableHead className="font-bold">التاريخ</TableHead>
+                <TableHead className="text-right font-bold">إجراءات</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -237,7 +237,7 @@ export default function AdminOrders() {
                 <TableRow>
                   <TableCell
                     colSpan={7}
-                    className="text-center py-12 text-muted-foreground"
+                    className="text-center py-12 text-muted-foreground font-semibold"
                   >
                     لا توجد طلبات
                   </TableCell>
@@ -246,32 +246,48 @@ export default function AdminOrders() {
                 groupedOrders.map((order) => {
                   const sc = getStatusConfig(order.status);
                   return (
-                    <TableRow key={order._id}>
-                      <TableCell className="font-mono text-xs font-bold">
+                    <TableRow key={order._id} className="hover:bg-muted/20 transition-colors">
+                      <TableCell className="font-mono text-xs font-black">
                         {order.orderNumber}
                       </TableCell>
                       <TableCell>
-                        <p className="text-sm font-medium">
+                        <p className="text-sm font-bold leading-tight">
                           {order.customerName}
                         </p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground font-mono mt-0.5">
                           {order.customerPhone}
                         </p>
                       </TableCell>
-                      <TableCell className="font-semibold text-primary">
-                        {formatPrice(order.total)}
+                      <TableCell className="max-w-[280px]">
+                        <div className="space-y-1">
+                          {order.items.map((item, idx) => (
+                            <div key={idx} className="flex items-center gap-1.5 text-xs">
+                              <span className="font-bold text-foreground truncate">
+                                {item.nameAr}
+                              </span>
+                              <span className="text-muted-foreground font-mono font-semibold">
+                                ({item.quantity}×)
+                              </span>
+                              {item.color && (
+                                <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-muted font-bold border-foreground/20">
+                                  {item.color}
+                                </Badge>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       </TableCell>
-                      <TableCell className="text-xs">
-                        {order.shipping?.company}
+                      <TableCell className="font-black text-sm text-foreground">
+                        {formatPrice(order.total)}
                       </TableCell>
                       <TableCell>
                         <span
-                          className={`text-xs px-2 py-0.5 rounded-full font-medium ${sc.color}`}
+                          className={`text-xs px-2.5 py-1 rounded-full font-extrabold ${sc.color}`}
                         >
                           {sc.label}
                         </span>
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
+                      <TableCell className="text-xs text-muted-foreground font-medium">
                         {formatDate(order.createdAt)}
                       </TableCell>
                       <TableCell>
@@ -285,21 +301,21 @@ export default function AdminOrders() {
                               })
                             }
                           >
-                            <SelectTrigger className="h-7 w-36 text-xs">
+                            <SelectTrigger className="h-8 w-36 text-xs font-semibold rounded-xl">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
                               {STATUS_OPTIONS.map((s) => (
-                                <SelectItem key={s.value} value={s.value}>
+                                <SelectItem key={s.value} value={s.value} className="text-xs font-medium">
                                   {s.label}
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="icon"
-                            className="h-7 w-7"
+                            className="h-8 w-8 rounded-xl"
                             onClick={() => {
                               setSelectedOrder(order);
                               setTrackingNumber(
