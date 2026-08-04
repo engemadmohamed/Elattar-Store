@@ -643,7 +643,7 @@ input:focus, textarea:focus, select:focus {
   -webkit-text-fill-color: transparent !important;
   background-clip: text !important;
   display: inline-block !important;
-  animation: textShinePass 3.8s linear infinite !important;
+  animation: textShinePass 6.5s linear infinite !important;
 }
 
 /* ===== RE-TRIGGERABLE HEADLINE & SUBTITLE SCROLL REVEAL ===== */
@@ -666,6 +666,14 @@ input:focus, textarea:focus, select:focus {
   color: #09090b;
   text-shadow: none;
 }
+
+/* Explicit Transition Delays for Headline Word Reveal */
+[data-reveal].headline-word-reveal[data-reveal-delay="1"] { transition-delay: 0.12s !important; }
+[data-reveal].headline-word-reveal[data-reveal-delay="2"] { transition-delay: 0.26s !important; }
+[data-reveal].headline-word-reveal[data-reveal-delay="3"] { transition-delay: 0.40s !important; }
+[data-reveal].headline-word-reveal[data-reveal-delay="4"] { transition-delay: 0.54s !important; }
+[data-reveal].headline-word-reveal[data-reveal-delay="5"] { transition-delay: 0.68s !important; }
+[data-reveal].headline-word-reveal[data-reveal-delay="6"] { transition-delay: 0.82s !important; }
 
 @keyframes wordAppear {
   0% {
