@@ -276,28 +276,32 @@ export default function Home() {
                   </span>
                 </div>
 
-                {/* Line 2: الجودة تبني الثقة (تتكرر حركة الظهور التفاعلية مع كل تمرير سكرول) */}
+                {/* Line 2: الجودة تبني الثقة (تظهر الكلمات واحدة تلو الأخرى بالتتابع) */}
                 <div className="flex flex-wrap items-center justify-start gap-x-3 sm:gap-x-4 mb-3">
                   {["الجودة", "تبني", "الثقة"].map((word, i) => (
                     <span
                       key={i}
-                      data-reveal
-                      data-reveal-delay={String(i + 1)}
-                      className="headline-word inline-block text-4xl sm:text-5xl lg:text-7xl font-black"
+                      className="inline-block animate-word-appear text-4xl sm:text-5xl lg:text-7xl font-black"
+                      style={{
+                        animationDelay: `${0.18 + i * 0.14}s`,
+                        animationFillMode: "both",
+                      }}
                     >
                       {word}
                     </span>
                   ))}
                 </div>
 
-                {/* Line 3: وتصنع الجودة (تتكرر حركة الظهور التفاعلية مع كل تمرير سكرول) */}
+                {/* Line 3: وتصنع الجودة (تظهر الكلمات واحدة تلو الأخرى بالتتابع) */}
                 <div className="flex flex-wrap items-center justify-start gap-x-3 sm:gap-x-4">
                   {["وتصنع", "الجودة"].map((word, i) => (
                     <span
                       key={i + 3}
-                      data-reveal
-                      data-reveal-delay={String(i + 4)}
-                      className="headline-word inline-block text-4xl sm:text-5xl lg:text-7xl font-black"
+                      className="inline-block animate-word-appear text-4xl sm:text-5xl lg:text-7xl font-black"
+                      style={{
+                        animationDelay: `${0.18 + (i + 3) * 0.14}s`,
+                        animationFillMode: "both",
+                      }}
                     >
                       {word}
                     </span>

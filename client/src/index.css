@@ -618,7 +618,7 @@ input:focus, textarea:focus, select:focus {
   animation: floatGentle 4s ease-in-out infinite;
 }
 
-/* ===== HERO FEATURED TITLE SHINE (كلمة المهندس بالأسود مع شريط ضوء أبيض يمر بعكس الاتجاه) ===== */
+/* ===== HERO FEATURED TITLE SHINE (كلمة المهندس بالأسود مع شريط ضوء أبيض هادئ) ===== */
 @keyframes textShinePass {
   0% {
     background-position: -180% 0;
@@ -632,10 +632,10 @@ input:focus, textarea:focus, select:focus {
   background-image: linear-gradient(
     110deg,
     #000000 0%,
-    #000000 35%,
-    #ffffff 50%,
-    #ffffff 53%,
-    #000000 65%,
+    #000000 38%,
+    rgba(255, 255, 255, 0.58) 50%,
+    rgba(255, 255, 255, 0.58) 52%,
+    #000000 64%,
     #000000 100%
   ) !important;
   background-size: 250% 100% !important;
@@ -643,7 +643,7 @@ input:focus, textarea:focus, select:focus {
   -webkit-text-fill-color: transparent !important;
   background-clip: text !important;
   display: inline-block !important;
-  animation: textShinePass 3s linear infinite !important;
+  animation: textShinePass 3.5s linear infinite !important;
 }
 
 /* ===== RE-TRIGGERABLE HEADLINE WORD REVEAL ===== */
