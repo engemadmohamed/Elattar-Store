@@ -618,29 +618,31 @@ input:focus, textarea:focus, select:focus {
   animation: floatGentle 4s ease-in-out infinite;
 }
 
-/* ===== TITLE TEXT SHINE EFFECT (شريط إضاءة أبيض يمر عبر كلمة المهندس) ===== */
+/* ===== TITLE TEXT SHINE EFFECT (شريط إضاءة أبيض يمر عبر كلمة المهندس بالكامل ويدور من البداية) ===== */
 @keyframes titleShine {
   0% {
-    background-position: -200% 0;
+    background-position: 180% 0;
   }
   100% {
-    background-position: 200% 0;
+    background-position: -180% 0;
   }
 }
 
 .title-text-shine {
   background: linear-gradient(
     110deg,
-    #000000 0%,
-    #18181b 30%,
+    #09090b 0%,
+    #09090b 38%,
     #ffffff 50%,
-    #18181b 70%,
-    #000000 100%
+    #ffffff 54%,
+    #09090b 66%,
+    #09090b 100%
   );
-  background-size: 200% 100%;
+  background-size: 250% 100%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: titleShine 3.5s ease-in-out infinite;
+  display: inline-block;
+  animation: titleShine 2.8s linear infinite;
 }
 
 @keyframes badgePulse {
