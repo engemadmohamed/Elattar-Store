@@ -205,15 +205,15 @@ export default function Home() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left: Text */}
             <div className="animate-fade-in-up">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 rounded-full border-2 border-foreground/15 bg-foreground/5 px-4 py-1.5 text-sm font-bold mb-6 shadow-xs animate-bounce-in">
-                <Sparkles className="h-4 w-4 animate-spin" style={{ animationDuration: "6s" }} />
-                {settings.heroBadge}
+              {/* Top Pill Badge with transition */}
+              <div className="inline-flex items-center gap-2 rounded-full border-2 border-foreground/20 bg-white/70 backdrop-blur-md px-5 py-2 text-sm font-bold text-foreground mb-5 shadow-xs hover:bg-white hover:border-foreground/40 transition-all duration-300 cursor-pointer animate-fade-in-up">
+                <span>{settings.heroBadge || "تشكيلة 2026 وصلت الآن"}</span>
+                <Sparkles className="h-4 w-4 text-foreground/80" />
               </div>
 
               {/* Category quick-nav */}
               {settings.showCategories && rootCategories.length > 0 && (
-                <div className="relative mb-7">
+                <div className="relative mb-8">
                   <button
                     onClick={() => setCatMenuOpen((o) => !o)}
                     className="flex items-center gap-2 rounded-2xl border-2 border-foreground/12 bg-white px-5 py-3 shadow-sm hover:shadow-md hover:border-foreground/25 transition-all duration-300 group"
@@ -263,24 +263,26 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Brand Badge / Title "المهندس" */}
-              <div
-                className="inline-flex items-center gap-2 rounded-full border border-foreground/15 bg-foreground/5 backdrop-blur-md px-5 py-2 text-sm font-black tracking-wide text-foreground mb-5 shadow-xs animate-word-appear"
-                style={{ animationDelay: "0.05s", animationFillMode: "both" }}
-              >
-                <Sparkles className="h-4 w-4 text-amber-500 fill-amber-500" />
-                <span>{settings.heroFeaturedTitle || "المهندس"}</span>
-              </div>
+              {/* Animated Main Title (Line 1: المهندس, Line 2: الجودة تبني الثقة, Line 3: وتصنع الجودة) */}
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight mb-6 text-right dir-rtl leading-[1.2]">
+                {/* Line 1: المهندس */}
+                <div className="flex flex-wrap items-center justify-start gap-x-3 mb-2 text-foreground">
+                  <span
+                    className="inline-block animate-word-appear text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight"
+                    style={{ animationDelay: "0.08s", animationFillMode: "both" }}
+                  >
+                    {settings.heroFeaturedTitle || "المهندس"}
+                  </span>
+                </div>
 
-              {/* Animated Word-by-Word Title (2 Right-Aligned Lines) */}
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight mb-6 text-right dir-rtl leading-[1.25]">
+                {/* Line 2: الجودة تبني الثقة */}
                 <div className="flex flex-wrap items-center justify-start gap-x-3 mb-2">
                   {["الجودة", "تبني", "الثقة"].map((word, i) => (
                     <span
                       key={i}
                       className="inline-block animate-word-appear"
                       style={{
-                        animationDelay: `${0.1 + i * 0.12}s`,
+                        animationDelay: `${0.2 + i * 0.12}s`,
                         animationFillMode: "both",
                       }}
                     >
@@ -288,13 +290,15 @@ export default function Home() {
                     </span>
                   ))}
                 </div>
+
+                {/* Line 3: وتصنع الجودة */}
                 <div className="flex flex-wrap items-center justify-start gap-x-3">
                   {["وتصنع", "الجودة"].map((word, i) => (
                     <span
                       key={i + 3}
                       className="inline-block animate-word-appear"
                       style={{
-                        animationDelay: `${0.1 + (i + 3) * 0.12}s`,
+                        animationDelay: `${0.2 + (i + 3) * 0.12}s`,
                         animationFillMode: "both",
                       }}
                     >
