@@ -263,6 +263,15 @@ export default function Home() {
                 </div>
               )}
 
+              {/* Brand Badge / Title "المهندس" */}
+              <div
+                className="inline-flex items-center gap-2 rounded-full border border-foreground/15 bg-foreground/5 backdrop-blur-md px-5 py-2 text-sm font-black tracking-wide text-foreground mb-5 shadow-xs animate-word-appear"
+                style={{ animationDelay: "0.05s", animationFillMode: "both" }}
+              >
+                <Sparkles className="h-4 w-4 text-amber-500 fill-amber-500" />
+                <span>{settings.heroFeaturedTitle || "المهندس"}</span>
+              </div>
+
               {/* Animated Word-by-Word Title (2 Right-Aligned Lines) */}
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight mb-6 text-right dir-rtl leading-[1.25]">
                 <div className="flex flex-wrap items-center justify-start gap-x-3 mb-2">
