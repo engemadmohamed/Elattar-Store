@@ -264,11 +264,11 @@ export default function Home() {
               )}
 
               {/* Animated Main Title (Line 1: المهندس, Line 2: الجودة تبني الثقة, Line 3: وتصنع الجودة) */}
-              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight mb-6 text-right dir-rtl leading-[1.2]">
-                {/* Line 1: المهندس */}
-                <div className="flex flex-wrap items-center justify-start gap-x-3 mb-2 text-foreground">
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight mb-8 text-right dir-rtl leading-[1.3] space-y-3">
+                {/* Line 1: المهندس (مع أنيميشن شعاع إضاءة أبيض يمر عبر الكلمة) */}
+                <div className="flex flex-wrap items-center justify-start gap-x-3 mb-4">
                   <span
-                    className="inline-block animate-word-appear text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight"
+                    className="inline-block animate-word-appear title-text-shine text-5xl sm:text-6xl lg:text-8xl font-black tracking-tight"
                     style={{ animationDelay: "0.08s", animationFillMode: "both" }}
                   >
                     {settings.heroFeaturedTitle || "المهندس"}
@@ -276,7 +276,7 @@ export default function Home() {
                 </div>
 
                 {/* Line 2: الجودة تبني الثقة */}
-                <div className="flex flex-wrap items-center justify-start gap-x-3 mb-2">
+                <div className="flex flex-wrap items-center justify-start gap-x-3 sm:gap-x-4 mb-4 text-foreground">
                   {["الجودة", "تبني", "الثقة"].map((word, i) => (
                     <span
                       key={i}
@@ -292,7 +292,7 @@ export default function Home() {
                 </div>
 
                 {/* Line 3: وتصنع الجودة */}
-                <div className="flex flex-wrap items-center justify-start gap-x-3">
+                <div className="flex flex-wrap items-center justify-start gap-x-3 sm:gap-x-4 text-foreground">
                   {["وتصنع", "الجودة"].map((word, i) => (
                     <span
                       key={i + 3}

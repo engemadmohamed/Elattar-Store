@@ -618,6 +618,31 @@ input:focus, textarea:focus, select:focus {
   animation: floatGentle 4s ease-in-out infinite;
 }
 
+/* ===== TITLE TEXT SHINE EFFECT (شريط إضاءة أبيض يمر عبر كلمة المهندس) ===== */
+@keyframes titleShine {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.title-text-shine {
+  background: linear-gradient(
+    110deg,
+    #000000 0%,
+    #18181b 30%,
+    #ffffff 50%,
+    #18181b 70%,
+    #000000 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: titleShine 3.5s ease-in-out infinite;
+}
+
 @keyframes badgePulse {
   0%, 100% { transform: scale(1); opacity: 0.9; }
   50% { transform: scale(1.15); opacity: 1; }
