@@ -59,8 +59,8 @@ interface Product {
   brand?: string;
 }
 
-const HERO_IMG = "/mohandes-logo.png";
-const ABOUT_IMG = "/mohandes-logo.png";
+const HERO_IMG = "/hero-banner.jpg";
+const ABOUT_IMG = "/hero-banner.jpg";
 
 // Interface for dynamic reviews fetched from database
 interface ReviewItem {
