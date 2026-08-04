@@ -643,7 +643,7 @@ input:focus, textarea:focus, select:focus {
   -webkit-text-fill-color: transparent !important;
   background-clip: text !important;
   display: inline-block !important;
-  animation: letterStrokeSheen 4.2s linear infinite !important;
+  animation: letterStrokeSheen 6.8s linear infinite !important;
 }
 
 /* ===== RE-TRIGGERABLE HEADLINE & SUBTITLE SCROLL REVEAL ===== */
