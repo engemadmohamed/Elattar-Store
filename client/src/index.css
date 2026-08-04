@@ -618,32 +618,31 @@ input:focus, textarea:focus, select:focus {
   animation: floatGentle 4s ease-in-out infinite;
 }
 
-/* ===== HERO FEATURED TITLE SHINE (شريط أبيض رفيع جداً يمر من اليمين للشمال بسلاسة 100% بدون أي تهنيج) ===== */
-@keyframes textShinePass {
+/* ===== HERO FEATURED LETTER WHITE GLOW (إضاءة أسطورية باللون الأبيض على حروف كلمة المهندس ذاتها) ===== */
+@keyframes letterWhiteSweep {
   0% {
-    background-position: -250% 0;
+    color: #09090b;
+    text-shadow: 0 0 0px transparent;
+  }
+  30% {
+    color: #ffffff;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.9), 0 0 40px rgba(255, 255, 255, 0.5);
+  }
+  60% {
+    color: #09090b;
+    text-shadow: 0 0 0px transparent;
   }
   100% {
-    background-position: 250% 0;
+    color: #09090b;
+    text-shadow: 0 0 0px transparent;
   }
 }
 
-.hero-featured-shine {
-  background-image: linear-gradient(
-    110deg,
-    #000000 0%,
-    #000000 46%,
-    rgba(255, 255, 255, 0.22) 50%,
-    rgba(255, 255, 255, 0.22) 51%,
-    #000000 55%,
-    #000000 100%
-  ) !important;
-  background-size: 350% 100% !important;
-  -webkit-background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-  background-clip: text !important;
+.hero-letter-glow {
   display: inline-block !important;
-  animation: textShinePass 6.5s linear infinite !important;
+  color: #09090b;
+  animation: letterWhiteSweep 4.5s ease-in-out infinite !important;
+  transition: color 0.5s ease, text-shadow 0.5s ease;
 }
 
 /* ===== RE-TRIGGERABLE HEADLINE & SUBTITLE SCROLL REVEAL ===== */
