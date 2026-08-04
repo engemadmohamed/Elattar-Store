@@ -276,41 +276,39 @@ export default function Home() {
                   </span>
                 </div>
 
-                {/* Line 2: الجودة تبني الثقة (تظهر الكلمات واحدة تلو الأخرى بالتتابع) */}
+                {/* Line 2: الجودة تبني الثقة (تتكرر الحركة بالتتابع مع كل تمرير سكرول) */}
                 <div className="flex flex-wrap items-center justify-start gap-x-3 sm:gap-x-4 mb-3">
                   {["الجودة", "تبني", "الثقة"].map((word, i) => (
                     <span
                       key={i}
-                      className="inline-block animate-word-appear text-4xl sm:text-5xl lg:text-7xl font-black"
-                      style={{
-                        animationDelay: `${0.18 + i * 0.14}s`,
-                        animationFillMode: "both",
-                      }}
+                      data-reveal
+                      data-reveal-delay={String(i + 1)}
+                      className="headline-word-reveal inline-block text-4xl sm:text-5xl lg:text-7xl font-black"
                     >
                       {word}
                     </span>
                   ))}
                 </div>
 
-                {/* Line 3: وتصنع الجودة (تظهر الكلمات واحدة تلو الأخرى بالتتابع) */}
+                {/* Line 3: وتصنع الجودة (تتكرر الحركة بالتتابع مع كل تمرير سكرول) */}
                 <div className="flex flex-wrap items-center justify-start gap-x-3 sm:gap-x-4">
                   {["وتصنع", "الجودة"].map((word, i) => (
                     <span
                       key={i + 3}
-                      className="inline-block animate-word-appear text-4xl sm:text-5xl lg:text-7xl font-black"
-                      style={{
-                        animationDelay: `${0.18 + (i + 3) * 0.14}s`,
-                        animationFillMode: "both",
-                      }}
+                      data-reveal
+                      data-reveal-delay={String(i + 4)}
+                      className="headline-word-reveal inline-block text-4xl sm:text-5xl lg:text-7xl font-black"
                     >
                       {word}
                     </span>
                   ))}
                 </div>
               </h1>
+
               <p
-                className="text-muted-foreground text-base sm:text-lg mb-8 max-w-xl leading-relaxed font-medium animate-word-appear"
-                style={{ animationDelay: "0.85s", animationFillMode: "both" }}
+                data-reveal
+                data-reveal-delay="6"
+                className="headline-word-reveal text-muted-foreground text-base sm:text-lg mb-8 max-w-xl leading-relaxed font-medium text-right block"
               >
                 اكتشف تشكيلتنا الواسعة من الأدوات المكتبية والقرطاسية من أفضل العلامات التجارية العالمية. جودة استثنائية وأسعار تنافسية وتوصيل سريع.
               </p>

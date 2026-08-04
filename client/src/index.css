@@ -618,13 +618,13 @@ input:focus, textarea:focus, select:focus {
   animation: floatGentle 4s ease-in-out infinite;
 }
 
-/* ===== HERO FEATURED TITLE SHINE (كلمة المهندس بالأسود مع شريط ضوء أبيض هادئ) ===== */
+/* ===== HERO FEATURED TITLE SHINE (كلمة المهندس بالأسود مع شريط ضوء هادئ جداً بدون أي تهنيجة) ===== */
 @keyframes textShinePass {
   0% {
-    background-position: -180% 0;
+    background-position: 200% 0;
   }
   100% {
-    background-position: 180% 0;
+    background-position: -200% 0;
   }
 }
 
@@ -632,34 +632,34 @@ input:focus, textarea:focus, select:focus {
   background-image: linear-gradient(
     110deg,
     #000000 0%,
-    #000000 38%,
-    rgba(255, 255, 255, 0.58) 50%,
-    rgba(255, 255, 255, 0.58) 52%,
-    #000000 64%,
+    #000000 42%,
+    rgba(255, 255, 255, 0.38) 50%,
+    rgba(255, 255, 255, 0.38) 52%,
+    #000000 60%,
     #000000 100%
   ) !important;
-  background-size: 250% 100% !important;
+  background-size: 300% 100% !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
   background-clip: text !important;
   display: inline-block !important;
-  animation: textShinePass 3.5s linear infinite !important;
+  animation: textShinePass 4s linear infinite !important;
 }
 
-/* ===== RE-TRIGGERABLE HEADLINE WORD REVEAL ===== */
-[data-reveal].headline-word {
+/* ===== RE-TRIGGERABLE HEADLINE & SUBTITLE SCROLL REVEAL ===== */
+[data-reveal].headline-word-reveal {
   opacity: 0;
   transform: translateY(22px) scale(0.94);
   filter: blur(6px);
   color: #ffffff;
-  text-shadow: 0 0 16px rgba(255, 255, 255, 0.9);
+  text-shadow: 0 0 14px rgba(255, 255, 255, 0.7);
   transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
               transform 0.75s cubic-bezier(0.16, 1, 0.3, 1),
               filter 0.75s cubic-bezier(0.16, 1, 0.3, 1),
               color 0.75s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-[data-reveal].headline-word.revealed {
+[data-reveal].headline-word-reveal.revealed {
   opacity: 1;
   transform: translateY(0) scale(1);
   filter: blur(0);
