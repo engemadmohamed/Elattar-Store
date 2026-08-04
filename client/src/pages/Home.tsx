@@ -263,12 +263,12 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Animated Main Title (Line 1: المهندس, Line 2: الجودة تبني الثقة, Line 3: وتصنع الجودة) */}
-              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight mb-8 text-right dir-rtl leading-[1.3] space-y-3">
-                {/* Line 1: المهندس (مع أنيميشن شعاع إضاءة أبيض يمر عبر الكلمة) */}
-                <div className="flex flex-wrap items-center justify-start gap-x-3 mb-4">
+              {/* Animated Main Title (Line 1: heroFeaturedTitle "المهندس", Line 2: الجودة تبني الثقة, Line 3: وتصنع الجودة) */}
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight mb-6 text-right dir-rtl leading-[1.2]">
+                {/* Line 1: heroFeaturedTitle ("المهندس" من إعدادات المتجر) */}
+                <div className="flex flex-wrap items-center justify-start gap-x-3 mb-3">
                   <span
-                    className="inline-block animate-word-appear title-text-shine text-5xl sm:text-6xl lg:text-8xl font-black tracking-tight"
+                    className="inline-block animate-word-appear text-6xl sm:text-7xl lg:text-8xl font-black tracking-tight text-foreground select-none"
                     style={{ animationDelay: "0.08s", animationFillMode: "both" }}
                   >
                     {settings.heroFeaturedTitle || "المهندس"}
