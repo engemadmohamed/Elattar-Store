@@ -618,13 +618,13 @@ input:focus, textarea:focus, select:focus {
   animation: floatGentle 4s ease-in-out infinite;
 }
 
-/* ===== HERO FEATURED TITLE SHINE (كلمة المهندس بالأسود مع شريط ضوء أبيض يمر عليها) ===== */
+/* ===== HERO FEATURED TITLE SHINE (كلمة المهندس بالأسود مع شريط ضوء أبيض يمر بعكس الاتجاه) ===== */
 @keyframes textShinePass {
   0% {
-    background-position: 180% 0;
+    background-position: -180% 0;
   }
   100% {
-    background-position: -180% 0;
+    background-position: 180% 0;
   }
 }
 
@@ -644,6 +644,54 @@ input:focus, textarea:focus, select:focus {
   background-clip: text !important;
   display: inline-block !important;
   animation: textShinePass 3s linear infinite !important;
+}
+
+/* ===== RE-TRIGGERABLE HEADLINE WORD REVEAL ===== */
+[data-reveal].headline-word {
+  opacity: 0;
+  transform: translateY(22px) scale(0.94);
+  filter: blur(6px);
+  color: #ffffff;
+  text-shadow: 0 0 16px rgba(255, 255, 255, 0.9);
+  transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-reveal].headline-word.revealed {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+  color: #09090b;
+  text-shadow: none;
+}
+
+@keyframes wordAppear {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+    filter: blur(6px);
+    color: #ffffff;
+    text-shadow: 0 0 16px rgba(255, 255, 255, 0.9);
+  }
+  35% {
+    opacity: 0.95;
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+    color: #09090b;
+    text-shadow: none;
+  }
+}
+
+.animate-word-appear {
+  animation: wordAppear 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, transform, filter, color;
 }
 
 @keyframes badgePulse {

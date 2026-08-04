@@ -264,8 +264,9 @@ export default function Home() {
               )}
 
               {/* Animated Main Title (Line 1: heroFeaturedTitle "المهندس", Line 2: الجودة تبني الثقة, Line 3: وتصنع الجودة) */}
+              {/* Animated Main Title */}
               <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight mb-6 text-right dir-rtl leading-[1.2]">
-                {/* Line 1: heroFeaturedTitle ("المهندس" باللون الأسود مع شريط ضوء أبيض يمر عبر الكلمة) */}
+                {/* Line 1: heroFeaturedTitle */}
                 <div className="flex flex-wrap items-center justify-start gap-x-3 mb-3">
                   <span
                     className="inline-block animate-word-appear hero-featured-shine text-6xl sm:text-7xl lg:text-8xl font-black tracking-tight select-none"
@@ -275,32 +276,28 @@ export default function Home() {
                   </span>
                 </div>
 
-                {/* Line 2: الجودة تبني الثقة */}
-                <div className="flex flex-wrap items-center justify-start gap-x-3 sm:gap-x-4 mb-4 text-foreground">
+                {/* Line 2: الجودة تبني الثقة (تتكرر حركة الظهور التفاعلية مع كل تمرير سكرول) */}
+                <div className="flex flex-wrap items-center justify-start gap-x-3 sm:gap-x-4 mb-3">
                   {["الجودة", "تبني", "الثقة"].map((word, i) => (
                     <span
                       key={i}
-                      className="inline-block animate-word-appear"
-                      style={{
-                        animationDelay: `${0.2 + i * 0.12}s`,
-                        animationFillMode: "both",
-                      }}
+                      data-reveal
+                      data-reveal-delay={String(i + 1)}
+                      className="headline-word inline-block text-4xl sm:text-5xl lg:text-7xl font-black"
                     >
                       {word}
                     </span>
                   ))}
                 </div>
 
-                {/* Line 3: وتصنع الجودة */}
-                <div className="flex flex-wrap items-center justify-start gap-x-3 sm:gap-x-4 text-foreground">
+                {/* Line 3: وتصنع الجودة (تتكرر حركة الظهور التفاعلية مع كل تمرير سكرول) */}
+                <div className="flex flex-wrap items-center justify-start gap-x-3 sm:gap-x-4">
                   {["وتصنع", "الجودة"].map((word, i) => (
                     <span
                       key={i + 3}
-                      className="inline-block animate-word-appear"
-                      style={{
-                        animationDelay: `${0.2 + (i + 3) * 0.12}s`,
-                        animationFillMode: "both",
-                      }}
+                      data-reveal
+                      data-reveal-delay={String(i + 4)}
+                      className="headline-word inline-block text-4xl sm:text-5xl lg:text-7xl font-black"
                     >
                       {word}
                     </span>
