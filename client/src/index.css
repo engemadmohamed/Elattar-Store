@@ -618,27 +618,27 @@ input:focus, textarea:focus, select:focus {
   animation: floatGentle 4s ease-in-out infinite;
 }
 
-/* ===== HERO FEATURED LETTER SHEEN (نص أسود ثابت مع لون أبيض ناصع يمر فوق الحروف ذاتها من اليمين لليسار) ===== */
+/* ===== HERO FEATURED LETTER SHEEN (نص أسود ثابت مع شريط أبيض ناصع يمر من اليمين لليسار يبدأ من أول الكلمة وبدون أي تقطيع) ===== */
 @keyframes letterStrokeSheen {
   0% {
-    background-position: 220% 0;
+    background-position: -280% 0;
   }
   100% {
-    background-position: -220% 0;
+    background-position: 280% 0;
   }
 }
 
 .hero-letter-sheen {
   background-image: linear-gradient(
-    115deg,
+    110deg,
     #09090b 0%,
-    #09090b 42%,
-    #ffffff 49%,
-    #ffffff 51%,
-    #09090b 58%,
+    #09090b 44%,
+    #ffffff 49.5%,
+    #ffffff 50.5%,
+    #09090b 56%,
     #09090b 100%
   ) !important;
-  background-size: 280% 100% !important;
+  background-size: 380% 100% !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
   background-clip: text !important;
