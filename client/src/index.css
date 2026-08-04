@@ -618,31 +618,32 @@ input:focus, textarea:focus, select:focus {
   animation: floatGentle 4s ease-in-out infinite;
 }
 
-/* ===== HERO FEATURED LETTER WHITE GLOW (إضاءة أسطورية باللون الأبيض على حروف كلمة المهندس ذاتها) ===== */
-@keyframes letterWhiteSweep {
+/* ===== HERO FEATURED LETTER SHEEN (نص أسود ثابت مع لون أبيض ناصع يمر فوق الحروف ذاتها من اليمين لليسار) ===== */
+@keyframes letterStrokeSheen {
   0% {
-    color: #09090b;
-    text-shadow: 0 0 0px transparent;
-  }
-  30% {
-    color: #ffffff;
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.9), 0 0 40px rgba(255, 255, 255, 0.5);
-  }
-  60% {
-    color: #09090b;
-    text-shadow: 0 0 0px transparent;
+    background-position: 220% 0;
   }
   100% {
-    color: #09090b;
-    text-shadow: 0 0 0px transparent;
+    background-position: -220% 0;
   }
 }
 
-.hero-letter-glow {
+.hero-letter-sheen {
+  background-image: linear-gradient(
+    115deg,
+    #09090b 0%,
+    #09090b 42%,
+    #ffffff 49%,
+    #ffffff 51%,
+    #09090b 58%,
+    #09090b 100%
+  ) !important;
+  background-size: 280% 100% !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
   display: inline-block !important;
-  color: #09090b;
-  animation: letterWhiteSweep 4.5s ease-in-out infinite !important;
-  transition: color 0.5s ease, text-shadow 0.5s ease;
+  animation: letterStrokeSheen 4.2s linear infinite !important;
 }
 
 /* ===== RE-TRIGGERABLE HEADLINE & SUBTITLE SCROLL REVEAL ===== */
