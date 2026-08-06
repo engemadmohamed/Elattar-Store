@@ -27,6 +27,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCart } from "@/lib/cart-context";
 import { useCustomerAuth } from "@/lib/customer-auth-context";
+import { useWishlist } from "@/lib/wishlist-context";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice, getSaleUnitName } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
@@ -71,6 +72,7 @@ export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const { addItem } = useCart();
   const { isAuthenticated, customer } = useCustomerAuth();
+  const { isInWishlist, toggleWishlist } = useWishlist();
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const qc = useQueryClient();
@@ -92,27 +94,7 @@ export default function ProductDetail() {
     enabled: !!id,
   });
 
-  // Fetch wishlist
-  const { data: wishlistData } = useQuery<string[]>({
-    queryKey: ["/api/wishlist"],
-    queryFn: () => apiRequest("GET", "/api/wishlist"),
-    enabled: isAuthenticated,
-  });
-
-  const isInWishlist = product ? wishlistData?.includes(product._id) : false;
-
-  const wishlistMutation = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/wishlist/toggle", { productId: id }),
-    onSuccess: (res: any) => {
-      qc.invalidateQueries({ queryKey: ["/api/wishlist"] });
-      toast({
-        title: res?.isFavorite ? "تمت الإضافة للمفضلة ❤️" : "تمت الإزالة من المفضلة",
-      });
-    },
-    onError: () => {
-      toast({ title: "حدث خطأ أثناء تحديث المفضلة", variant: "destructive" });
-    },
-  });
+  const isFav = product ? isInWishlist(product._id) : false;
 
   const handleWishlistToggle = () => {
     if (!isAuthenticated) {
@@ -123,7 +105,12 @@ export default function ProductDetail() {
       navigate("/login");
       return;
     }
-    wishlistMutation.mutate();
+    if (product) {
+      toggleWishlist(product._id);
+      toast({
+        title: isFav ? "تم الإزالة من المفضلة" : "تمت الإضافة للمفضلة ❤️",
+      });
+    }
   };
 
   // Fetch reviews
@@ -485,13 +472,12 @@ export default function ProductDetail() {
                   variant="outline"
                   size="icon"
                   className={`h-11 w-11 rounded-xl border-2 transition-all ${
-                    isInWishlist ? "border-rose-500 bg-rose-50 text-rose-600 dark:bg-rose-950/20" : ""
+                    isFav ? "border-rose-500 bg-rose-50 text-rose-600 dark:bg-rose-950/20" : ""
                   }`}
                   onClick={handleWishlistToggle}
-                  disabled={wishlistMutation.isPending}
-                  title={isInWishlist ? "إزالة من المفضلة" : "إضافة للمفضلة"}
+                  title={isFav ? "إزالة من المفضلة" : "إضافة للمفضلة"}
                 >
-                  <Heart className={`h-4 w-4 ${isInWishlist ? "fill-rose-500 text-rose-500" : ""}`} />
+                  <Heart className={`h-4 w-4 ${isFav ? "fill-rose-500 text-rose-500" : ""}`} />
                 </Button>
                 <Button
                   variant="outline"
