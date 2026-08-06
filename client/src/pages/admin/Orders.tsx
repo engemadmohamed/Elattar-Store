@@ -461,7 +461,7 @@ export default function AdminOrders() {
                           <p className="text-xs text-muted-foreground mt-0.5">{order.customerPhone}</p>
                           {order.customerLibraryName && (
                             <Badge variant="outline" className="mt-1 text-[10px] rounded-lg">
-                              📚 {order.customerLibraryName}
+                              {order.customerLibraryName}
                             </Badge>
                           )}
                         </div>

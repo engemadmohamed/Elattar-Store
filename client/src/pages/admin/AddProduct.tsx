@@ -1,7 +1,20 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
-import { ArrowLeft, Plus, X, Upload, QrCode, Copy, Check, Percent } from "lucide-react";
+import {
+  ArrowLeft,
+  Plus,
+  X,
+  Upload,
+  QrCode,
+  Copy,
+  Check,
+  Percent,
+  Clipboard,
+  Link as LinkIcon,
+  Image as ImageIcon,
+  FolderTree,
+} from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -120,10 +133,11 @@ export default function AddProduct() {
   const [discountPercent, setDiscountPercent] = useState("");
   const [colorInput, setColorInput] = useState("");
   const [categoryChain, setCategoryChain] = useState<string[]>([]);
-  const [imageUrl, setImageUrl] = useState("");
+  const [imageUrlInput, setImageUrlInput] = useState("");
   const [savedProductId, setSavedProductId] = useState<string | null>(null);
   const [savedProductSku, setSavedProductSku] = useState<string>("");
   const [showQR, setShowQR] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const { data: categories } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
@@ -224,22 +238,23 @@ export default function AddProduct() {
     }
   };
 
-  const addImageUrl = () => {
-    if (imageUrl.trim()) {
-      set("images", [...form.images, imageUrl.trim()]);
-      setImageUrl("");
+  // Method 3: Add Image by Direct URL Input
+  const handleAddImageUrl = () => {
+    if (imageUrlInput.trim()) {
+      set("images", [...form.images, imageUrlInput.trim()]);
+      setImageUrlInput("");
+      toast({ title: "تم إضافة رابط الصورة ✓" });
     }
   };
 
-  const [uploading, setUploading] = useState(false);
-
+  // Method 1: Upload File directly from Device
   const uploadFileObj = async (file: File) => {
     setUploading(true);
     const token = localStorage.getItem("al-mohandes-token");
     try {
       const compressedBlob = await compressImage(file);
       const formData = new FormData();
-      formData.append("image", compressedBlob, file.name || "pasted-image.jpg");
+      formData.append("image", compressedBlob, file.name || "uploaded-image.jpg");
       const res = await fetch("/api/upload/image", {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -267,11 +282,40 @@ export default function AddProduct() {
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       await uploadFileObj(file);
       e.target.value = "";
+    }
+  };
+
+  // Method 2: Clipboard Paste Image
+  const handleClipboardPasteButton = async () => {
+    try {
+      const items = await navigator.clipboard.read().catch(() => []);
+      let found = false;
+      for (const item of items) {
+        const imageType = item.types.find((t) => t.startsWith("image/"));
+        if (imageType) {
+          found = true;
+          const blob = await item.getType(imageType);
+          const file = new File([blob], "pasted-image.png", { type: imageType });
+          await uploadFileObj(file);
+          break;
+        }
+      }
+      if (!found) {
+        toast({
+          title: "انسخ صورة أولاً ثم اضغط هنا أو اضغط Ctrl + V",
+          description: "تأكد من نسخ صورة إلى الحافظة أولاً",
+        });
+      }
+    } catch {
+      toast({
+        title: "اضغط Ctrl + V في هذه الصفحة للصق الصورة",
+        description: "انسخ أي صورة ثم استخدم اختصار الحافظة",
+      });
     }
   };
 
@@ -319,20 +363,19 @@ export default function AddProduct() {
   const renderCategoryDropdowns = () => {
     if (!categories) return null;
     const elements = [];
-
     const rootCats = categories.filter((c) => !c.parentId);
 
     elements.push(
       <div key="level-0" className="space-y-1">
-        <Label className="text-xs text-muted-foreground">الفئة الرئيسية</Label>
+        <Label className="text-xs font-bold text-muted-foreground">الفئة الرئيسية</Label>
         <Select
           value={categoryChain[0] || ""}
           onValueChange={(val) => handleCategoryChange(0, val)}
         >
-          <SelectTrigger>
+          <SelectTrigger className="rounded-xl">
             <SelectValue placeholder="اختر فئة رئيسية" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="rounded-2xl">
             {rootCats.map((c) => (
               <SelectItem key={c._id} value={String(c._id)}>
                 {c.nameAr}
@@ -361,15 +404,15 @@ export default function AddProduct() {
 
       elements.push(
         <div key={`level-${level}`} className="space-y-1">
-          <Label className="text-xs text-muted-foreground">فئة فرعية (مستوى {level})</Label>
+          <Label className="text-xs font-bold text-muted-foreground">فئة فرعية (مستوى {level})</Label>
           <Select
             value={selectedSubId}
             onValueChange={(val) => handleCategoryChange(level, val)}
           >
-            <SelectTrigger>
+            <SelectTrigger className="rounded-xl">
               <SelectValue placeholder="اختر فئة فرعية" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-2xl">
               {subCats.map((c) => (
                 <SelectItem key={c._id} value={String(c._id)}>
                   {c.nameAr}
@@ -392,7 +435,7 @@ export default function AddProduct() {
       title={isEdit ? "تعديل بيانات المنتج" : "إضافة منتج جديد"}
       subtitle={isEdit ? "تحديث أسعار ومخزون المنتج" : "أدخل تفاصيل وصور المنتج لإضافته للكتالوج"}
     >
-      <div className="max-w-4xl mx-auto space-y-6 pb-12">
+      <div className="max-w-5xl mx-auto space-y-6 pb-12">
         <div className="flex items-center justify-between">
           <Link href={`${ADMIN_BASE}/products`}>
             <Button variant="ghost" size="sm" className="gap-2 font-bold rounded-xl">
@@ -402,17 +445,21 @@ export default function AddProduct() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-2 space-y-6">
-              {/* Main Info */}
-              <Card>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* Left Main Form Column */}
+            <div className="lg:col-span-2 space-y-6">
+              
+              {/* Card 1: Main Basic Info */}
+              <Card className="rounded-3xl border shadow-xs">
                 <CardHeader>
-                  <CardTitle className="text-base">معلومات المنتج الأساسية</CardTitle>
+                  <CardTitle className="text-base font-black">معلومات المنتج الأساسية</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label>اسم المنتج بالعربية *</Label>
+                    <Label className="font-bold">اسم المنتج بالعربية *</Label>
                     <Input
+                      className="rounded-xl mt-1 h-11"
                       value={form.nameAr}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -425,37 +472,42 @@ export default function AddProduct() {
                   </div>
 
                   <div>
-                    <Label>الوصف التفصيلي بالعربية</Label>
+                    <Label className="font-bold">الاسم بالإنجليزي (اختياري)</Label>
+                    <Input
+                      className="rounded-xl mt-1 h-11"
+                      value={form.name}
+                      onChange={(e) => set("name", e.target.value)}
+                      placeholder="e.g. Gel Pen Blue 0.7mm"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="font-bold">الوصف التفصيلي بالعربية</Label>
                     <Textarea
+                      className="rounded-xl mt-1"
                       value={form.descriptionAr}
                       onChange={(e) => set("descriptionAr", e.target.value)}
                       placeholder="مواصفات ونوع واستخدامات المنتج..."
                       rows={3}
                     />
                   </div>
-
-                  <div>
-                    <Label>فئة المنتج (اختيار الفئة والفئات الفرعية)</Label>
-                    <div className="space-y-3 mt-1.5 p-3 rounded-2xl bg-muted/20 border">
-                      {renderCategoryDropdowns()}
-                    </div>
-                  </div>
                 </CardContent>
               </Card>
 
-              {/* Pricing & Stock with Discount Percentage */}
-              <Card>
+              {/* Card 2: Pricing & Stock + Percentage Discount */}
+              <Card className="rounded-3xl border shadow-xs">
                 <CardHeader>
-                  <CardTitle className="text-base">السعر، نسب الخصم والمخزون</CardTitle>
+                  <CardTitle className="text-base font-black">السعر، نسب الخصم والمخزون</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
-                      <Label>السعر الأساسي (ج.م) *</Label>
+                      <Label className="font-bold">السعر الأساسي (ج.م) *</Label>
                       <Input
                         type="number"
                         min="0"
                         step="0.5"
+                        className="rounded-xl mt-1 h-11"
                         value={form.price}
                         onChange={(e) => {
                           const newPrice = e.target.value;
@@ -471,13 +523,14 @@ export default function AddProduct() {
                     </div>
 
                     <div>
-                      <Label className="flex items-center gap-1">
+                      <Label className="font-bold flex items-center gap-1">
                         <Percent className="h-3.5 w-3.5" /> نسبة الخصم %
                       </Label>
                       <Input
                         type="number"
                         min="0"
                         max="100"
+                        className="rounded-xl mt-1 h-11"
                         value={discountPercent}
                         onChange={(e) => {
                           const disc = e.target.value;
@@ -495,11 +548,12 @@ export default function AddProduct() {
                     </div>
 
                     <div>
-                      <Label>سعر البيع بعد الخصم (ج.م)</Label>
+                      <Label className="font-bold">سعر البيع بعد الخصم (ج.م)</Label>
                       <Input
                         type="number"
                         min="0"
                         step="0.5"
+                        className="rounded-xl mt-1 h-11"
                         value={form.salePrice}
                         onChange={(e) => {
                           const sPrice = e.target.value;
@@ -519,10 +573,11 @@ export default function AddProduct() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <Label>الكمية المتاحة (بالـ {getSaleUnitName(form.saleUnit)}) *</Label>
+                      <Label className="font-bold">الكمية المتاحة (بالـ {getSaleUnitName(form.saleUnit)}) *</Label>
                       <Input
                         type="number"
                         min="0"
+                        className="rounded-xl mt-1 h-11"
                         value={form.stock}
                         onChange={(e) => set("stock", e.target.value)}
                         required
@@ -530,16 +585,16 @@ export default function AddProduct() {
                     </div>
 
                     <div>
-                      <Label>وحدة البيع</Label>
+                      <Label className="font-bold">وحدة البيع</Label>
                       <Select
                         key={`saleUnit-${form.saleUnit || "piece"}`}
                         value={form.saleUnit || "piece"}
                         onValueChange={(v) => set("saleUnit", v)}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="rounded-xl mt-1 h-11">
                           <SelectValue placeholder="اختر وحدة البيع" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="rounded-2xl">
                           <SelectItem value="piece">قطعة</SelectItem>
                           <SelectItem value="box">علبة</SelectItem>
                           <SelectItem value="jar">برطمان</SelectItem>
@@ -552,8 +607,9 @@ export default function AddProduct() {
                   </div>
 
                   <div>
-                    <Label>الماركة / العلامة التجارية</Label>
+                    <Label className="font-bold">الماركة / العلامة التجارية</Label>
                     <Input
+                      className="rounded-xl mt-1 h-11"
                       value={form.brand}
                       onChange={(e) => set("brand", e.target.value)}
                       placeholder="مثال: Bic, Faber-Castell"
@@ -562,10 +618,10 @@ export default function AddProduct() {
                 </CardContent>
               </Card>
 
-              {/* Colors */}
-              <Card>
+              {/* Card 3: Colors */}
+              <Card className="rounded-3xl border shadow-xs">
                 <CardHeader>
-                  <CardTitle className="text-base">ألوان المنتج</CardTitle>
+                  <CardTitle className="text-base font-black">ألوان المنتج</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
@@ -599,17 +655,61 @@ export default function AddProduct() {
                       })}
                     </div>
                   </div>
+
+                  <div className="pt-2 border-t">
+                    <Label className="mb-1.5 block text-xs text-muted-foreground">أو اكتب اسم لون إضافي:</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        className="rounded-xl h-10"
+                        value={colorInput}
+                        onChange={(e) => setColorInput(e.target.value)}
+                        placeholder="مثلاً: فيروزي، كحلي..."
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            addColor();
+                          }
+                        }}
+                      />
+                      <Button type="button" variant="outline" className="rounded-xl h-10" onClick={addColor}>
+                        <Plus className="h-4 w-4" /> إضافة
+                      </Button>
+                    </div>
+                  </div>
+
+                  {form.colors.length > 0 && (
+                    <div className="pt-2 border-t">
+                      <Label className="mb-1.5 block text-xs font-bold">الألوان المختارة للمنتج ({form.colors.length}):</Label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {form.colors.map((c, i) => (
+                          <Badge key={i} variant="secondary" className="gap-1.5 px-3 py-1 text-xs font-bold rounded-lg border bg-black text-white">
+                            {c}
+                            <button
+                              type="button"
+                              onClick={() => set("colors", form.colors.filter((_, j) => j !== i))}
+                              className="text-white/80 hover:text-white transition-colors"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
-              {/* Images */}
-              <Card>
+              {/* Card 4: Product Images (3 Upload Methods Restored!) */}
+              <Card className="rounded-3xl border shadow-xs">
                 <CardHeader>
-                  <CardTitle className="text-base">صور المنتج</CardTitle>
+                  <CardTitle className="text-base font-black flex items-center gap-2">
+                    <ImageIcon className="h-5 w-5" /> صور المنتج (3 طرق مختلفة للرفع)
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {/* Uploaded Images Preview Grid */}
                   {form.images.length > 0 && (
-                    <div className="flex flex-wrap gap-3 p-3 bg-muted/20 rounded-xl border">
+                    <div className="flex flex-wrap gap-3 p-3 bg-muted/20 rounded-2xl border">
                       {form.images.map((img, i) => (
                         <div key={i} className="relative h-20 w-20 overflow-hidden rounded-xl border group shadow-sm bg-white">
                           <img src={img} alt="" className="h-full w-full object-cover" />
@@ -617,7 +717,7 @@ export default function AddProduct() {
                             type="button"
                             title="حذف الصورة"
                             onClick={() => set("images", form.images.filter((_, j) => j !== i))}
-                            className="absolute top-1 right-1 bg-black/70 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="absolute top-1 right-1 bg-black/75 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                           >
                             <X className="h-3.5 w-3.5" />
                           </button>
@@ -626,25 +726,70 @@ export default function AddProduct() {
                     </div>
                   )}
 
-                  <div className="flex items-center gap-3">
-                    <label className="cursor-pointer bg-black text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-black/90 inline-flex items-center gap-2">
-                      <Upload className="h-4 w-4" /> رفع صورة
-                      <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                  {/* 3 Upload Options */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {/* Method 1: File Upload */}
+                    <label className="cursor-pointer bg-black text-white p-3 rounded-2xl text-xs font-bold hover:bg-black/90 flex flex-col items-center justify-center gap-2 text-center border shadow-xs transition-all">
+                      <Upload className="h-5 w-5" />
+                      <span>1. رفع صورة من الجهاز</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={handleImageFileUpload} />
                     </label>
+
+                    {/* Method 2: Clipboard Paste */}
+                    <button
+                      type="button"
+                      onClick={handleClipboardPasteButton}
+                      className="bg-card hover:bg-muted p-3 rounded-2xl text-xs font-bold border flex flex-col items-center justify-center gap-2 text-center shadow-xs transition-all"
+                    >
+                      <Clipboard className="h-5 w-5 text-muted-foreground" />
+                      <span>2. لصق صورة (Ctrl + V)</span>
+                    </button>
+
+                    {/* Method 3: Direct URL Input */}
+                    <div className="bg-card p-2 rounded-2xl border shadow-xs flex flex-col justify-between gap-1.5">
+                      <span className="text-[11px] font-bold text-muted-foreground text-center">3. إدخال رابط صورة URL</span>
+                      <div className="flex gap-1">
+                        <Input
+                          value={imageUrlInput}
+                          onChange={(e) => setImageUrlInput(e.target.value)}
+                          placeholder="https://..."
+                          className="h-8 text-xs rounded-xl"
+                        />
+                        <Button type="button" size="sm" onClick={handleAddImageUrl} className="h-8 text-xs font-bold rounded-xl px-2">
+                          <Plus className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Side Card Actions */}
+            {/* Right Sidebar Column */}
             <div className="space-y-6">
-              <Card>
+              
+              {/* Category Selector Card (Positioned in Top Sidebar) */}
+              <Card className="rounded-3xl border shadow-xs">
                 <CardHeader>
-                  <CardTitle className="text-base">حالة وشروط النشر</CardTitle>
+                  <CardTitle className="text-base font-black flex items-center gap-2">
+                    <FolderTree className="h-5 w-5" /> فئة المنتج والأقسام
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    {renderCategoryDropdowns()}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Publish & Status Card */}
+              <Card className="rounded-3xl border shadow-xs">
+                <CardHeader>
+                  <CardTitle className="text-base font-black">حالة المنتج بالنشر</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <Label className="font-bold">عرض المنتج بالمتجر</Label>
+                    <Label className="font-bold text-xs">عرض المنتج بالمتجر</Label>
                     <Switch
                       checked={form.isActive}
                       onCheckedChange={(v) => set("isActive", v)}
@@ -653,10 +798,10 @@ export default function AddProduct() {
 
                   <Button
                     type="submit"
-                    className="w-full bg-black hover:bg-black/90 text-white font-bold rounded-xl h-11"
+                    className="w-full bg-black hover:bg-black/90 text-white font-bold rounded-xl h-11 shadow-md"
                     disabled={mutation.isPending || uploading}
                   >
-                    {mutation.isPending ? "جاري الحفظ..." : isEdit ? "تحديث المنتج" : "إضافة المنتج"}
+                    {mutation.isPending ? "جاري الحفظ..." : isEdit ? "تحديث المنتج" : "حفظ وإضافة المنتج"}
                   </Button>
                 </CardContent>
               </Card>

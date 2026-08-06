@@ -83,7 +83,6 @@ export default function AdminLayout({ children, title, subtitle }: AdminLayoutPr
               <ChevronLeft className="h-3 w-3 rtl:rotate-180 opacity-50" />
               <span className="font-semibold text-foreground">{currentPageTitle}</span>
             </div>
-            {subtitle && <p className="text-[11px] text-muted-foreground leading-none mt-0.5">{subtitle}</p>}
           </div>
         </div>
 

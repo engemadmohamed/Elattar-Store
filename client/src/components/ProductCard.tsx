@@ -150,10 +150,10 @@ export default function ProductCard({ product }: { product: Product }) {
           <button
             type="button"
             onClick={handleWishlist}
-            className="absolute top-3 rtl:left-3 ltr:right-3 z-10 h-8 w-8 rounded-full bg-white/85 backdrop-blur-md border border-white/60 flex items-center justify-center shadow-md hover:scale-115 transition-all duration-300 active:scale-95"
+            className="absolute top-3 rtl:left-3 ltr:right-3 z-30 h-9 w-9 rounded-full bg-white/90 backdrop-blur-md border border-black/10 flex items-center justify-center shadow-md hover:scale-110 transition-all duration-200 active:scale-95 cursor-pointer"
             title={isFav ? "إزالة من المفضلة" : "إضافة للمفضلة"}
           >
-            <Heart className={`h-4 w-4 transition-colors ${isFav ? "text-black fill-black" : "text-foreground/70 group-hover:text-black"}`} />
+            <Heart className={`h-4.5 w-4.5 transition-colors ${isFav ? "text-rose-600 fill-rose-600" : "text-foreground/80 hover:text-rose-600"}`} />
           </button>
 
           {/* Discount badge */}
