@@ -11,7 +11,7 @@ const router = Router();
 // GET /api/settings — public
 router.get("/", async (_req: Request, res: Response) => {
   try {
-    let settings = await StoreSettings.findOne();
+    let settings = await StoreSettings.findOne().sort({ createdAt: 1 });
     if (!settings) {
       settings = await StoreSettings.create(defaultSettings);
     }
@@ -59,11 +59,15 @@ router.get("/stats", async (_req: Request, res: Response) => {
 // PUT /api/settings — admin only
 router.put("/", requireAuth, async (req: Request, res: Response) => {
   try {
-    const settings = await StoreSettings.findOneAndUpdate(
-      {},
-      { $set: req.body },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
-    );
+    let settings = await StoreSettings.findOne().sort({ createdAt: 1 });
+    if (settings) {
+      Object.assign(settings, req.body);
+      await settings.save();
+    } else {
+      settings = await StoreSettings.create({ ...defaultSettings, ...req.body });
+    }
+    // Delete any extra documents to avoid duplicate settings records
+    await StoreSettings.deleteMany({ _id: { $ne: settings._id } });
     return res.json(settings);
   } catch (error) {
     console.error(error);

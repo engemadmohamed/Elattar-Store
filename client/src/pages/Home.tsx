@@ -263,11 +263,6 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Intro Tag above title */}
-              <div className="inline-flex items-center gap-2 rounded-full border border-foreground/15 bg-foreground/5 px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-foreground/80 mb-3 animate-fade-in-up">
-                <Sparkles className="h-3.5 w-3.5 text-foreground/70" />
-                <span>عن متجر المهندس • نصنع الجودة ونكسب الثقة</span>
-              </div>
 
               {/* Dynamic Animated Title from settings */}
               {(() => {
