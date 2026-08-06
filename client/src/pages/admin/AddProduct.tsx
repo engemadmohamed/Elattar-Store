@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
-import { ArrowLeft, Plus, X, Upload, QrCode, Copy, Check } from "lucide-react";
+import { ArrowLeft, Plus, X, Upload, QrCode, Copy, Check, Percent } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +31,7 @@ interface Category {
   nameAr: string;
   slug: string;
   parentId: string | null;
+  discountPercent?: number;
 }
 
 const PRESET_COLORS = [
@@ -48,7 +49,6 @@ const PRESET_COLORS = [
   { label: "شفاف", bg: "bg-slate-100 text-slate-700 border-slate-300" },
 ];
 
-// Helper function to find the path to a category from root to child
 const findCategoryPath = (
   allCategories: Category[],
   categoryId: string,
@@ -117,13 +117,13 @@ export default function AddProduct() {
     images: [] as string[],
     isActive: true,
   });
+  const [discountPercent, setDiscountPercent] = useState("");
   const [colorInput, setColorInput] = useState("");
   const [categoryChain, setCategoryChain] = useState<string[]>([]);
   const [imageUrl, setImageUrl] = useState("");
   const [savedProductId, setSavedProductId] = useState<string | null>(null);
   const [savedProductSku, setSavedProductSku] = useState<string>("");
   const [showQR, setShowQR] = useState(false);
-  const [formPopulated, setFormPopulated] = useState(false);
 
   const { data: categories } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
@@ -137,20 +137,46 @@ export default function AddProduct() {
       enabled: isEdit,
     });
 
+  const set = (key: string, val: unknown) =>
+    setForm((f) => ({ ...f, [key]: val as any }));
+
   const handleCategoryChange = (level: number, value: string) => {
-    // Truncate the chain at the current level
     const newChain = categoryChain.slice(0, level);
-    // Add the new value if it's not empty
     if (value) {
       newChain.push(value);
     }
     setCategoryChain(newChain);
 
-    // The form's categoryId is the last selected category in the chain.
-    // If the user selects the placeholder, the categoryId becomes the parent's ID.
     const finalCategoryId =
       newChain.length > 0 ? newChain[newChain.length - 1] : "";
     set("categoryId", finalCategoryId);
+
+    // Auto-fill category discount if selected category has discountPercent
+    if (finalCategoryId && categories) {
+      const selectedCat = categories.find((c) => String(c._id) === finalCategoryId);
+      const parentCat = selectedCat?.parentId
+        ? categories.find((c) => String(c._id) === String(selectedCat.parentId))
+        : null;
+
+      const catDisc =
+        selectedCat?.discountPercent && selectedCat.discountPercent > 0
+          ? selectedCat.discountPercent
+          : parentCat?.discountPercent && parentCat.discountPercent > 0
+          ? parentCat.discountPercent
+          : 0;
+
+      if (catDisc > 0) {
+        setDiscountPercent(String(catDisc));
+        const priceNum = Number(form.price);
+        if (priceNum > 0) {
+          const calculated = Math.round(priceNum * (1 - catDisc / 100));
+          set("salePrice", String(calculated));
+        }
+        toast({
+          title: `✨ تم تطبيق نسبة خصم الفئة تلقائياً (${catDisc}%)`,
+        });
+      }
+    }
   };
 
   useEffect(() => {
@@ -164,13 +190,22 @@ export default function AddProduct() {
         setCategoryChain(path);
       }
 
+      const pPrice = existingProduct.price !== undefined ? existingProduct.price : 0;
+      const sPrice = existingProduct.salePrice || 0;
+      let calculatedDisc = "";
+      if (pPrice > 0 && sPrice > 0 && sPrice < pPrice) {
+        calculatedDisc = String(Math.round(((pPrice - sPrice) / pPrice) * 100));
+      }
+
+      setDiscountPercent(calculatedDisc);
+
       setForm({
         name: existingProduct.name || "",
         nameAr: existingProduct.nameAr || "",
         description: existingProduct.description || "",
         descriptionAr: existingProduct.descriptionAr || "",
-        price: existingProduct.price !== undefined ? String(existingProduct.price) : "",
-        salePrice: existingProduct.salePrice ? String(existingProduct.salePrice) : "",
+        price: pPrice ? String(pPrice) : "",
+        salePrice: sPrice ? String(sPrice) : "",
         stock: existingProduct.stock !== undefined ? String(existingProduct.stock) : "0",
         categoryId: productCategoryId,
         brand: existingProduct.brand || "",
@@ -181,9 +216,6 @@ export default function AddProduct() {
       });
     }
   }, [existingProduct, categories]);
-
-  const set = (key: string, val: unknown) =>
-    setForm((f) => ({ ...f, [key]: val as any }));
 
   const addColor = () => {
     if (colorInput.trim()) {
@@ -243,49 +275,6 @@ export default function AddProduct() {
     }
   };
 
-  const handlePasteImage = (e: React.ClipboardEvent) => {
-    const items = e.clipboardData?.items;
-    if (!items) return;
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      if (item.type.indexOf("image") !== -1) {
-        e.preventDefault();
-        const file = item.getAsFile();
-        if (file) {
-          uploadFileObj(file);
-        }
-      }
-    }
-  };
-
-  const handleClipboardPasteButton = async () => {
-    try {
-      const items = await navigator.clipboard.read().catch(() => []);
-      let found = false;
-      for (const item of items) {
-        const imageType = item.types.find((t) => t.startsWith("image/"));
-        if (imageType) {
-          found = true;
-          const blob = await item.getType(imageType);
-          const file = new File([blob], "pasted-image.png", { type: imageType });
-          await uploadFileObj(file);
-          break;
-        }
-      }
-      if (!found) {
-        toast({
-          title: "اضغط Ctrl + V للصق الصورة مباشرة",
-          description: "تأكد من نسخ صورة أولاً ثم اضغط Ctrl + V للصقها في هذه الصفحة",
-        });
-      }
-    } catch {
-      toast({
-        title: "اضغط Ctrl + V للصق الصورة مباشرة",
-        description: "انسخ أي صورة ثم اضغط Ctrl + V في هذه الصفحة للصقها",
-      });
-    }
-  };
-
   const mutation = useMutation({
     mutationFn: (data: typeof form) => {
       const payload = {
@@ -300,176 +289,246 @@ export default function AddProduct() {
         payload,
       );
     },
-    onSuccess: (updatedProduct) => {
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ["/api/products"] });
       qc.invalidateQueries({ queryKey: ["/api/products/admin/all"] });
 
-      if (isEdit) {
-        qc.setQueryData(["/api/products", id], updatedProduct);
+      if (data && data._id) {
+        setSavedProductId(data._id);
+        setSavedProductSku(data.sku || "");
+        setShowQR(true);
       } else {
-        // Reset form for creating a new product so admin can add another without reloading
-        setForm({
-          name: "",
-          nameAr: "",
-          description: "",
-          descriptionAr: "",
-          price: "",
-          salePrice: "",
-          stock: "0",
-          categoryId: "",
-          brand: "",
-          saleUnit: "piece",
-          colors: [],
-          images: [],
-          isActive: true,
-        });
-        setCategoryChain([]);
-        setColorInput("");
-        setImageUrl("");
+        toast({ title: isEdit ? "تم تحديث المنتج بنجاح ✓" : "تم إضافة المنتج بنجاح ✓" });
+        navigate(`${ADMIN_BASE}/products`);
       }
-
-      setSavedProductId(updatedProduct._id);
-      setSavedProductSku(updatedProduct.sku);
-      toast({
-        title: isEdit ? "تم تحديث المنتج ✓" : "تم إضافة المنتج بنجاح ✓",
-        description: isEdit ? "تم حفظ جميع التعديلات" : "تم تفريغ الحقول لإمكانية إضافة منتج جديد",
-      });
     },
-    onError: (err) =>
+    onError: (err: any) => {
       toast({
-        title: "فشل الحفظ",
+        title: isEdit ? "فشل تحديث المنتج" : "فشل إضافة المنتج",
         description: String(err),
         variant: "destructive",
-      }),
+      });
+    },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.nameAr || !form.price || !form.categoryId) {
-      toast({ title: "الرجاء ملء الحقول المطلوبة", variant: "destructive" });
-      return;
-    }
     mutation.mutate(form);
+  };
+
+  const renderCategoryDropdowns = () => {
+    if (!categories) return null;
+    const elements = [];
+
+    const rootCats = categories.filter((c) => !c.parentId);
+
+    elements.push(
+      <div key="level-0" className="space-y-1">
+        <Label className="text-xs text-muted-foreground">الفئة الرئيسية</Label>
+        <Select
+          value={categoryChain[0] || ""}
+          onValueChange={(val) => handleCategoryChange(0, val)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="اختر فئة رئيسية" />
+          </SelectTrigger>
+          <SelectContent>
+            {rootCats.map((c) => (
+              <SelectItem key={c._id} value={String(c._id)}>
+                {c.nameAr}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>,
+    );
+
+    let currentParentId = categoryChain[0];
+    let level = 1;
+
+    while (currentParentId) {
+      const subCats = categories.filter((c) => {
+        if (!c.parentId) return false;
+        const pId = typeof c.parentId === "object"
+          ? String((c.parentId as any)._id || c.parentId)
+          : String(c.parentId);
+        return pId === currentParentId;
+      });
+
+      if (subCats.length === 0) break;
+
+      const selectedSubId = categoryChain[level] || "";
+
+      elements.push(
+        <div key={`level-${level}`} className="space-y-1">
+          <Label className="text-xs text-muted-foreground">فئة فرعية (مستوى {level})</Label>
+          <Select
+            value={selectedSubId}
+            onValueChange={(val) => handleCategoryChange(level, val)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="اختر فئة فرعية" />
+            </SelectTrigger>
+            <SelectContent>
+              {subCats.map((c) => (
+                <SelectItem key={c._id} value={String(c._id)}>
+                  {c.nameAr}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>,
+      );
+
+      currentParentId = selectedSubId;
+      level++;
+    }
+
+    return elements;
   };
 
   return (
     <AdminLayout
-      title={isEdit ? "تعديل منتج" : "إضافة منتج جديد"}
-      subtitle={isEdit ? form.nameAr : "أدخل تفاصيل ومواصفات المنتج جديد"}
+      title={isEdit ? "تعديل بيانات المنتج" : "إضافة منتج جديد"}
+      subtitle={isEdit ? "تحديث أسعار ومخزون المنتج" : "أدخل تفاصيل وصور المنتج لإضافته للكتالوج"}
     >
-      <div className="space-y-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <Link href={`${ADMIN_BASE}/products`}>
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-2xl font-bold">
-                {isEdit ? "تعديل المنتج" : "إضافة منتج جديد"}
-              </h1>
-            </div>
-          </div>
-          {savedProductId && (
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={() => setShowQR(true)}
-            >
-              <QrCode className="h-4 w-4" /> طباعة QR Code
+      <div className="max-w-4xl mx-auto space-y-6 pb-12">
+        <div className="flex items-center justify-between">
+          <Link href={`${ADMIN_BASE}/products`}>
+            <Button variant="ghost" size="sm" className="gap-2 font-bold rounded-xl">
+              <ArrowLeft className="h-4 w-4" /> العودة لقائمة المنتجات
             </Button>
-          )}
+          </Link>
         </div>
 
-        {isEdit && isLoadingProduct ? (
-          <div className="max-w-4xl space-y-4">
-            <Skeleton className="h-40 w-full rounded-xl" />
-            <Skeleton className="h-40 w-full rounded-xl" />
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} onPaste={handlePasteImage} className="max-w-4xl space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-2 space-y-6">
               {/* Main Info */}
-              <div className="lg:col-span-2 space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">معلومات المنتج</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">معلومات المنتج الأساسية</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label>اسم المنتج بالعربية *</Label>
+                    <Input
+                      value={form.nameAr}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        set("nameAr", val);
+                        if (!form.name) set("name", val);
+                      }}
+                      placeholder="مثال: قلم جل أزرق 0.7 مم"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label>الوصف التفصيلي بالعربية</Label>
+                    <Textarea
+                      value={form.descriptionAr}
+                      onChange={(e) => set("descriptionAr", e.target.value)}
+                      placeholder="مواصفات ونوع واستخدامات المنتج..."
+                      rows={3}
+                    />
+                  </div>
+
+                  <div>
+                    <Label>فئة المنتج (اختيار الفئة والفئات الفرعية)</Label>
+                    <div className="space-y-3 mt-1.5 p-3 rounded-2xl bg-muted/20 border">
+                      {renderCategoryDropdowns()}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Pricing & Stock with Discount Percentage */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">السعر، نسب الخصم والمخزون</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
-                      <Label>اسم المنتج *</Label>
+                      <Label>السعر الأساسي (ج.م) *</Label>
                       <Input
-                        value={form.nameAr}
+                        type="number"
+                        min="0"
+                        step="0.5"
+                        value={form.price}
                         onChange={(e) => {
-                          const val = e.target.value;
-                          set("nameAr", val);
-                          set("name", val); // Also set english name for backend requirement
+                          const newPrice = e.target.value;
+                          set("price", newPrice);
+                          if (discountPercent && Number(discountPercent) > 0 && newPrice) {
+                            const calculated = Math.round(Number(newPrice) * (1 - Number(discountPercent) / 100));
+                            set("salePrice", String(calculated));
+                          }
                         }}
-                        placeholder="مثال: قلم بيك أزرق"
+                        placeholder="0.00"
                         required
                       />
                     </div>
-                    <div>
-                      <Label>الوصف</Label>
-                      <Textarea
-                        rows={3}
-                        value={form.descriptionAr}
-                        onChange={(e) => set("descriptionAr", e.target.value)}
-                        placeholder="وصف تفصيلي للمنتج..."
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
 
-                {/* Pricing & Stock */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">السعر والمخزون</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <Label>السعر (ج.م) *</Label>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.5"
-                          value={form.price}
-                          onChange={(e) => set("price", e.target.value)}
-                          placeholder="0.00"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label>سعر البيع (خصم)</Label>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.5"
-                          value={form.salePrice}
-                          onChange={(e) => set("salePrice", e.target.value)}
-                          placeholder="اتركه فارغاً"
-                        />
-                      </div>
-                      <div>
-                        <Label>الكمية المتاحة (بالـ {getSaleUnitName(form.saleUnit)}) *</Label>
-                        <Input
-                          type="number"
-                          min="0"
-                          value={form.stock}
-                          onChange={(e) => set("stock", e.target.value)}
-                          required
-                        />
-                      </div>
-                    </div>
                     <div>
-                      <Label>الماركة / العلامة التجارية</Label>
+                      <Label className="flex items-center gap-1">
+                        <Percent className="h-3.5 w-3.5" /> نسبة الخصم %
+                      </Label>
                       <Input
-                        value={form.brand}
-                        onChange={(e) => set("brand", e.target.value)}
-                        placeholder="مثال: Bic, Faber-Castell"
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={discountPercent}
+                        onChange={(e) => {
+                          const disc = e.target.value;
+                          setDiscountPercent(disc);
+                          const priceNum = Number(form.price);
+                          if (disc && Number(disc) > 0 && priceNum > 0) {
+                            const calculated = Math.round(priceNum * (1 - Number(disc) / 100));
+                            set("salePrice", String(calculated));
+                          } else if (!disc || Number(disc) === 0) {
+                            set("salePrice", "");
+                          }
+                        }}
+                        placeholder="أدخل % مثلا 10"
                       />
                     </div>
+
+                    <div>
+                      <Label>سعر البيع بعد الخصم (ج.م)</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.5"
+                        value={form.salePrice}
+                        onChange={(e) => {
+                          const sPrice = e.target.value;
+                          set("salePrice", sPrice);
+                          const priceNum = Number(form.price);
+                          if (sPrice && priceNum > 0) {
+                            const disc = Math.round(((priceNum - Number(sPrice)) / priceNum) * 100);
+                            setDiscountPercent(String(disc));
+                          } else {
+                            setDiscountPercent("");
+                          }
+                        }}
+                        placeholder="تحسب تلقائياً أو أدخلها"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label>الكمية المتاحة (بالـ {getSaleUnitName(form.saleUnit)}) *</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={form.stock}
+                        onChange={(e) => set("stock", e.target.value)}
+                        required
+                      />
+                    </div>
+
                     <div>
                       <Label>وحدة البيع</Label>
                       <Select
@@ -490,339 +549,133 @@ export default function AddProduct() {
                         </SelectContent>
                       </Select>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
 
-                {/* Colors */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">ألوان المنتج</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {/* Preset Color Choices */}
-                    <div>
-                      <Label className="mb-2.5 block text-xs font-bold text-muted-foreground">
-                        اختر من الألوان المتاحة بنقرة واحدة:
-                      </Label>
-                      <div className="flex flex-wrap gap-2">
-                        {PRESET_COLORS.map((preset) => {
-                          const isSelected = form.colors.includes(preset.label);
-                          return (
-                            <button
-                              key={preset.label}
-                              type="button"
-                              onClick={() => {
-                                if (isSelected) {
-                                  set("colors", form.colors.filter((c) => c !== preset.label));
-                                } else {
-                                  set("colors", [...form.colors, preset.label]);
-                                }
-                              }}
-                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all ${
-                                isSelected
-                                  ? `${preset.bg} ring-2 ring-offset-1 ring-black scale-105 shadow-sm`
-                                  : "bg-muted/40 text-foreground border-input hover:bg-accent"
-                              }`}
-                            >
-                              <span>{preset.label}</span>
-                              {isSelected ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5 opacity-50" />}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
+                  <div>
+                    <Label>الماركة / العلامة التجارية</Label>
+                    <Input
+                      value={form.brand}
+                      onChange={(e) => set("brand", e.target.value)}
+                      placeholder="مثال: Bic, Faber-Castell"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
 
-                    {/* Custom Color Input */}
-                    <div className="pt-2 border-t">
-                      <Label className="mb-1.5 block text-xs text-muted-foreground">أو اكتب اسم لون إضافي:</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          value={colorInput}
-                          onChange={(e) => setColorInput(e.target.value)}
-                          placeholder="مثلاً: فيروزي، كحلي..."
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              addColor();
-                            }
-                          }}
-                        />
-                        <Button type="button" variant="outline" onClick={addColor}>
-                          <Plus className="h-4 w-4" /> إضافة
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Selected Colors Summary */}
-                    {form.colors.length > 0 && (
-                      <div className="pt-2 border-t">
-                        <Label className="mb-1.5 block text-xs font-bold">الألوان المختارة للمنتج ({form.colors.length}):</Label>
-                        <div className="flex flex-wrap gap-1.5">
-                          {form.colors.map((c, i) => (
-                            <Badge key={i} variant="secondary" className="gap-1.5 px-3 py-1 text-xs font-bold rounded-lg border bg-black text-white">
-                              {c}
-                              <button
-                                type="button"
-                                onClick={() => set("colors", form.colors.filter((_, j) => j !== i))}
-                                className="text-white/80 hover:text-white transition-colors"
-                              >
-                                <X className="h-3.5 w-3.5" />
-                              </button>
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Images */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">صور المنتج</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {/* Render Uploaded Product Images */}
-                    {form.images.length > 0 && (
-                      <div className="flex flex-wrap gap-3 p-3 bg-muted/20 rounded-xl border">
-                        {form.images.map((img, i) => (
-                          <div key={i} className="relative h-20 w-20 overflow-hidden rounded-xl border group shadow-sm bg-white">
-                            <img
-                              src={img}
-                              alt=""
-                              className="h-full w-full object-cover"
-                            />
-                            {/* Delete Button */}
-                            <button
-                              type="button"
-                              title="حذف الصورة"
-                              onClick={() =>
-                                set(
-                                  "images",
-                                  form.images.filter((_, j) => j !== i),
-                                )
+              {/* Colors */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">ألوان المنتج</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label className="mb-2.5 block text-xs font-bold text-muted-foreground">
+                      اختر من الألوان المتاحة بنقرة واحدة:
+                    </Label>
+                    <div className="flex flex-wrap gap-2">
+                      {PRESET_COLORS.map((preset) => {
+                        const isSelected = form.colors.includes(preset.label);
+                        return (
+                          <button
+                            key={preset.label}
+                            type="button"
+                            onClick={() => {
+                              if (isSelected) {
+                                set("colors", form.colors.filter((c) => c !== preset.label));
+                              } else {
+                                set("colors", [...form.colors, preset.label]);
                               }
-                              className="absolute top-1 right-1 h-6 w-6 rounded-full bg-destructive text-white flex items-center justify-center shadow hover:scale-110 transition-transform"
-                            >
-                              <X className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Method 1: Paste Image (Ctrl+V or Button) */}
-                    <div className="p-3 bg-muted/30 rounded-xl border space-y-2">
-                      <Label className="text-xs font-bold text-foreground block">
-                        الطريقة 1: لصق صورة من الحافظة (Paste / Ctrl+V):
-                      </Label>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleClipboardPasteButton}
-                        className="w-full h-11 border-2 border-dashed rounded-xl font-bold gap-2 hover:bg-accent hover:border-black transition-all"
-                      >
-                        <Copy className="h-4 w-4" /> اضغط هنا للصق صورة من الحافظة (أو استخدم Ctrl + V)
-                      </Button>
-                    </div>
-
-                    {/* Method 2: Upload File from Computer */}
-                    <div className="p-3 bg-muted/30 rounded-xl border space-y-2">
-                      <Label className="text-xs font-bold text-foreground block">
-                        الطريقة 2: رفع صورة من الجهاز:
-                      </Label>
-                      <Label
-                        htmlFor="img-upload"
-                        className="flex items-center justify-center gap-2 cursor-pointer border-2 border-dashed rounded-xl p-3 bg-white hover:border-primary transition-colors text-center"
-                      >
-                        {uploading ? (
-                          <span className="text-sm font-bold text-primary animate-pulse">
-                            جاري رفع الصورة...
-                          </span>
-                        ) : (
-                          <>
-                            <Upload className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-xs font-bold text-muted-foreground">
-                              اختر ملف صورة من الكمبيوتر (حتى 5 ميجابايت)
-                            </span>
-                          </>
-                        )}
-                      </Label>
-                      <input
-                        id="img-upload"
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleImageUpload}
-                        disabled={uploading}
-                      />
-                    </div>
-
-                    {/* Method 3: Add Image via URL */}
-                    <div className="p-3 bg-muted/30 rounded-xl border space-y-2">
-                      <Label className="text-xs font-bold text-foreground block">
-                        الطريقة 3: إضافة برابط الصورة (URL):
-                      </Label>
-                      <div className="flex gap-2">
-                        <Input
-                          value={imageUrl}
-                          onChange={(e) => setImageUrl(e.target.value)}
-                          placeholder="ضع رابط الصورة هنا (https://...)..."
-                          className="bg-white text-xs"
-                        />
-                        <Button
-                          type="button"
-                          variant="default"
-                          onClick={addImageUrl}
-                          className="bg-black text-white font-bold shrink-0"
-                        >
-                          <Plus className="h-4 w-4" /> إضافة
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Sidebar */}
-              <div className="space-y-6">
-                {/* Category */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">الفئة</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {(() => {
-                      if (!categories)
-                        return <Skeleton className="h-10 w-full" />;
-
-                      const dropdowns = [];
-
-                      // Level 0 dropdown (root categories)
-                      const rootCategories = categories.filter(
-                        (c) => !c.parentId || c.parentId === null || String(c.parentId) === ""
-                      );
-                      dropdowns.push(
-                        <div key="level-0">
-                          <Label>الفئة الرئيسية *</Label>
-                          <Select
-                            key={`cat-0-${categoryChain[0] || "empty"}`}
-                            value={categoryChain[0] || ""}
-                            onValueChange={(value) =>
-                              handleCategoryChange(0, value)
-                            }
+                            }}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all ${
+                              isSelected
+                                ? `${preset.bg} ring-2 ring-offset-1 ring-black scale-105 shadow-sm`
+                                : "bg-muted/40 text-foreground border-input hover:bg-accent"
+                            }`}
                           >
-                            <SelectTrigger>
-                              <SelectValue placeholder="اختر الفئة الرئيسية" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {rootCategories.map((opt) => (
-                                <SelectItem key={opt._id} value={String(opt._id)}>
-                                  {opt.nameAr}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>,
-                      );
-
-                      // Subsequent dropdowns for subcategories
-                      categoryChain.forEach((catId, i) => {
-                        const subcategories = categories.filter(
-                          (c) => c.parentId && String(typeof c.parentId === "object" ? (c.parentId as any)._id : c.parentId) === String(catId)
+                            <span>{preset.label}</span>
+                            {isSelected ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5 opacity-50" />}
+                          </button>
                         );
-                        if (subcategories.length > 0) {
-                          dropdowns.push(
-                            <div key={`level-${i + 1}`}>
-                              <Label>فئة فرعية</Label>
-                              <Select
-                                key={`cat-${i + 1}-${categoryChain[i + 1] || "empty"}`}
-                                value={categoryChain[i + 1] || ""}
-                                onValueChange={(value) =>
-                                  handleCategoryChange(i + 1, value)
-                                }
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="اختر فئة فرعية" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {subcategories.map((opt) => (
-                                    <SelectItem key={opt._id} value={String(opt._id)}>
-                                      {opt.nameAr}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>,
-                          );
-                        }
-                      });
-
-                      return dropdowns;
-                    })()}
-                  </CardContent>
-                </Card>
-
-                {/* Status */}
-                <Card className="border-2 overflow-hidden">
-                  <CardContent className="p-4 flex items-center justify-between">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <p className="font-bold text-sm">نشر المنتج</p>
-                        <Badge
-                          variant={form.isActive ? "default" : "outline"}
-                          className={form.isActive ? "bg-foreground text-background font-bold text-[10px]" : "text-muted-foreground text-[10px]"}
-                        >
-                          {form.isActive ? "منشور الآن" : "مسودة خفية"}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {form.isActive ? "المنتج ظاهر للعملاء ويمكن شراؤه" : "المنتج مخفي ولن يظهر للزوار"}
-                      </p>
+                      })}
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Images */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">صور المنتج</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {form.images.length > 0 && (
+                    <div className="flex flex-wrap gap-3 p-3 bg-muted/20 rounded-xl border">
+                      {form.images.map((img, i) => (
+                        <div key={i} className="relative h-20 w-20 overflow-hidden rounded-xl border group shadow-sm bg-white">
+                          <img src={img} alt="" className="h-full w-full object-cover" />
+                          <button
+                            type="button"
+                            title="حذف الصورة"
+                            onClick={() => set("images", form.images.filter((_, j) => j !== i))}
+                            className="absolute top-1 right-1 bg-black/70 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-3">
+                    <label className="cursor-pointer bg-black text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-black/90 inline-flex items-center gap-2">
+                      <Upload className="h-4 w-4" /> رفع صورة
+                      <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                    </label>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Side Card Actions */}
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">حالة وشروط النشر</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="font-bold">عرض المنتج بالمتجر</Label>
                     <Switch
                       checked={form.isActive}
                       onCheckedChange={(v) => set("isActive", v)}
                     />
-                  </CardContent>
-                </Card>
+                  </div>
 
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={mutation.isPending}
-                >
-                  {mutation.isPending
-                    ? "جاري الحفظ..."
-                    : isEdit
-                      ? "حفظ التعديلات"
-                      : "إضافة المنتج"}
-                </Button>
-
-                {savedProductId && (
                   <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full gap-2"
-                    onClick={() => setShowQR(true)}
+                    type="submit"
+                    className="w-full bg-black hover:bg-black/90 text-white font-bold rounded-xl h-11"
+                    disabled={mutation.isPending || uploading}
                   >
-                    <QrCode className="h-4 w-4" /> عرض وطباعة QR Code
+                    {mutation.isPending ? "جاري الحفظ..." : isEdit ? "تحديث المنتج" : "إضافة المنتج"}
                   </Button>
-                )}
-              </div>
+                </CardContent>
+              </Card>
             </div>
-          </form>
+          </div>
+        </form>
+
+        {savedProductId && (
+          <QRModal
+            open={showQR}
+            onOpenChange={(isOpen) => {
+              setShowQR(isOpen);
+              if (!isOpen) navigate(`${ADMIN_BASE}/products`);
+            }}
+            productName={form.nameAr || form.name}
+            sku={savedProductSku}
+            price={Number(form.salePrice) || Number(form.price)}
+          />
         )}
-      {savedProductId && showQR && (
-        <QRModal
-          productId={savedProductId}
-          productName={form.nameAr}
-          productSku={savedProductSku}
-          price={parseFloat(form.salePrice || form.price)}
-          open={showQR}
-          onClose={() => setShowQR(false)}
-        />
-      )}
       </div>
     </AdminLayout>
   );

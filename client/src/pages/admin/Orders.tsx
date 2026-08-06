@@ -359,20 +359,6 @@ export default function AdminOrders() {
               </TabsTrigger>
             </TabsList>
           </Tabs>
-
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-48 rounded-xl h-10 border bg-card font-semibold text-xs">
-              <SelectValue placeholder="حالة الطلب" />
-            </SelectTrigger>
-            <SelectContent className="rounded-2xl">
-              <SelectItem value="all">جميع الحالات</SelectItem>
-              {STATUS_OPTIONS.map((s) => (
-                <SelectItem key={s.value} value={s.value}>
-                  {s.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
 
         {/* Search & Category Filter Bar */}

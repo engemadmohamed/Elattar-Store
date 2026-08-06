@@ -187,10 +187,6 @@ export default function Discounts() {
                   {currentDiscount > 0 ? `خصم ${currentDiscount}%` : "بدون خصم"}
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {catProducts.length} منتج في الفئة
-                {subcats.length > 0 && ` • ${subcats.length} فئة فرعية`}
-              </p>
             </div>
           </div>
 
@@ -259,16 +255,6 @@ export default function Discounts() {
                 {isSubcatsExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
               </Button>
             )}
-
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => toggleProds(cat._id)}
-              className="rounded-xl text-xs gap-1 ms-auto lg:ms-0"
-            >
-              {isProdsExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              {isProdsExpanded ? "إخفاء المنتجات" : "عرض المنتجات"}
-            </Button>
           </div>
         </div>
 
@@ -279,53 +265,6 @@ export default function Discounts() {
               الفئات الفرعية لـ {cat.nameAr}:
             </h4>
             {subcats.map((subcat) => renderCategoryCard(subcat, true))}
-          </div>
-        )}
-
-        {/* Products List (if expanded) */}
-        {isProdsExpanded && (
-          <div className="mt-4 pt-4 border-t space-y-2 animate-fade-in-up">
-            <h4 className="text-xs font-extrabold uppercase text-muted-foreground tracking-wider mb-2">
-              منتجات فئة: {cat.nameAr} ({catProducts.length})
-            </h4>
-            {catProducts.length === 0 ? (
-              <p className="text-xs text-muted-foreground py-2">لا توجد منتجات مضافة لهذه الفئة بعد.</p>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                {catProducts.map((prod) => {
-                  const hasDisc = prod.salePrice && prod.salePrice < prod.price;
-                  const prodDiscPercent = hasDisc
-                    ? Math.round(((prod.price - prod.salePrice!) / prod.price) * 100)
-                    : 0;
-
-                  return (
-                    <div
-                      key={prod._id}
-                      className="p-3 rounded-xl bg-muted/20 border flex items-center justify-between gap-3 text-xs"
-                    >
-                      <div className="truncate">
-                        <p className="font-bold truncate">{prod.nameAr || prod.name}</p>
-                        <div className="flex items-center gap-2 mt-0.5 text-muted-foreground">
-                          <span className={hasDisc ? "line-through opacity-70" : "font-semibold text-foreground"}>
-                            {prod.price} ج.م
-                          </span>
-                          {hasDisc && (
-                            <span className="font-extrabold text-emerald-600 dark:text-emerald-400">
-                              {prod.salePrice} ج.م
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      {hasDisc && (
-                        <Badge variant="secondary" className="font-bold text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-0 shrink-0">
-                          -{prodDiscPercent}%
-                        </Badge>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
           </div>
         )}
       </div>
