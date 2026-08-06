@@ -29,6 +29,16 @@ export interface IStoreSettings extends Document {
   facebook: string;
   twitter: string;
   whatsapp: string;
+  // Payment & Transfer settings
+  vodafoneCashNumber: string;
+  instapayAddress: string;
+  bankAccountDetails: string;
+  paymentInstructions: string;
+  enableVodafoneCash: boolean;
+  enableInstapay: boolean;
+  enableBankTransfer: boolean;
+  enableCashOnDelivery: boolean;
+  // Appearance & Layout settings
   primaryColor: string;
   primaryForeground: string;
   backgroundColor: string;
@@ -73,6 +83,15 @@ export const defaultSettings = {
   facebook: "",
   twitter: "",
   whatsapp: "201098154983",
+  // Default Payment & Transfer Numbers
+  vodafoneCashNumber: "01098154983",
+  instapayAddress: "01098154983@instapay",
+  bankAccountDetails: "البنك الأهلي المصري - رقم حساب: 123456789",
+  paymentInstructions: "يرجى تحويل المبلغ المطلوب على إحدى طرق الدفع التالية ثم إرفاق صورة إثبات التحويل عند الطلب لتأكيد الحجز سريعاً.",
+  enableVodafoneCash: true,
+  enableInstapay: true,
+  enableBankTransfer: true,
+  enableCashOnDelivery: true,
   primaryColor: "#111111",
   primaryForeground: "#ffffff",
   backgroundColor: "#FFFFFF",
@@ -118,6 +137,15 @@ const StoreSettingsSchema = new Schema<IStoreSettings>(
     facebook: { type: String, default: defaultSettings.facebook },
     twitter: { type: String, default: defaultSettings.twitter },
     whatsapp: { type: String, default: defaultSettings.whatsapp },
+    // Payment & Transfer settings
+    vodafoneCashNumber: { type: String, default: defaultSettings.vodafoneCashNumber },
+    instapayAddress: { type: String, default: defaultSettings.instapayAddress },
+    bankAccountDetails: { type: String, default: defaultSettings.bankAccountDetails },
+    paymentInstructions: { type: String, default: defaultSettings.paymentInstructions },
+    enableVodafoneCash: { type: Boolean, default: defaultSettings.enableVodafoneCash },
+    enableInstapay: { type: Boolean, default: defaultSettings.enableInstapay },
+    enableBankTransfer: { type: Boolean, default: defaultSettings.enableBankTransfer },
+    enableCashOnDelivery: { type: Boolean, default: defaultSettings.enableCashOnDelivery },
     primaryColor: { type: String, default: defaultSettings.primaryColor },
     primaryForeground: { type: String, default: defaultSettings.primaryForeground },
     backgroundColor: { type: String, default: defaultSettings.backgroundColor },

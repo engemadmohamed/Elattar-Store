@@ -79,7 +79,7 @@ export default function AdminReviews() {
   });
 
   return (
-    <AdminLayout title="آراء وتقييمات العملاء" subtitle="إدارة التقييمات واختيار الظاهر منها في الرئيسية">
+    <AdminLayout title="التقييمات">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-4">

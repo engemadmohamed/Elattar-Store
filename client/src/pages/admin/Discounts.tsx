@@ -270,7 +270,7 @@ export default function Discounts() {
   };
 
   return (
-    <AdminLayout title="صفحة التخفيضات والعروض" subtitle="إدارة خصومات الفئات وتطبيقها وتوحيدها على جميع المنتجات">
+    <AdminLayout title="التخفيضات">
       <div className="space-y-6 pb-12">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

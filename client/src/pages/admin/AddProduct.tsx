@@ -431,10 +431,7 @@ export default function AddProduct() {
   };
 
   return (
-    <AdminLayout
-      title={isEdit ? "تعديل بيانات المنتج" : "إضافة منتج جديد"}
-      subtitle={isEdit ? "تحديث أسعار ومخزون المنتج" : "أدخل تفاصيل وصور المنتج لإضافته للكتالوج"}
-    >
+    <AdminLayout title="المنتجات">
       <div className="max-w-5xl mx-auto space-y-6 pb-12">
         <div className="flex items-center justify-between">
           <Link href={`${ADMIN_BASE}/products`}>

@@ -157,7 +157,7 @@ export default function AdminInvoices() {
   const totalSalesRevenue = customers.reduce((acc, c) => acc + c.totalSpent, 0);
 
   return (
-    <AdminLayout title="فواتير العملاء" subtitle="عرض وطباعة كشوف فواتير العملاء ومتابعة الحسابات والتصنيفات">
+    <AdminLayout title="الفواتير">
       <div className="space-y-6 pb-12">
         {/* Stats Overview */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

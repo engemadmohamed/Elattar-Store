@@ -367,7 +367,7 @@ export default function AdminCategories() {
   };
 
   return (
-    <AdminLayout title="إدارة الفئات والأقسام" subtitle="هيكلة وتنظيم فئات وأقسام المتجر بسهولة">
+    <AdminLayout title="الفئات">
       <div className="space-y-6 pb-12">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

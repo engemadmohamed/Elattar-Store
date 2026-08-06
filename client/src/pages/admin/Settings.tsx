@@ -42,6 +42,14 @@ const defaultSettings: StoreSettings = {
   facebook: "",
   twitter: "",
   whatsapp: "201098154983",
+  vodafoneCashNumber: "01098154983",
+  instapayAddress: "01098154983@instapay",
+  bankAccountDetails: "البنك الأهلي المصري - رقم حساب: 123456789",
+  paymentInstructions: "يرجى تحويل المبلغ المطلوب على إحدى طرق الدفع التالية ثم إرفاق صورة إثبات التحويل عند الطلب لتأكيد الحجز سريعاً.",
+  enableVodafoneCash: true,
+  enableInstapay: true,
+  enableBankTransfer: true,
+  enableCashOnDelivery: true,
   primaryColor: "#111111",
   primaryForeground: "#ffffff",
   backgroundColor: "#FFFFFF",
@@ -157,7 +165,7 @@ export default function AdminSettings() {
   }
 
   return (
-    <AdminLayout title="إعدادات المتجر" subtitle="تخصيص نصوص وشكل وتصميم المتجر">
+    <AdminLayout title="الإعدادات">
       <div className="space-y-6">
         {/* Header Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -187,6 +195,7 @@ export default function AdminSettings() {
                 <TabsTrigger value="identity" className="rounded-xl font-semibold">الهوية الأساسية</TabsTrigger>
                 <TabsTrigger value="hero" className="rounded-xl font-semibold">النصوص الرئيسية</TabsTrigger>
                 <TabsTrigger value="banners" className="rounded-xl font-semibold">البنرات والتواصل</TabsTrigger>
+                <TabsTrigger value="payment" className="rounded-xl font-semibold">طرق وأرقام الدفع والتحويل</TabsTrigger>
                 <TabsTrigger value="visibility" className="rounded-xl font-semibold">العناصر الظاهرة</TabsTrigger>
               </TabsList>
 
@@ -265,6 +274,45 @@ export default function AdminSettings() {
                         <Field label="Facebook" value={form.facebook} onChange={(v) => set("facebook", v)} placeholder="https://facebook.com/..." />
                         <Field label="Twitter/X" value={form.twitter} onChange={(v) => set("twitter", v)} placeholder="https://x.com/..." />
                         <Field label="WhatsApp" value={form.whatsapp} onChange={(v) => set("whatsapp", v)} placeholder="201098154983" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Payment Methods & Transfer Numbers */}
+              <TabsContent value="payment">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base font-black">إعدادات أرقام وطرق الدفع والتحويل</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Field label="رقم فودافون كاش (Vodafone Cash)" value={form.vodafoneCashNumber} onChange={(v) => set("vodafoneCashNumber", v)} placeholder="01098154983" />
+                      <Field label="عنوان إنستاباي (Instapay Address)" value={form.instapayAddress} onChange={(v) => set("instapayAddress", v)} placeholder="01098154983@instapay" />
+                    </div>
+                    <Field label="تفاصيل وشروط الحساب البنكي (Bank Transfer)" value={form.bankAccountDetails} onChange={(v) => set("bankAccountDetails", v)} textarea placeholder="اسم البنك، رقم الحساب، IBAN..." />
+                    <Field label="تعليمات وإرشادات التحويل للعملاء" value={form.paymentInstructions} onChange={(v) => set("paymentInstructions", v)} textarea placeholder="يرجى تحويل المبلغ المطلوب ثم رفع صورة إثبات التحويل..." />
+
+                    <div className="pt-4 border-t space-y-3">
+                      <p className="font-bold text-sm">تفعيل / إيقاف طرق الدفع بالمتجر</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="flex items-center justify-between p-3 rounded-2xl border bg-muted/20">
+                          <span className="font-bold text-xs">📱 فودافون كاش (Vodafone Cash)</span>
+                          <Switch checked={form.enableVodafoneCash} onCheckedChange={(v) => set("enableVodafoneCash", v)} />
+                        </div>
+                        <div className="flex items-center justify-between p-3 rounded-2xl border bg-muted/20">
+                          <span className="font-bold text-xs">⚡ إنستاباي (Instapay)</span>
+                          <Switch checked={form.enableInstapay} onCheckedChange={(v) => set("enableInstapay", v)} />
+                        </div>
+                        <div className="flex items-center justify-between p-3 rounded-2xl border bg-muted/20">
+                          <span className="font-bold text-xs">🏦 تحويل بنكي (Bank Transfer)</span>
+                          <Switch checked={form.enableBankTransfer} onCheckedChange={(v) => set("enableBankTransfer", v)} />
+                        </div>
+                        <div className="flex items-center justify-between p-3 rounded-2xl border bg-muted/20">
+                          <span className="font-bold text-xs">💵 الدفع عند الاستلام (COD)</span>
+                          <Switch checked={form.enableCashOnDelivery} onCheckedChange={(v) => set("enableCashOnDelivery", v)} />
+                        </div>
                       </div>
                     </div>
                   </CardContent>

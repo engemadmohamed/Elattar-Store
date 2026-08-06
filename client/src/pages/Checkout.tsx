@@ -19,6 +19,8 @@ import { useToast } from "@/hooks/use-toast";
 import { formatPrice } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 
+import { useStoreSettings } from "@/lib/store-settings-context";
+
 const FIXED_SHIPPING_COST = 50;
 
 const GOVERNORATES = [
@@ -56,6 +58,7 @@ export default function Checkout() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { customer } = useCustomerAuth();
+  const { settings } = useStoreSettings();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -72,11 +75,9 @@ export default function Checkout() {
     city: "",
     governorate: "",
     notes: "",
-    paymentMethod: "cash_on_delivery", // 'cash_on_delivery', 'visa', 'instapay'
+    paymentMethod: "cash_on_delivery",
   });
 
-  // Prefill from the logged-in customer's profile, without overwriting
-  // anything the person has already started typing
   useEffect(() => {
     if (!customer) return;
     setForm((f) => ({
@@ -96,36 +97,53 @@ export default function Checkout() {
     setUploading(true);
     const formData = new FormData();
     formData.append("image", file);
-    // Customer token should be used for authentication if the endpoint is protected
     const token = localStorage.getItem("al-mohandes-customer-token");
     try {
       const res = await fetch("/api/upload/image", {
         method: "POST",
-        headers: token ? { "X-Customer-Token": token } : {},
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: formData,
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data.url) {
-        toast({
-          title: "فشل رفع الصورة",
-          description: data.message || `خطأ من السيرفر (${res.status})`,
-          variant: "destructive",
-        });
-        return;
-      }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to upload image");
       setTransferScreenshot(data.url);
-      toast({ title: "تم رفع صورة التحويل ✓" });
-    } catch (err) {
+      toast({ title: "تم رفع إثبات التحويل بنجاح ✓" });
+    } catch (err: any) {
       toast({
         title: "فشل رفع الصورة",
-        description: "تعذر الاتصال بالسيرفر، تأكد من الاتصال بالإنترنت",
+        description: err.message,
         variant: "destructive",
       });
     } finally {
       setUploading(false);
-      e.target.value = "";
     }
   };
+
+  const availablePaymentMethods = [
+    settings.enableCashOnDelivery !== false && {
+      value: "cash_on_delivery",
+      label: "💵 الدفع عند الاستلام (COD)",
+      info: "ادفع نقداً عند استلام طلبك من المندوب",
+    },
+    settings.enableVodafoneCash !== false && {
+      value: "vodafone_cash",
+      label: "📱 فودافون كاش (Vodafone Cash)",
+      number: settings.vodafoneCashNumber || "01098154983",
+      info: `حوالة فودافون كاش على رقم: ${settings.vodafoneCashNumber || "01098154983"}`,
+    },
+    settings.enableInstapay !== false && {
+      value: "instapay",
+      label: "⚡ إنستاباي (Instapay)",
+      number: settings.instapayAddress || "01098154983@instapay",
+      info: `التحويل على عنوان إنستاباي: ${settings.instapayAddress || "01098154983@instapay"}`,
+    },
+    settings.enableBankTransfer !== false && {
+      value: "bank_transfer",
+      label: "🏦 تحويل بنكي (Bank Transfer)",
+      number: settings.bankAccountDetails || "البنك الأهلي المصري",
+      info: settings.bankAccountDetails || "البنك الأهلي المصري",
+    },
+  ].filter(Boolean) as Array<{ value: string; label: string; number?: string; info?: string }>;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -322,36 +340,50 @@ export default function Checkout() {
                     <CreditCard className="h-4 w-4" /> طريقة الدفع
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {[
-                      {
-                        value: "cash_on_delivery",
-                        label: "💵 الدفع عند الاستلام",
-                      },
-                      { value: "bank_transfer", label: "🏦 حساب بنكي" },
-                      { value: "instapay", label: "📱 إنستاباي" },
-                    ].map((method) => (
-                      <label
+                <CardContent className="space-y-4">
+                  <div className="space-y-2.5">
+                    {availablePaymentMethods.map((method) => (
+                      <div
                         key={method.value}
-                        className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer ${form.paymentMethod === method.value ? "border-primary bg-primary/5" : ""}`}
+                        className={`p-3.5 rounded-2xl border transition-all ${
+                          form.paymentMethod === method.value
+                            ? "border-black bg-black/5 dark:bg-white/10 shadow-xs"
+                            : "bg-card border-border hover:bg-muted/30"
+                        }`}
                       >
-                        <input
-                          type="radio"
-                          name="payment"
-                          value={method.value}
-                          checked={form.paymentMethod === method.value}
-                          onChange={(e) => set("paymentMethod", e.target.value)}
-                          className="text-primary"
-                        />
-                        <span className="text-sm font-medium">
-                          {method.label}
-                        </span>
-                      </label>
+                        <label className="flex items-center gap-3 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="payment"
+                            value={method.value}
+                            checked={form.paymentMethod === method.value}
+                            onChange={(e) => set("paymentMethod", e.target.value)}
+                            className="text-black accent-black h-4 w-4"
+                          />
+                          <div className="flex-1">
+                            <span className="text-sm font-extrabold block">
+                              {method.label}
+                            </span>
+                            {method.info && (
+                              <span className="text-xs text-muted-foreground block mt-0.5">
+                                {method.info}
+                              </span>
+                            )}
+                          </div>
+                        </label>
+                      </div>
                     ))}
                   </div>
+
+                  {/* Payment Instructions if Transfer Method Selected */}
                   {form.paymentMethod !== "cash_on_delivery" && (
-                    <div className="mt-4 border-t pt-4">
+                    <div className="mt-4 border-t pt-4 space-y-4">
+                      {settings.paymentInstructions && (
+                        <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-900 dark:text-amber-200">
+                          <p className="font-bold mb-1">تعليمات التحويل والتأكيد:</p>
+                          <p className="leading-relaxed">{settings.paymentInstructions}</p>
+                        </div>
+                      )}
                       <Label>إثبات التحويل *</Label>
                       <p className="text-xs text-muted-foreground mb-2">
                         بعد التحويل، الرجاء رفع صورة من إيصال الدفع.

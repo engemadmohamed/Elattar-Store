@@ -125,7 +125,7 @@ export default function AdminProducts() {
   const discounted = products.filter((p) => p.salePrice && p.salePrice < p.price).length;
 
   return (
-    <AdminLayout title="إدارة المنتجات والمخزون" subtitle="عرض، إضافة، وتحديث كافة منتجات المتجر بأسلوب عصري">
+    <AdminLayout title="المنتجات">
       <div className="space-y-6 pb-12">
         {/* Top Header Banner Card with Standalone Add Button */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-card p-6 rounded-3xl border shadow-xs">

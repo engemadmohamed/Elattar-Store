@@ -287,7 +287,7 @@ export default function AdminOrders() {
   const cancelledCount = allOrders.filter((o) => GROUPS.cancelled.includes(o.status)).length;
 
   return (
-    <AdminLayout title="إدارة الطلبات" subtitle="استعراض ومتابعة حالات طلبات العملاء وتصنيفها حسب الفئات">
+    <AdminLayout title="الطلبات">
       <div className="space-y-6 pb-12">
         {/* Stats Grid Overview */}
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
@@ -577,6 +577,35 @@ export default function AdminOrders() {
                   </div>
                 </div>
 
+                {/* Payment Proof / Transfer Screenshot */}
+                {selectedOrder.transferScreenshotUrl ? (
+                  <div className="p-4 bg-muted/20 rounded-2xl border space-y-3">
+                    <h4 className="font-extrabold text-sm flex items-center justify-between">
+                      <span>إثبات التحويل الرقمي:</span>
+                      <a
+                        href={selectedOrder.transferScreenshotUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-foreground font-bold underline hover:opacity-80"
+                      >
+                        فتح بحجم كامل ↗
+                      </a>
+                    </h4>
+                    <div className="relative max-w-sm mx-auto rounded-2xl overflow-hidden border shadow-sm bg-white">
+                      <img
+                        src={selectedOrder.transferScreenshotUrl}
+                        alt="إثبات التحويل"
+                        className="w-full h-auto max-h-72 object-contain cursor-pointer hover:scale-105 transition-transform"
+                        onClick={() => window.open(selectedOrder.transferScreenshotUrl, "_blank")}
+                      />
+                    </div>
+                  </div>
+                ) : selectedOrder.paymentMethod !== "cash_on_delivery" ? (
+                  <div className="p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-xs text-amber-900 dark:text-amber-200">
+                    ℹ️ لم يتم رفع صورة إثبات تحويل لهذا الطلب بعد.
+                  </div>
+                ) : null}
+
                 {/* Order Summary */}
                 <div className="border-t pt-4 space-y-1.5 text-xs">
                   <div className="flex justify-between text-muted-foreground">
@@ -598,13 +627,11 @@ export default function AdminOrders() {
         )}
 
         {/* Invoice Printable Dialog */}
-        {invoiceOrder && (
-          <Dialog open={!!invoiceOrder} onOpenChange={() => setInvoiceOrder(null)}>
-            <DialogContent className="max-w-3xl rounded-3xl max-h-[90vh] overflow-y-auto">
-              <InvoicePrint order={invoiceOrder} onClose={() => setInvoiceOrder(null)} />
-            </DialogContent>
-          </Dialog>
-        )}
+        <InvoicePrint
+          order={invoiceOrder}
+          open={!!invoiceOrder}
+          onClose={() => setInvoiceOrder(null)}
+        />
       </div>
     </AdminLayout>
   );

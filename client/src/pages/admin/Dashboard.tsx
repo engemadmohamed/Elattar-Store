@@ -54,7 +54,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <AdminLayout title="لوحة التحكم الإدارية" subtitle="نظرة عامة على المبيعات، الطلبات، والمنتجات">
+    <AdminLayout title="لوحة التحكم">
       <div className="space-y-8">
         
         {/* Welcome Banner */}
