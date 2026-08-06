@@ -38,7 +38,7 @@ import {
 import { ADMIN_BASE } from "@/lib/admin-path";
 import QRModal from "@/components/QRModal";
 import { apiRequest } from "@/lib/queryClient";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, getSaleUnitName } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
 interface Product {
@@ -48,6 +48,7 @@ interface Product {
   price: number;
   salePrice?: number;
   stock: number;
+  saleUnit?: string;
   images: string[];
   sku: string;
   brand?: string;
@@ -284,7 +285,7 @@ export default function AdminProducts() {
                               : "bg-rose-500/10 text-rose-600 border-rose-500/20"
                           }`}
                         >
-                          {product.stock > 0 ? `متوفر ${product.stock} قطعة` : "نفذت الكمية"}
+                          {product.stock > 0 ? `متوفر ${product.stock} ${getSaleUnitName(product.saleUnit)}` : "نفذت الكمية"}
                         </Badge>
                       </TableCell>
 

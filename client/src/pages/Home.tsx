@@ -269,53 +269,67 @@ export default function Home() {
                 <span>عن متجر المهندس • نصنع الجودة ونكسب الثقة</span>
               </div>
 
-              {/* Animated Main Title */}
-              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight mb-6 text-right dir-rtl leading-[1.2]">
-                {/* Line 1: heroFeaturedTitle */}
-                <div className="flex flex-wrap items-center justify-start gap-x-3 mb-3">
-                  <span
-                    className="inline-block animate-word-appear hero-letter-sheen text-6xl sm:text-7xl lg:text-8xl font-black tracking-tight select-none"
-                    style={{ animationDelay: "0.08s", animationFillMode: "both" }}
-                  >
-                    {settings.heroFeaturedTitle || "المهندس"}
-                  </span>
-                </div>
+              {/* Dynamic Animated Title from settings */}
+              {(() => {
+                const rawTitle = settings.heroTitle || "نصنع الجودة ونكسب الثقة";
+                const words = rawTitle.split(" ").filter(Boolean);
+                const mid = Math.ceil(words.length / 2);
+                const line1 = words.slice(0, mid);
+                const line2 = words.slice(mid);
 
-                {/* Line 2: نصنع الجودة */}
-                <div className="flex flex-wrap items-center justify-start gap-x-3 sm:gap-x-4 mb-3">
-                  {["نصنع", "الجودة"].map((word, i) => (
-                    <span
-                      key={i}
-                      data-reveal
-                      data-reveal-delay={String(i + 1)}
-                      className="headline-word-reveal inline-block text-4xl sm:text-5xl lg:text-7xl font-black"
-                    >
-                      {word}
-                    </span>
-                  ))}
-                </div>
+                return (
+                  <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight mb-6 text-right dir-rtl leading-[1.2]">
+                    {/* Line 1: heroFeaturedTitle */}
+                    <div className="flex flex-wrap items-center justify-start gap-x-3 mb-3">
+                      <span
+                        className="inline-block animate-word-appear hero-letter-sheen text-6xl sm:text-7xl lg:text-8xl font-black tracking-tight select-none"
+                        style={{ animationDelay: "0.08s", animationFillMode: "both" }}
+                      >
+                        {settings.heroFeaturedTitle || "المهندس"}
+                      </span>
+                    </div>
 
-                {/* Line 3: ونكسب الثقة */}
-                <div className="flex flex-wrap items-center justify-start gap-x-3 sm:gap-x-4">
-                  {["ونكسب", "الثقة"].map((word, i) => (
-                    <span
-                      key={i + 2}
-                      data-reveal
-                      data-reveal-delay={String(i + 3)}
-                      className="headline-word-reveal inline-block text-4xl sm:text-5xl lg:text-7xl font-black"
-                    >
-                      {word}
-                    </span>
-                  ))}
-                </div>
-              </h1>
+                    {/* Line 2 */}
+                    {line1.length > 0 && (
+                      <div className="flex flex-wrap items-center justify-start gap-x-3 sm:gap-x-4 mb-3">
+                        {line1.map((word, i) => (
+                          <span
+                            key={i}
+                            data-reveal
+                            data-reveal-delay={String(i + 1)}
+                            className="headline-word-reveal inline-block text-4xl sm:text-5xl lg:text-7xl font-black"
+                          >
+                            {word}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Line 3 */}
+                    {line2.length > 0 && (
+                      <div className="flex flex-wrap items-center justify-start gap-x-3 sm:gap-x-4">
+                        {line2.map((word, i) => (
+                          <span
+                            key={i + line1.length}
+                            data-reveal
+                            data-reveal-delay={String(i + line1.length + 1)}
+                            className="headline-word-reveal inline-block text-4xl sm:text-5xl lg:text-7xl font-black"
+                          >
+                            {word}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </h1>
+                );
+              })()}
 
               <p
                 data-reveal
                 data-reveal-delay="6"
                 className="headline-word-reveal text-muted-foreground text-base sm:text-lg mb-8 max-w-xl leading-relaxed font-medium text-right block"
               >
-                اكتشف تشكيلتنا الواسعة من الأدوات المكتبية والقرطاسية من أفضل العلامات التجارية العالمية. جودة استثنائية وأسعار تنافسية وتوصيل سريع.
+                {settings.heroDescription || "اكتشف تشكيلتنا الواسعة من الأدوات المكتبية والقرطاسية من أفضل العلامات التجارية العالمية. جودة استثنائية وأسعار تنافسية وتوصيل سريع."}
               </p>
               <div className="flex flex-wrap items-center gap-3 animate-fade-in-up stagger-2">
                 <Link href="/shop">

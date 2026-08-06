@@ -14,6 +14,7 @@ import {
   ExternalLink,
   ShieldCheck,
   Percent,
+  Store,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
