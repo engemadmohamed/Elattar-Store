@@ -324,7 +324,7 @@ export default function Home() {
                 data-reveal-delay="6"
                 className="headline-word-reveal text-muted-foreground text-base sm:text-lg mb-8 max-w-xl leading-relaxed font-medium text-right block"
               >
-                {settings.heroDescription || "اكتشف تشكيلتنا الواسعة من الأدوات المكتبية والقرطاسية من أفضل العلامات التجارية العالمية. جودة استثنائية وأسعار تنافسية وتوصيل سريع."}
+                {settings.heroDescription || "اكتشف تشكيلتنا الواسعة من الأدوات المكتبية والخردوات من أفضل العلامات التجارية العالمية. جودة استثنائية وأسعار تنافسية وتوصيل سريع."}
               </p>
               <div className="flex flex-wrap items-center gap-3 animate-fade-in-up stagger-2">
                 <Link href="/shop">

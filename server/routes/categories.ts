@@ -137,10 +137,7 @@ router.post("/:id/apply-discount", requireAuth, async (req: Request, res: Respon
     const category = await Category.findById(categoryId);
     if (!category) return res.status(404).json({ message: "Category not found" });
 
-    category.discountPercent = percent;
-    await category.save();
-
-    // Find subcategories if any
+    // Find category and subcategories if any
     const allCategories = await Category.find().lean();
     const categoryIds: string[] = [categoryId];
     const queue: string[] = [categoryId];
@@ -156,6 +153,12 @@ router.post("/:id/apply-discount", requireAuth, async (req: Request, res: Respon
         }
       }
     }
+
+    // Update discountPercent for parent category and all subcategories under it
+    await Category.updateMany(
+      { _id: { $in: categoryIds } },
+      { $set: { discountPercent: percent } }
+    );
 
     const products = await Product.find({ categoryId: { $in: categoryIds } });
     let updatedCount = 0;
