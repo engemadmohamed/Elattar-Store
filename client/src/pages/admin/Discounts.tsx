@@ -90,13 +90,30 @@ export default function Discounts() {
     applyDiscountMutation.mutate({ categoryId, discountPercent: 0 });
   };
 
-  // Helper to count products per category
+  // Helper to count products per category (including subcategories)
   const getProductsForCategory = (catId: string) => {
+    const targetId = String(catId);
+    const descendantIds = new Set<string>([targetId]);
+    const queue = [targetId];
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      const children = categories.filter((c) => String(c.parentId) === current);
+      for (const child of children) {
+        const childId = String(child._id);
+        if (!descendantIds.has(childId)) {
+          descendantIds.add(childId);
+          queue.push(childId);
+        }
+      }
+    }
+
     return products.filter((p) => {
-      const pCatId = typeof p.categoryId === "object" && p.categoryId !== null
-        ? p.categoryId._id
-        : String(p.categoryId);
-      return pCatId === catId;
+      if (!p.categoryId) return false;
+      const catVal = p.categoryId;
+      const rawId = typeof catVal === "object" && catVal !== null
+        ? String((catVal as any)._id || catVal)
+        : String(catVal);
+      return descendantIds.has(rawId);
     });
   };
 
@@ -157,7 +174,7 @@ export default function Discounts() {
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {catProducts.length} منتج ({discountedProdsCount} مخصّض حالياً)
+                {catProducts.length} منتج في الفئة
                 {subcats.length > 0 && ` • ${subcats.length} فئة فرعية`}
               </p>
             </div>
@@ -196,7 +213,7 @@ export default function Discounts() {
                 onClick={() => handleApplyDiscount(cat._id, currentDiscount)}
                 disabled={applyDiscountMutation.isPending}
                 title="إعادة توحيد خصم هذه الفئة على كافة المنتجات حتى لو تم تغيير منتج فردياً"
-                className="rounded-xl font-bold gap-1.5 border-amber-500/40 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/20"
+                className="rounded-xl font-bold gap-1.5 border-foreground/20 hover:bg-accent"
               >
                 <RefreshCw className="h-4 w-4" />
                 إعادة توحيد خصم الفئة

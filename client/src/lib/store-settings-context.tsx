@@ -146,13 +146,30 @@ function hexToHslRaw(hex: string): string {
 }
 
 export function StoreSettingsProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState<StoreSettings>(defaultSettings);
+  const [settings, setSettings] = useState<StoreSettings>(() => {
+    try {
+      const cached = localStorage.getItem("al-mohandes-store-settings");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && typeof parsed === "object") {
+          return { ...defaultSettings, ...parsed };
+        }
+      }
+    } catch {}
+    return defaultSettings;
+  });
   const [isLoading, setIsLoading] = useState(true);
 
   const refreshSettings = async () => {
     try {
       const data = await apiRequest<StoreSettings>("GET", "/api/settings");
-      setSettings({ ...defaultSettings, ...data });
+      if (data) {
+        const merged = { ...defaultSettings, ...data };
+        setSettings(merged);
+        try {
+          localStorage.setItem("al-mohandes-store-settings", JSON.stringify(merged));
+        } catch {}
+      }
     } catch (e) {
       console.warn("Failed to refresh settings:", e);
     }
