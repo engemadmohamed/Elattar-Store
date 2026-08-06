@@ -520,7 +520,7 @@ export default function AdminCategories() {
                     <SelectValue placeholder="فئة رئيسية" />
                   </SelectTrigger>
                   <SelectContent className="rounded-2xl">
-                    <SelectItem value="none">بدون فئة أصلية (فئة رئيسية)</SelectItem>
+                    <SelectItem value="none">فئة رئيسية</SelectItem>
                     {rootCategories
                       .filter((c) => !editingCategory || c._id !== editingCategory._id)
                       .map((c) => (
