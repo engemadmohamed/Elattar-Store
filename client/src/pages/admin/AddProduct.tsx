@@ -457,7 +457,7 @@ export default function AddProduct() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label className="font-bold">اسم المنتج بالعربية *</Label>
+                    <Label className="font-bold">اسم المنتج *</Label>
                     <Input
                       className="rounded-xl mt-1 h-11"
                       value={form.nameAr}
@@ -472,17 +472,7 @@ export default function AddProduct() {
                   </div>
 
                   <div>
-                    <Label className="font-bold">الاسم بالإنجليزي (اختياري)</Label>
-                    <Input
-                      className="rounded-xl mt-1 h-11"
-                      value={form.name}
-                      onChange={(e) => set("name", e.target.value)}
-                      placeholder="e.g. Gel Pen Blue 0.7mm"
-                    />
-                  </div>
-
-                  <div>
-                    <Label className="font-bold">الوصف التفصيلي بالعربية</Label>
+                    <Label className="font-bold">الوصف التفصيلي</Label>
                     <Textarea
                       className="rounded-xl mt-1"
                       value={form.descriptionAr}
@@ -500,14 +490,14 @@ export default function AddProduct() {
                   <CardTitle className="text-base font-black">السعر، نسب الخصم والمخزون</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <Label className="font-bold">السعر الأساسي (ج.م) *</Label>
+                      <Label className="font-bold mb-1.5 block">السعر الأساسي (ج.م) *</Label>
                       <Input
                         type="number"
                         min="0"
                         step="0.5"
-                        className="rounded-xl mt-1 h-11"
+                        className="rounded-xl h-11 text-center font-bold"
                         value={form.price}
                         onChange={(e) => {
                           const newPrice = e.target.value;
@@ -523,14 +513,12 @@ export default function AddProduct() {
                     </div>
 
                     <div>
-                      <Label className="font-bold flex items-center gap-1">
-                        <Percent className="h-3.5 w-3.5" /> نسبة الخصم %
-                      </Label>
+                      <Label className="font-bold mb-1.5 block">نسبة الخصم %</Label>
                       <Input
                         type="number"
                         min="0"
                         max="100"
-                        className="rounded-xl mt-1 h-11"
+                        className="rounded-xl h-11 text-center font-bold"
                         value={discountPercent}
                         onChange={(e) => {
                           const disc = e.target.value;
@@ -543,17 +531,17 @@ export default function AddProduct() {
                             set("salePrice", "");
                           }
                         }}
-                        placeholder="أدخل % مثلا 10"
+                        placeholder="0%"
                       />
                     </div>
 
                     <div>
-                      <Label className="font-bold">سعر البيع بعد الخصم (ج.م)</Label>
+                      <Label className="font-bold mb-1.5 block">سعر البيع بعد الخصم (ج.م)</Label>
                       <Input
                         type="number"
                         min="0"
                         step="0.5"
-                        className="rounded-xl mt-1 h-11"
+                        className="rounded-xl h-11 text-center font-bold"
                         value={form.salePrice}
                         onChange={(e) => {
                           const sPrice = e.target.value;
@@ -573,11 +561,11 @@ export default function AddProduct() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <Label className="font-bold">الكمية المتاحة (بالـ {getSaleUnitName(form.saleUnit)}) *</Label>
+                      <Label className="font-bold mb-1.5 block">الكمية المتاحة *</Label>
                       <Input
                         type="number"
                         min="0"
-                        className="rounded-xl mt-1 h-11"
+                        className="rounded-xl h-11 text-center font-bold"
                         value={form.stock}
                         onChange={(e) => set("stock", e.target.value)}
                         required
@@ -703,7 +691,7 @@ export default function AddProduct() {
               <Card className="rounded-3xl border shadow-xs">
                 <CardHeader>
                   <CardTitle className="text-base font-black flex items-center gap-2">
-                    <ImageIcon className="h-5 w-5" /> صور المنتج (3 طرق مختلفة للرفع)
+                    <ImageIcon className="h-5 w-5" /> صور المنتج
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">

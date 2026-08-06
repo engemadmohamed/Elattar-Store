@@ -496,7 +496,7 @@ export default function AdminCategories() {
               </div>
 
               <div>
-                <Label className="font-bold text-xs">اسم الفئة بالعربية *</Label>
+                <Label className="font-bold text-xs">اسم الفئة *</Label>
                 <Input
                   className="rounded-xl mt-1 h-11"
                   value={form.nameAr}
@@ -511,13 +511,13 @@ export default function AdminCategories() {
               </div>
 
               <div>
-                <Label className="font-bold text-xs">الفئة الرئيسية الأب (اختياري)</Label>
+                <Label className="font-bold text-xs">الفئة الرئيسية</Label>
                 <Select
                   value={form.parentId || "none"}
                   onValueChange={(val) => set("parentId", val === "none" ? "" : val)}
                 >
                   <SelectTrigger className="rounded-xl mt-1 h-11">
-                    <SelectValue placeholder="فئة رئيسية بدون أب" />
+                    <SelectValue placeholder="فئة رئيسية" />
                   </SelectTrigger>
                   <SelectContent className="rounded-2xl">
                     <SelectItem value="none">بدون فئة أصلية (فئة رئيسية)</SelectItem>

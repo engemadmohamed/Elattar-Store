@@ -170,30 +170,28 @@ export default function Discounts() {
           isSubcat ? "ms-6 border-s-4 border-s-black/30 bg-muted/10" : ""
         }`}
       >
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
           {/* Category Info with Image */}
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-xl bg-muted border overflow-hidden shrink-0 flex items-center justify-center text-xl">
+          <div className="flex items-center gap-2.5 shrink-0">
+            <div className="h-10 w-10 rounded-xl bg-muted border overflow-hidden shrink-0 flex items-center justify-center text-lg">
               {cat.image ? (
                 <img src={cat.image} alt={cat.nameAr} className="h-full w-full object-cover" />
               ) : (
                 <span>{cat.icon || "📦"}</span>
               )}
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className={`font-extrabold ${isSubcat ? "text-base" : "text-lg"}`}>{cat.nameAr}</h3>
-                <Badge variant={currentDiscount > 0 ? "default" : "outline"} className="text-xs font-bold">
-                  {currentDiscount > 0 ? `خصم ${currentDiscount}%` : "بدون خصم"}
-                </Badge>
-              </div>
+            <div className="flex items-center gap-2 flex-nowrap">
+              <h3 className={`font-extrabold whitespace-nowrap ${isSubcat ? "text-xs sm:text-sm" : "text-sm sm:text-base"}`}>{cat.nameAr}</h3>
+              <Badge variant={currentDiscount > 0 ? "default" : "outline"} className="text-[11px] font-bold shrink-0 px-2 py-0.5">
+                {currentDiscount > 0 ? `خصم ${currentDiscount}%` : "بدون خصم"}
+              </Badge>
             </div>
           </div>
 
           {/* Discount Input & Actions */}
           <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-            <div className="flex items-center gap-2 bg-muted/30 p-1 rounded-xl border">
-              <span className="text-xs font-bold text-muted-foreground px-2">نسبة الخصم %:</span>
+            <div className="flex items-center gap-1.5 bg-muted/30 p-1 rounded-xl border">
+              <span className="text-[11px] font-bold text-muted-foreground px-1.5">نسبة الخصم %:</span>
               <Input
                 type="number"
                 min="0"
@@ -202,7 +200,7 @@ export default function Discounts() {
                 onChange={(e) =>
                   setDiscountInputs({ ...discountInputs, [cat._id]: e.target.value })
                 }
-                className="w-20 h-9 rounded-lg text-center font-bold text-sm bg-white dark:bg-zinc-900 border"
+                className="w-16 h-8 rounded-lg text-center font-bold text-xs bg-white dark:bg-zinc-900 border"
               />
             </div>
 
@@ -210,9 +208,9 @@ export default function Discounts() {
               size="sm"
               onClick={() => handleApplyDiscount(cat._id, currentDiscount)}
               disabled={applyDiscountMutation.isPending}
-              className="rounded-xl font-bold gap-1.5 bg-black text-white hover:bg-black/90"
+              className="rounded-xl h-8 text-xs font-bold gap-1 bg-black text-white hover:bg-black/90 px-3"
             >
-              <Check className="h-4 w-4" />
+              <Check className="h-3.5 w-3.5" />
               تطبيق الخصم
             </Button>
 
@@ -223,9 +221,9 @@ export default function Discounts() {
                 onClick={() => handleApplyDiscount(cat._id, currentDiscount)}
                 disabled={applyDiscountMutation.isPending}
                 title="إعادة توحيد خصم هذه الفئة على كافة المنتجات حتى لو تم تغيير منتج فردياً"
-                className="rounded-xl font-bold gap-1.5 border-foreground/20 hover:bg-accent"
+                className="rounded-xl h-8 text-xs font-bold gap-1 border-foreground/20 hover:bg-accent px-3"
               >
-                <RefreshCw className="h-4 w-4" />
+                <RefreshCw className="h-3.5 w-3.5" />
                 إعادة توحيد خصم الفئة
               </Button>
             )}
@@ -236,9 +234,9 @@ export default function Discounts() {
                 variant="ghost"
                 onClick={() => handleClearDiscount(cat._id)}
                 disabled={applyDiscountMutation.isPending}
-                className="rounded-xl text-destructive hover:text-destructive hover:bg-destructive/10 gap-1"
+                className="rounded-xl h-8 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 gap-1 px-2.5"
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-3.5 w-3.5" />
                 إزالة الخصم
               </Button>
             )}
@@ -248,7 +246,7 @@ export default function Discounts() {
                 size="sm"
                 variant="outline"
                 onClick={() => toggleSubcats(cat._id)}
-                className="rounded-xl text-xs gap-1 font-bold border-foreground/20"
+                className="rounded-xl h-8 text-xs gap-1 font-bold border-foreground/20 px-3"
               >
                 <FolderTree className="h-3.5 w-3.5" />
                 {isSubcatsExpanded ? "إخفاء الفئات الفرعية" : `عرض الفئات الفرعية (${subcats.length})`}
