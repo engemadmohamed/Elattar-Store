@@ -53,6 +53,20 @@ const GOVERNORATES = [
   "البحر الأحمر",
 ];
 
+function extractNumberOnly(str: string): string {
+  if (!str) return "";
+  const handleMatch = str.match(/[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+/);
+  if (handleMatch) return handleMatch[0];
+
+  const ibanMatch = str.match(/\b[A-Z]{2}\d{20,30}\b/i);
+  if (ibanMatch) return ibanMatch[0];
+
+  const digitsOnly = str.replace(/[^\d]/g, "");
+  if (digitsOnly.length >= 3) return digitsOnly;
+
+  return str.trim();
+}
+
 export default function Checkout() {
   const { items, total, clearCart } = useCart();
   const [, navigate] = useLocation();
@@ -381,13 +395,14 @@ export default function Checkout() {
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                navigator.clipboard.writeText(method.number!);
-                                toast({ title: "تم نسخ الرقم/البيانات بنجاح 📋" });
+                                const cleanNum = extractNumberOnly(method.number!);
+                                navigator.clipboard.writeText(cleanNum);
+                                toast({ title: `تم نسخ الرقم (${cleanNum}) بنجاح 📋` });
                               }}
                               className="h-8 rounded-xl text-xs font-bold gap-1 px-3 border-black/20 hover:bg-black hover:text-white transition-all shrink-0"
-                              title="نسخ بيانات التحويل"
+                              title="نسخ الرقم فقط"
                             >
-                              <Copy className="h-3.5 w-3.5" /> نسخ
+                              <Copy className="h-3.5 w-3.5" /> نسخ الرقم
                             </Button>
                           )}
                         </div>

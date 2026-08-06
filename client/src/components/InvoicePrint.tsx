@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Printer, FileText, CheckCircle2, Building2, User, Phone, MapPin, CreditCard } from "lucide-react";
+import { Printer } from "lucide-react";
 import { formatPrice, formatDate } from "@/lib/utils";
 
 interface InvoiceOrder {
@@ -189,14 +189,14 @@ function printInvoice(order: InvoiceOrder) {
     <div class="info-box">
       <div class="box-title">بيانات العميل</div>
       <div class="box-val">${escapeHtml(order.customerName)}</div>
-      <div class="box-sub" dir="ltr" style="text-align:right">📱 ${escapeHtml(order.customerPhone)}</div>
+      <div class="box-sub" dir="ltr" style="text-align:right">${escapeHtml(order.customerPhone)}</div>
     </div>
 
     ${order.customerLibraryName ? `
     <div class="info-box">
       <div class="box-title">بيانات المكتبة</div>
       <div class="box-val">${escapeHtml(order.customerLibraryName)}</div>
-      <div class="box-sub">📍 ${escapeHtml(order.customerLibraryLocation || "")}</div>
+      <div class="box-sub">${escapeHtml(order.customerLibraryLocation || "")}</div>
     </div>` : `
     <div class="info-box">
       <div class="box-title">حالة الدفع</div>
@@ -237,7 +237,7 @@ function printInvoice(order: InvoiceOrder) {
     </div>
   </div>
 
-  <div class="footer">شكراً لثقتكم واختياركم متجر المهندس لجميع المستلزمات المكتبية والقلمية 🖤</div>
+  <div class="footer">شكراً لثقتكم واختياركم متجر المهندس لجميع المستلزمات المكتبية والقلمية</div>
 </body>
 </html>`;
 
@@ -266,9 +266,7 @@ export default function InvoicePrint({
       <DialogContent className="max-w-xl rounded-3xl p-6">
         <DialogHeader className="border-b pb-4">
           <DialogTitle className="font-black text-xl flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <FileText className="h-5 w-5" /> معاينة الفاتورة #{order.orderNumber}
-            </span>
+            <span>معاينة الفاتورة #{order.orderNumber}</span>
             <span className="text-xs font-bold text-muted-foreground bg-muted px-3 py-1 rounded-xl">
               {formatDate(order.createdAt)}
             </span>
@@ -280,30 +278,22 @@ export default function InvoicePrint({
           <div className="bg-muted/30 p-4 rounded-2xl border space-y-2">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <p className="text-muted-foreground font-semibold flex items-center gap-1">
-                  <User className="h-3.5 w-3.5" /> العميل:
-                </p>
+                <p className="text-muted-foreground font-semibold">العميل:</p>
                 <p className="font-extrabold text-sm mt-0.5">{order.customerName}</p>
               </div>
               <div>
-                <p className="text-muted-foreground font-semibold flex items-center gap-1">
-                  <Phone className="h-3.5 w-3.5" /> الهاتف:
-                </p>
+                <p className="text-muted-foreground font-semibold">الهاتف:</p>
                 <p className="font-extrabold text-sm mt-0.5" dir="ltr">{order.customerPhone}</p>
               </div>
               {order.customerLibraryName && (
                 <div className="col-span-2 border-t pt-2 mt-1">
-                  <p className="text-muted-foreground font-semibold flex items-center gap-1">
-                    <Building2 className="h-3.5 w-3.5" /> المكتبة:
-                  </p>
+                  <p className="text-muted-foreground font-semibold">المكتبة:</p>
                   <p className="font-bold text-sm">{order.customerLibraryName} ({order.customerLibraryLocation})</p>
                 </div>
               )}
               {order.shipping?.address && (
                 <div className="col-span-2 border-t pt-2 mt-1">
-                  <p className="text-muted-foreground font-semibold flex items-center gap-1">
-                    <MapPin className="h-3.5 w-3.5" /> عنوان الشحن:
-                  </p>
+                  <p className="text-muted-foreground font-semibold">عنوان الشحن:</p>
                   <p className="font-bold">{order.shipping.address} - {order.shipping.city} - {order.shipping.governorate}</p>
                 </div>
               )}
@@ -337,9 +327,7 @@ export default function InvoicePrint({
           {/* Totals & Payment Method */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="p-4 bg-muted/40 rounded-2xl border text-xs flex flex-col justify-center">
-              <p className="text-muted-foreground font-bold flex items-center gap-1 mb-1">
-                <CreditCard className="h-3.5 w-3.5" /> طريقة الدفع:
-              </p>
+              <p className="text-muted-foreground font-bold mb-1">طريقة الدفع:</p>
               <p className="font-extrabold text-sm text-foreground">
                 {getPaymentMethodLabel(order.paymentMethod)}
               </p>
