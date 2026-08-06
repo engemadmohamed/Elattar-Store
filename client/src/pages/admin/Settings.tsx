@@ -298,53 +298,41 @@ export default function AdminSettings() {
                       <p className="font-bold text-sm">تفعيل / إيقاف طرق الدفع بالمتجر</p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${form.enableVodafoneCash ? "bg-card border-black/20 shadow-xs" : "bg-muted/30 border-border opacity-70"}`}>
-                          <div className="flex items-center gap-2.5">
-                            <span className="text-base">📱</span>
-                            <div>
-                              <span className="font-extrabold text-xs block">فودافون كاش (Vodafone Cash)</span>
-                              <span className={`text-[10px] font-bold ${form.enableVodafoneCash ? "text-black dark:text-white" : "text-muted-foreground"}`}>
-                                {form.enableVodafoneCash ? "مفعّل ✓" : "معطّل ✕"}
-                              </span>
-                            </div>
+                          <div>
+                            <span className="font-extrabold text-xs block">فودافون كاش (Vodafone Cash)</span>
+                            <span className={`text-[10px] font-bold ${form.enableVodafoneCash ? "text-black dark:text-white" : "text-muted-foreground"}`}>
+                              {form.enableVodafoneCash ? "مفعّل ✓" : "معطّل ✕"}
+                            </span>
                           </div>
                           <Switch checked={form.enableVodafoneCash} onCheckedChange={(v) => set("enableVodafoneCash", v)} />
                         </div>
 
                         <div className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${form.enableInstapay ? "bg-card border-black/20 shadow-xs" : "bg-muted/30 border-border opacity-70"}`}>
-                          <div className="flex items-center gap-2.5">
-                            <span className="text-base">⚡</span>
-                            <div>
-                              <span className="font-extrabold text-xs block">إنستاباي (Instapay)</span>
-                              <span className={`text-[10px] font-bold ${form.enableInstapay ? "text-black dark:text-white" : "text-muted-foreground"}`}>
-                                {form.enableInstapay ? "مفعّل ✓" : "معطّل ✕"}
-                              </span>
-                            </div>
+                          <div>
+                            <span className="font-extrabold text-xs block">إنستاباي (Instapay)</span>
+                            <span className={`text-[10px] font-bold ${form.enableInstapay ? "text-black dark:text-white" : "text-muted-foreground"}`}>
+                              {form.enableInstapay ? "مفعّل ✓" : "معطّل ✕"}
+                            </span>
                           </div>
                           <Switch checked={form.enableInstapay} onCheckedChange={(v) => set("enableInstapay", v)} />
                         </div>
 
                         <div className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${form.enableBankTransfer ? "bg-card border-black/20 shadow-xs" : "bg-muted/30 border-border opacity-70"}`}>
-                          <div className="flex items-center gap-2.5">
-                            <span className="text-base">🏦</span>
-                            <div>
-                              <span className="font-extrabold text-xs block">تحويل بنكي (Bank Transfer)</span>
-                              <span className={`text-[10px] font-bold ${form.enableBankTransfer ? "text-black dark:text-white" : "text-muted-foreground"}`}>
-                                {form.enableBankTransfer ? "مفعّل ✓" : "معطّل ✕"}
-                              </span>
-                            </div>
+                          <div>
+                            <span className="font-extrabold text-xs block">تحويل بنكي (Bank Transfer)</span>
+                            <span className={`text-[10px] font-bold ${form.enableBankTransfer ? "text-black dark:text-white" : "text-muted-foreground"}`}>
+                              {form.enableBankTransfer ? "مفعّل ✓" : "معطّل ✕"}
+                            </span>
                           </div>
                           <Switch checked={form.enableBankTransfer} onCheckedChange={(v) => set("enableBankTransfer", v)} />
                         </div>
 
                         <div className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${form.enableCashOnDelivery ? "bg-card border-black/20 shadow-xs" : "bg-muted/30 border-border opacity-70"}`}>
-                          <div className="flex items-center gap-2.5">
-                            <span className="text-base">💵</span>
-                            <div>
-                              <span className="font-extrabold text-xs block">الدفع عند الاستلام (COD)</span>
-                              <span className={`text-[10px] font-bold ${form.enableCashOnDelivery ? "text-black dark:text-white" : "text-muted-foreground"}`}>
-                                {form.enableCashOnDelivery ? "مفعّل ✓" : "معطّل ✕"}
-                              </span>
-                            </div>
+                          <div>
+                            <span className="font-extrabold text-xs block">الدفع عند الاستلام (COD)</span>
+                            <span className={`text-[10px] font-bold ${form.enableCashOnDelivery ? "text-black dark:text-white" : "text-muted-foreground"}`}>
+                              {form.enableCashOnDelivery ? "مفعّل ✓" : "معطّل ✕"}
+                            </span>
                           </div>
                           <Switch checked={form.enableCashOnDelivery} onCheckedChange={(v) => set("enableCashOnDelivery", v)} />
                         </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { CheckCircle, Truck, CreditCard, Upload } from "lucide-react";
+import { CheckCircle, Truck, CreditCard, Upload, Copy } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
 import { useCustomerAuth } from "@/lib/customer-auth-context";
 import { Button } from "@/components/ui/button";
@@ -351,26 +351,46 @@ export default function Checkout() {
                             : "bg-card border-border hover:bg-muted/30"
                         }`}
                       >
-                        <label className="flex items-center gap-3 cursor-pointer">
-                          <input
-                            type="radio"
-                            name="payment"
-                            value={method.value}
-                            checked={form.paymentMethod === method.value}
-                            onChange={(e) => set("paymentMethod", e.target.value)}
-                            className="text-black accent-black h-4 w-4"
-                          />
-                          <div className="flex-1">
-                            <span className="text-sm font-extrabold block">
-                              {method.label}
-                            </span>
-                            {method.info && (
-                              <span className="text-xs text-muted-foreground block mt-0.5">
-                                {method.info}
+                        <div className="flex items-center justify-between gap-3">
+                          <label className="flex items-center gap-3 cursor-pointer flex-1">
+                            <input
+                              type="radio"
+                              name="payment"
+                              value={method.value}
+                              checked={form.paymentMethod === method.value}
+                              onChange={(e) => set("paymentMethod", e.target.value)}
+                              className="text-black accent-black h-4 w-4"
+                            />
+                            <div className="flex-1">
+                              <span className="text-sm font-extrabold block">
+                                {method.label}
                               </span>
-                            )}
-                          </div>
-                        </label>
+                              {method.info && (
+                                <span className="text-xs text-muted-foreground block mt-0.5">
+                                  {method.info}
+                                </span>
+                              )}
+                            </div>
+                          </label>
+
+                          {method.number && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                navigator.clipboard.writeText(method.number!);
+                                toast({ title: "تم نسخ الرقم/البيانات بنجاح 📋" });
+                              }}
+                              className="h-8 rounded-xl text-xs font-bold gap-1 px-3 border-black/20 hover:bg-black hover:text-white transition-all shrink-0"
+                              title="نسخ بيانات التحويل"
+                            >
+                              <Copy className="h-3.5 w-3.5" /> نسخ
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
