@@ -290,7 +290,7 @@ export default function AdminCategories() {
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                المسار: /{cat.slug} {subcats.length > 0 && ` • ${subcats.length} فئة فرعية`}
+                {subcats.length > 0 ? `${subcats.length} فئة فرعية` : isSubcat ? "فئة فرعية" : "فئة رئيسية"}
               </p>
             </div>
           </div>

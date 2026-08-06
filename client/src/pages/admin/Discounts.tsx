@@ -97,7 +97,13 @@ export default function Discounts() {
     const queue = [targetId];
     while (queue.length > 0) {
       const current = queue.shift()!;
-      const children = categories.filter((c) => String(c.parentId) === current);
+      const children = categories.filter((c) => {
+        if (!c.parentId) return false;
+        const pId = typeof c.parentId === "object"
+          ? String((c.parentId as any)._id || c.parentId)
+          : String(c.parentId);
+        return pId === current;
+      });
       for (const child of children) {
         const childId = String(child._id);
         if (!descendantIds.has(childId)) {
