@@ -142,7 +142,15 @@ export default function Discounts() {
 
   const renderCategoryCard = (cat: Category, isSubcat = false) => {
     const catProducts = getProductsForCategory(cat._id);
-    const currentDiscount = cat.discountPercent || 0;
+    const parentCat = cat.parentId ? categories.find((c) => c._id === cat.parentId) : null;
+    const effectiveDiscount =
+      cat.discountPercent && cat.discountPercent > 0
+        ? cat.discountPercent
+        : parentCat && parentCat.discountPercent && parentCat.discountPercent > 0
+        ? parentCat.discountPercent
+        : 0;
+
+    const currentDiscount = effectiveDiscount;
     const inputVal = discountInputs[cat._id] !== undefined ? discountInputs[cat._id] : String(currentDiscount);
     const isProdsExpanded = !!expandedProds[cat._id];
     const isSubcatsExpanded = !!expandedSubcats[cat._id];
