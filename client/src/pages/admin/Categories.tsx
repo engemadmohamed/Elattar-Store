@@ -4,7 +4,8 @@ import {
   Plus,
   Trash2,
   Edit,
-  ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Lock,
   Unlock,
   AlertTriangle,
@@ -12,6 +13,9 @@ import {
   X,
   FolderTree,
   FolderPlus,
+  Search,
+  Layers,
+  Check,
 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -49,35 +53,16 @@ function autoSlug(text: string): string {
     .toLowerCase();
 }
 
-const findCategoryPath = (
-  allCategories: Category[],
-  categoryId: string | null
-): string[] => {
-  if (!categoryId) return [];
-  const path: string[] = [];
-  let currentId: string | null = categoryId;
-
-  while (currentId) {
-    const category = allCategories.find((c) => c._id === currentId);
-    if (category) {
-      path.unshift(category._id);
-      currentId = category.parentId;
-    } else {
-      currentId = null;
-    }
-  }
-  return path;
-};
-
 interface Category {
   _id: string;
   name: string;
   nameAr: string;
   slug: string;
-  icon: string;
+  icon?: string;
   image?: string;
   isActive: boolean;
   parentId: string | null;
+  discountPercent?: number;
 }
 
 export default function AdminCategories() {
@@ -85,9 +70,9 @@ export default function AdminCategories() {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [expandedSubcats, setExpandedSubcats] = useState<Record<string, boolean>>({});
   const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
-  const [categoryChain, setCategoryChain] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [form, setForm] = useState({
     name: "",
     nameAr: "",
@@ -98,7 +83,7 @@ export default function AdminCategories() {
   });
   const [imageUploading, setImageUploading] = useState(false);
 
-  const { data: categories } = useQuery<Category[]>({
+  const { data: categories = [], isLoading } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
     queryFn: () => apiRequest("GET", "/api/categories"),
   });
@@ -106,7 +91,6 @@ export default function AdminCategories() {
   const resetFormAndState = () => {
     setEditingCategory(null);
     setForm({ name: "", nameAr: "", slug: "", icon: "📦", parentId: "", image: "" });
-    setCategoryChain([]);
   };
 
   const createMutation = useMutation({
@@ -167,6 +151,21 @@ export default function AdminCategories() {
       }),
   });
 
+  const toggleActiveMutation = useMutation({
+    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
+      apiRequest("PUT", `/api/categories/${id}`, { isActive }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["/api/categories"] });
+      toast({ title: "تم تحديث حالة الفئة ✓" });
+    },
+    onError: (err) =>
+      toast({
+        title: "فشل تحديث الحالة",
+        description: String(err),
+        variant: "destructive",
+      }),
+  });
+
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   const handleAddClick = () => {
@@ -180,13 +179,16 @@ export default function AdminCategories() {
       name: category.name,
       nameAr: category.nameAr,
       slug: category.slug,
-      icon: category.icon,
+      icon: category.icon || "📦",
       parentId: category.parentId || "",
       image: category.image || "",
     });
-    setCategoryChain(
-      categories ? findCategoryPath(categories, category.parentId) : []
-    );
+    setOpen(true);
+  };
+
+  const handleAddSubcategoryClick = (parentId: string) => {
+    resetFormAndState();
+    set("parentId", parentId);
     setOpen(true);
   };
 
@@ -197,13 +199,6 @@ export default function AdminCategories() {
     } else {
       createMutation.mutate(form);
     }
-  };
-
-  const handleAddSubcategoryClick = (parentId: string) => {
-    resetFormAndState();
-    set("parentId", parentId);
-    setCategoryChain(categories ? findCategoryPath(categories, parentId) : []);
-    setOpen(true);
   };
 
   const handleImageUpload = async (file: File) => {
@@ -249,90 +244,197 @@ export default function AdminCategories() {
     }
   };
 
-  const handleToggle = (id: string) => {
-    setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
+  const toggleSubcats = (catId: string) => {
+    setExpandedSubcats((prev) => ({ ...prev, [catId]: !prev[catId] }));
   };
 
-  const getDescendants = (catId: string): string[] => {
-    if (!categories) return [];
-    const descendants: string[] = [];
-    const queue: string[] = [catId];
-    const visited = new Set<string>();
+  const rootCategories = categories.filter((c) => !c.parentId);
+  const activeCount = categories.filter((c) => c.isActive).length;
 
-    while (queue.length > 0) {
-      const currentId = queue.shift()!;
-      const children = categories.filter((c) => c.parentId === currentId);
-      for (const child of children) {
-        if (!visited.has(child._id)) {
-          visited.add(child._id);
-          descendants.push(child._id);
-          queue.push(child._id);
-        }
-      }
-    }
-    return descendants;
-  };
+  const filteredRootCategories = rootCategories.filter((cat) => {
+    const matchesName = cat.nameAr.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        cat.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSub = categories.some((sub) => sub.parentId === cat._id && (
+      sub.nameAr.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      sub.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ));
+    return matchesName || matchesSub;
+  });
 
-  const handleCategoryChange = (level: number, value: string) => {
-    const newChain = categoryChain.slice(0, level);
-    if (value) {
-      newChain.push(value);
-    }
-    setCategoryChain(newChain);
+  const renderCategoryCard = (cat: Category, isSubcat = false) => {
+    const subcats = categories.filter((c) => c.parentId === cat._id);
+    const isSubcatsExpanded = !!expandedSubcats[cat._id];
 
-    const finalParentId =
-      newChain.length > 0 ? newChain[newChain.length - 1] : "";
-    set("parentId", finalParentId);
+    return (
+      <div
+        key={cat._id}
+        className={`bg-card border rounded-2xl p-5 shadow-xs transition-all duration-200 hover:shadow-md ${
+          !cat.isActive ? "opacity-60 bg-muted/20" : ""
+        } ${isSubcat ? "ms-6 border-s-4 border-s-black/30 bg-muted/10" : ""}`}
+      >
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          {/* Category Info with Image */}
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-xl bg-muted border overflow-hidden shrink-0 flex items-center justify-center text-xl">
+              {cat.image ? (
+                <img src={cat.image} alt={cat.nameAr} className="h-full w-full object-cover" />
+              ) : (
+                <span>{cat.icon || "📦"}</span>
+              )}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className={`font-extrabold ${isSubcat ? "text-base" : "text-lg"}`}>{cat.nameAr}</h3>
+                <Badge variant={cat.isActive ? "default" : "secondary"} className="text-xs font-bold">
+                  {cat.isActive ? "مفعلة" : "معطلة"}
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                المسار: /{cat.slug} {subcats.length > 0 && ` • ${subcats.length} فئة فرعية`}
+              </p>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            {subcats.length > 0 && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => toggleSubcats(cat._id)}
+                className="rounded-xl text-xs gap-1 font-bold border-foreground/20"
+              >
+                <FolderTree className="h-3.5 w-3.5" />
+                {isSubcatsExpanded ? "إخفاء الفئات الفرعية" : `عرض الفئات الفرعية (${subcats.length})`}
+                {isSubcatsExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+              </Button>
+            )}
+
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handleAddSubcategoryClick(cat._id)}
+              className="rounded-xl font-bold gap-1 text-xs"
+            >
+              <FolderPlus className="h-3.5 w-3.5" />
+              إضافة فرعية
+            </Button>
+
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => toggleActiveMutation.mutate({ id: cat._id, isActive: !cat.isActive })}
+              disabled={toggleActiveMutation.isPending}
+              className="rounded-xl p-2"
+              title={cat.isActive ? "تعطيل الفئة" : "تفعيل الفئة"}
+            >
+              {cat.isActive ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4 text-muted-foreground" />}
+            </Button>
+
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => handleEditClick(cat)}
+              className="rounded-xl p-2"
+              title="تعديل الفئة"
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setDeleteTarget(cat)}
+              className="rounded-xl p-2 text-rose-600 hover:bg-rose-50"
+              title="حذف الفئة"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Expanded Subcategories */}
+        {isSubcatsExpanded && subcats.length > 0 && (
+          <div className="mt-4 pt-4 border-t space-y-3 animate-fade-in-up">
+            <h4 className="text-xs font-extrabold uppercase text-muted-foreground tracking-wider mb-1">
+              الفئات الفرعية لـ {cat.nameAr}:
+            </h4>
+            {subcats.map((subcat) => renderCategoryCard(subcat, true))}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
-    <AdminLayout title="إدارة الفئات والأقسام" subtitle="هيكلة وتنظيم شجرة أقسام المتجر">
-      <div className="space-y-6 max-w-5xl">
-        
-        {/* Header Action */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white rounded-3xl border p-6 shadow-sm">
-          <div>
-            <h1 className="text-2xl font-black flex items-center gap-2">
-              <FolderTree className="h-6 w-6" /> شجرة فئات المتجر
-            </h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              إجمالي الفئات والأقسام المسجلة: {categories?.length || 0} فئة
-            </p>
+    <AdminLayout title="إدارة الفئات والأقسام" subtitle="هيكلة وتنظيم فئات وأقسام المتجر بسهولة">
+      <div className="space-y-6 pb-12">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="p-5 rounded-2xl bg-card border shadow-xs flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-foreground/5 text-foreground flex items-center justify-center shrink-0">
+                <FolderTree className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">إجمالي الفئات</p>
+                <h3 className="text-2xl font-black">{categories.length}</h3>
+              </div>
+            </div>
+            <Button size="sm" onClick={handleAddClick} className="rounded-xl font-bold gap-1 bg-black text-white hover:bg-black/90">
+              <Plus className="h-4 w-4" /> إضافة فئة
+            </Button>
           </div>
 
-          <Button onClick={handleAddClick} className="bg-black hover:bg-black/90 text-white font-bold rounded-2xl gap-2 px-5 shadow-md">
-            <Plus className="h-4 w-4" /> إضافة فئة رئيسية
-          </Button>
+          <div className="p-5 rounded-2xl bg-card border shadow-xs flex items-center gap-4">
+            <div className="h-12 w-12 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <Layers className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground font-medium">فئات رئيسية</p>
+              <h3 className="text-2xl font-black">{rootCategories.length}</h3>
+            </div>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-card border shadow-xs flex items-center gap-4">
+            <div className="h-12 w-12 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+              <Check className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground font-medium">فئات مفعلة</p>
+              <h3 className="text-2xl font-black">{activeCount}</h3>
+            </div>
+          </div>
         </div>
 
-        {/* Tree Container */}
-        <Card className="rounded-3xl border shadow-sm bg-white overflow-hidden p-6">
-          <CardHeader className="p-0 pb-4 mb-4 border-b flex flex-row items-center justify-between">
-            <CardTitle className="text-base font-black">قائمة الفئات الهيكلية</CardTitle>
-            <Badge variant="outline" className="rounded-full px-3 py-1 text-xs font-bold">
-              {categories?.length || 0} قسم
-            </Badge>
-          </CardHeader>
+        {/* Search Bar */}
+        <div className="flex items-center gap-3 bg-card p-3 rounded-2xl border">
+          <Search className="h-5 w-5 text-muted-foreground shrink-0 ms-2" />
+          <Input
+            placeholder="ابحث عن فئة..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="border-0 shadow-none focus-visible:ring-0 text-sm"
+          />
+        </div>
 
-          <CardContent className="p-0 space-y-2">
-            {categories && (
-              <CategoryTree
-                categories={categories}
-                parentId={null}
-                onEdit={handleEditClick}
-                onDelete={(cat) => setDeleteTarget(cat)}
-                onAddSub={handleAddSubcategoryClick}
-                expanded={expanded}
-                onToggle={handleToggle}
-              />
-            )}
-            {(!categories || categories.length === 0) && (
-              <p className="text-center text-muted-foreground py-8 font-medium">
-                لا توجد فئات مسجلة حالياً
-              </p>
-            )}
-          </CardContent>
-        </Card>
+        {/* Categories List */}
+        {isLoading ? (
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-28 bg-muted/40 animate-pulse rounded-2xl" />
+            ))}
+          </div>
+        ) : filteredRootCategories.length === 0 ? (
+          <div className="text-center py-16 bg-muted/20 rounded-3xl border border-dashed">
+            <FolderTree className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+            <h3 className="font-bold text-lg">لا توجد فئات مطابقة</h3>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {filteredRootCategories.map((cat) => renderCategoryCard(cat))}
+          </div>
+        )}
 
         {/* Add/Edit Dialog */}
         <Dialog
@@ -388,7 +490,7 @@ export default function AdminCategories() {
                     </label>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    اضغط المربع لرفع صورة توضيحية للفئة
+                    اضغط هنا لرفع صورة رسمية للفئة
                   </p>
                 </div>
               </div>
@@ -408,75 +510,27 @@ export default function AdminCategories() {
                 />
               </div>
 
-              {editingCategory && (
-                <div>
-                  <Label className="font-bold text-xs">الفئة الرئيسية الأب</Label>
-                  {(() => {
-                    if (!categories) return <Skeleton className="h-10 w-full rounded-xl" />;
-
-                    const dropdowns = [];
-                    const excludedFromSelection = editingCategory
-                      ? [editingCategory._id, ...getDescendants(editingCategory._id)]
-                      : [];
-
-                    const rootCategories = categories.filter(
-                      (c) => !c.parentId && !excludedFromSelection.includes(c._id)
-                    );
-                    dropdowns.push(
-                      <div key="level-0">
-                        <Select
-                          value={categoryChain[0] || ""}
-                          onValueChange={(value) => handleCategoryChange(0, value)}
-                        >
-                          <SelectTrigger className="rounded-xl">
-                            <SelectValue placeholder="اختر الفئة الرئيسية" />
-                          </SelectTrigger>
-                          <SelectContent className="rounded-2xl">
-                            {rootCategories.map((opt) => (
-                              <SelectItem key={opt._id} value={opt._id}>
-                                {opt.nameAr}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    );
-
-                    categoryChain.forEach((catId, i) => {
-                      const subcategories = categories.filter(
-                        (c) =>
-                          c.parentId === catId &&
-                          !excludedFromSelection.includes(c._id)
-                      );
-                      if (subcategories.length > 0) {
-                        dropdowns.push(
-                          <div key={`level-${i + 1}`} className="mt-2">
-                            <Select
-                              value={categoryChain[i + 1] || ""}
-                              onValueChange={(value) =>
-                                handleCategoryChange(i + 1, value)
-                              }
-                            >
-                              <SelectTrigger className="rounded-xl">
-                                <SelectValue placeholder="اختر الفئة الفرعية" />
-                              </SelectTrigger>
-                              <SelectContent className="rounded-2xl">
-                                {subcategories.map((opt) => (
-                                  <SelectItem key={opt._id} value={opt._id}>
-                                    {opt.nameAr}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        );
-                      }
-                    });
-
-                    return <div className="space-y-2 mt-1">{dropdowns}</div>;
-                  })()}
-                </div>
-              )}
+              <div>
+                <Label className="font-bold text-xs">الفئة الرئيسية الأب (اختياري)</Label>
+                <Select
+                  value={form.parentId || "none"}
+                  onValueChange={(val) => set("parentId", val === "none" ? "" : val)}
+                >
+                  <SelectTrigger className="rounded-xl mt-1 h-11">
+                    <SelectValue placeholder="فئة رئيسية بدون أب" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl">
+                    <SelectItem value="none">بدون فئة أصلية (فئة رئيسية)</SelectItem>
+                    {rootCategories
+                      .filter((c) => !editingCategory || c._id !== editingCategory._id)
+                      .map((c) => (
+                        <SelectItem key={c._id} value={c._id}>
+                          {c.nameAr}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
               <Button
                 type="submit"
@@ -532,194 +586,5 @@ export default function AdminCategories() {
         </Dialog>
       </div>
     </AdminLayout>
-  );
-}
-
-// --- Tree Renderers ---
-
-interface CategoryTreeProps {
-  categories: Category[];
-  parentId: string | null;
-  onEdit: (category: Category) => void;
-  onDelete: (category: Category) => void;
-  onAddSub: (parentId: string) => void;
-  expanded: Record<string, boolean>;
-  onToggle: (id: string) => void;
-  path?: Set<string>;
-}
-
-function CategoryTree({
-  categories,
-  parentId,
-  onEdit,
-  onDelete,
-  onAddSub,
-  expanded,
-  onToggle,
-  path = new Set(),
-}: CategoryTreeProps) {
-  const children = categories.filter((c) => c.parentId === parentId);
-  if (!children.length) return null;
-
-  return (
-    <div className={parentId ? "pl-4 border-l-2 border-black/10 ml-4 space-y-1.5 pt-1" : "space-y-1.5"}>
-      {children.map((cat) => {
-        if (path.has(cat._id)) return null;
-        const newPath = new Set(path);
-        newPath.add(cat._id);
-
-        return (
-          <div key={cat._id}>
-            <CategoryItem
-              category={cat}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onAddSub={onAddSub}
-              hasChildren={categories.some((c) => c.parentId === cat._id)}
-              isExpanded={!!expanded[cat._id]}
-              onToggle={() => onToggle(cat._id)}
-            />
-            {expanded[cat._id] && (
-              <CategoryTree
-                categories={categories}
-                parentId={cat._id}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onAddSub={onAddSub}
-                expanded={expanded}
-                onToggle={onToggle}
-                path={newPath}
-              />
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-interface CategoryItemProps {
-  category: Category;
-  onEdit: (category: Category) => void;
-  onDelete: (category: Category) => void;
-  onAddSub: (parentId: string) => void;
-  hasChildren: boolean;
-  isExpanded: boolean;
-  onToggle: () => void;
-}
-
-function CategoryItem({
-  category,
-  onEdit,
-  onDelete,
-  onAddSub,
-  hasChildren,
-  isExpanded,
-  onToggle,
-}: CategoryItemProps) {
-  const qc = useQueryClient();
-  const { toast } = useToast();
-
-  const toggleMutation = useMutation({
-    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
-      apiRequest("PUT", `/api/categories/${id}`, { isActive }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["/api/categories"] });
-      toast({ title: "تم تحديث حالة الفئة ✓" });
-    },
-    onError: (err) =>
-      toast({
-        title: "فشل تحديث الحالة",
-        description: String(err),
-        variant: "destructive",
-      }),
-  });
-
-  return (
-    <div
-      className={`flex items-center justify-between p-3 rounded-2xl border bg-white hover:border-black/30 transition-all ${
-        !category.isActive ? "opacity-50" : ""
-      }`}
-    >
-      <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 rounded-xl"
-          onClick={onToggle}
-          disabled={!hasChildren}
-        >
-          {hasChildren ? (
-            <ChevronRight
-              className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
-            />
-          ) : (
-            <span className="w-4" />
-          )}
-        </Button>
-
-        <div className="h-9 w-9 rounded-xl overflow-hidden bg-black/5 flex items-center justify-center text-lg shrink-0 border">
-          {category.image ? (
-            <img src={category.image} alt={category.nameAr} className="h-full w-full object-cover" />
-          ) : (
-            <span>{category.icon || "📦"}</span>
-          )}
-        </div>
-
-        <div>
-          <p className="font-bold text-sm text-foreground">{category.nameAr}</p>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-1">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 rounded-xl"
-          title={category.isActive ? "قفل الفئة" : "فتح الفئة"}
-          onClick={() =>
-            toggleMutation.mutate({
-              id: category._id,
-              isActive: !category.isActive,
-            })
-          }
-          disabled={toggleMutation.isPending}
-        >
-          {category.isActive ? (
-            <Unlock className="h-4 w-4 text-black" />
-          ) : (
-            <Lock className="h-4 w-4 text-muted-foreground" />
-          )}
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 rounded-xl hover:bg-black/5"
-          title="إضافة فئة فرعية"
-          onClick={() => onAddSub(category._id)}
-        >
-          <FolderPlus className="h-4 w-4 text-black" />
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 rounded-xl hover:bg-black/5"
-          onClick={() => onEdit(category)}
-        >
-          <Edit className="h-4 w-4" />
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 rounded-xl text-rose-600 hover:bg-rose-50"
-          onClick={() => onDelete(category)}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
   );
 }
