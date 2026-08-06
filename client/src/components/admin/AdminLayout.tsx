@@ -1,19 +1,19 @@
 import { useState, ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import {
-  Menu,
-  X,
   LayoutDashboard,
   Package,
   Tags,
   ShoppingBag,
-  Receipt,
-  Settings,
-  Store,
   LogOut,
+  Settings,
+  Receipt,
+  Menu,
+  X,
   ChevronLeft,
   ExternalLink,
   ShieldCheck,
+  Percent,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -22,8 +22,9 @@ import { ADMIN_BASE } from "@/lib/admin-path";
 
 const navItems = [
   { title: "لوحة التحكم", url: ADMIN_BASE, icon: LayoutDashboard },
-  { title: "المنتجات", url: `${ADMIN_BASE}/products`, icon: Package },
   { title: "الفئات", url: `${ADMIN_BASE}/categories`, icon: Tags },
+  { title: "المنتجات", url: `${ADMIN_BASE}/products`, icon: Package },
+  { title: "التخفيضات", url: `${ADMIN_BASE}/discounts`, icon: Percent },
   { title: "الطلبات", url: `${ADMIN_BASE}/orders`, icon: ShoppingBag },
   { title: "الفواتير", url: `${ADMIN_BASE}/invoices`, icon: Receipt },
   { title: "الإعدادات", url: `${ADMIN_BASE}/settings`, icon: Settings },

@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Store,
   Palette,
+  Percent,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -22,8 +23,9 @@ import Logo from "@/components/Logo";
 
 const menuItems = [
   { title: "لوحة التحكم", url: ADMIN_BASE, icon: LayoutDashboard },
-  { title: "المنتجات", url: `${ADMIN_BASE}/products`, icon: Package },
   { title: "الفئات", url: `${ADMIN_BASE}/categories`, icon: Tags },
+  { title: "المنتجات", url: `${ADMIN_BASE}/products`, icon: Package },
+  { title: "التخفيضات", url: `${ADMIN_BASE}/discounts`, icon: Percent },
   { title: "الطلبات", url: `${ADMIN_BASE}/orders`, icon: ShoppingBag },
   { title: "فواتير العملاء", url: `${ADMIN_BASE}/invoices`, icon: Receipt },
   { title: "إعدادات المتجر", url: `${ADMIN_BASE}/settings`, icon: Settings },

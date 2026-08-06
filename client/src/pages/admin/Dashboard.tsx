@@ -68,7 +68,7 @@ export default function AdminDashboard() {
           />
           <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-black tracking-tight mb-1">مرحباً بك في متجر المهندس 👋</h2>
+              <h2 className="text-2xl sm:text-3xl font-black tracking-tight mb-1">مرحباً بك في متجر المهندس</h2>
               <p className="text-white/70 text-sm">تابع أداء المتجر والطلبات الأخيرة بكل سهولة من مكان واحد.</p>
             </div>
             <Link href={`${ADMIN_BASE}/products/add`}>

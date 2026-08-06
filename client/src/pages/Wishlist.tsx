@@ -1,18 +1,45 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Heart, ShoppingBag, ArrowRight } from "lucide-react";
+import { Heart, ShoppingBag, ArrowRight, Lock } from "lucide-react";
 import { useWishlist } from "@/lib/wishlist-context";
+import { useCustomerAuth } from "@/lib/customer-auth-context";
 import { apiRequest } from "@/lib/queryClient";
 import ProductCard, { Product } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 
 export default function Wishlist() {
   const { wishlist } = useWishlist();
+  const { isAuthenticated } = useCustomerAuth();
 
   const { data: productsData, isLoading } = useQuery<any>({
     queryKey: ["/api/products"],
     queryFn: () => apiRequest("GET", "/api/products"),
+    enabled: isAuthenticated,
   });
+
+  if (!isAuthenticated) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 min-h-[70vh] flex items-center justify-center">
+        <div className="text-center py-16 px-6 max-w-md bg-card rounded-3xl border shadow-sm">
+          <div className="h-16 w-16 bg-black/5 text-black rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Lock className="h-8 w-8" />
+          </div>
+          <h2 className="text-2xl font-bold mb-2">تسجيل الدخول مطلوب</h2>
+          <p className="text-muted-foreground text-sm mb-6 leading-relaxed">
+            يرجى تسجيل الدخول أو إنشاء حساب جديد للتمكن من حفظ منتجاتك المفضلة والوصول إليها في أي وقت.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link href="/login">
+              <Button className="w-full sm:w-auto rounded-xl px-6 font-bold bg-black text-white hover:bg-black/90">تسجيل الدخول</Button>
+            </Link>
+            <Link href="/signup">
+              <Button variant="outline" className="w-full sm:w-auto rounded-xl px-6 font-bold">إنشاء حساب جديد</Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const productsList: Product[] = Array.isArray(productsData)
     ? productsData

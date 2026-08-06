@@ -8,6 +8,7 @@ export interface ICategory extends Document {
   isActive: boolean;
   parentId: mongoose.Types.ObjectId | null;
   image?: string;
+  discountPercent?: number;
   createdAt: Date;
 }
 
@@ -20,6 +21,7 @@ const CategorySchema = new Schema<ICategory>(
     isActive: { type: Boolean, default: true },
     parentId: { type: Schema.Types.ObjectId, ref: "Category", default: null },
     image: { type: String },
+    discountPercent: { type: Number, default: 0, min: 0, max: 100 },
   },
   { timestamps: true }
 );

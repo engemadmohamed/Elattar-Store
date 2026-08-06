@@ -263,6 +263,12 @@ export default function Home() {
                 </div>
               )}
 
+              {/* Intro Tag above title */}
+              <div className="inline-flex items-center gap-2 rounded-full border border-foreground/15 bg-foreground/5 px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-foreground/80 mb-3 animate-fade-in-up">
+                <Sparkles className="h-3.5 w-3.5 text-foreground/70" />
+                <span>عن متجر المهندس • نصنع الجودة ونكسب الثقة</span>
+              </div>
+
               {/* Animated Main Title */}
               <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight mb-6 text-right dir-rtl leading-[1.2]">
                 {/* Line 1: heroFeaturedTitle */}
@@ -275,9 +281,9 @@ export default function Home() {
                   </span>
                 </div>
 
-                {/* Line 2: الجودة تبني الثقة (تتكرر الحركة بالتتابع مع كل تمرير سكرول) */}
+                {/* Line 2: نصنع الجودة */}
                 <div className="flex flex-wrap items-center justify-start gap-x-3 sm:gap-x-4 mb-3">
-                  {["الجودة", "تبني", "الثقة"].map((word, i) => (
+                  {["نصنع", "الجودة"].map((word, i) => (
                     <span
                       key={i}
                       data-reveal
@@ -289,13 +295,13 @@ export default function Home() {
                   ))}
                 </div>
 
-                {/* Line 3: وتصنع الجودة (تتكرر الحركة بالتتابع مع كل تمرير سكرول) */}
+                {/* Line 3: ونكسب الثقة */}
                 <div className="flex flex-wrap items-center justify-start gap-x-3 sm:gap-x-4">
-                  {["وتصنع", "الجودة"].map((word, i) => (
+                  {["ونكسب", "الثقة"].map((word, i) => (
                     <span
-                      key={i + 3}
+                      key={i + 2}
                       data-reveal
-                      data-reveal-delay={String(i + 4)}
+                      data-reveal-delay={String(i + 3)}
                       className="headline-word-reveal inline-block text-4xl sm:text-5xl lg:text-7xl font-black"
                     >
                       {word}

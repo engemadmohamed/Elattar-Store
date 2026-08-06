@@ -126,4 +126,60 @@ router.delete("/:id", requireAuth, async (req: Request, res: Response) => {
   }
 });
 
+// Apply category discount to all products under this category (admin only)
+router.post("/:id/apply-discount", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const categoryId = String(req.params.id);
+    const { discountPercent = 0 } = req.body;
+
+    const percent = Math.min(100, Math.max(0, Number(discountPercent) || 0));
+
+    const category = await Category.findById(categoryId);
+    if (!category) return res.status(404).json({ message: "Category not found" });
+
+    category.discountPercent = percent;
+    await category.save();
+
+    // Find subcategories if any
+    const allCategories = await Category.find().lean();
+    const categoryIds: string[] = [categoryId];
+    const queue: string[] = [categoryId];
+
+    while (queue.length > 0) {
+      const currentId = queue.shift()!;
+      const children = allCategories.filter((c) => c.parentId?.toString() === currentId);
+      for (const child of children) {
+        const childIdStr = child._id.toString();
+        if (!categoryIds.includes(childIdStr)) {
+          categoryIds.push(childIdStr);
+          queue.push(childIdStr);
+        }
+      }
+    }
+
+    const products = await Product.find({ categoryId: { $in: categoryIds } });
+    let updatedCount = 0;
+
+    for (const product of products) {
+      if (percent > 0) {
+        const calculated = Math.round(product.price * (1 - percent / 100));
+        product.salePrice = calculated;
+      } else {
+        product.salePrice = undefined;
+      }
+      await product.save();
+      updatedCount++;
+    }
+
+    return res.json({
+      message: percent > 0 ? `تم تطبيق خصم ${percent}% على ${updatedCount} منتج` : `تم إزالة الخصم عن ${updatedCount} منتج`,
+      category,
+      updatedCount,
+    });
+  } catch (error) {
+    console.error("Error applying category discount:", error);
+    return res.status(500).json({ message: "Server error applying discount" });
+  }
+});
+
 export default router;

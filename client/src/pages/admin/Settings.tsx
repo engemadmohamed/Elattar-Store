@@ -22,7 +22,7 @@ const defaultSettings: StoreSettings = {
   address: "القاهرة، مصر",
   announcementBar: "🚚 توصيل مجاني للطلبات فوق 500 ج.م — اطلب الآن!",
   heroBadge: "تشكيلة 2026 وصلت الآن",
-  heroTitle: "كل ما يحتاجه مكتبك الفاخر",
+  heroTitle: "نصنع الجودة ونكسب الثقة",
   heroFeaturedTitle: "المهندس",
   heroDescription: "اكتشف تشكيلتنا الواسعة من الأدوات المكتبية وقراطيس من أفضل العلامات التجارية العالمية. جودة استثنائية وأسعار تنافسية وتوصيل سريع.",
   heroImageUrl: "",

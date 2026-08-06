@@ -37,6 +37,7 @@ import AdminOrders from "./pages/admin/Orders";
 import AdminInvoices from "./pages/admin/Invoices";
 import AdminCategories from "./pages/admin/Categories";
 import AdminSettings from "./pages/admin/Settings";
+import AdminDiscounts from "./pages/admin/Discounts";
 
 function AdminRoute({ component: Component }: { component: React.ComponentType }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -134,6 +135,9 @@ function Router() {
       </Route>
       <Route path={`${ADMIN_BASE}/categories`}>
         <AdminRoute component={AdminCategories} />
+      </Route>
+      <Route path={`${ADMIN_BASE}/discounts`}>
+        <AdminRoute component={AdminDiscounts} />
       </Route>
       <Route path={`${ADMIN_BASE}/settings`}>
         <AdminRoute component={AdminSettings} />
