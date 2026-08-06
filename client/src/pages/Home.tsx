@@ -201,19 +201,19 @@ export default function Home() {
         <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-foreground/4 animate-morph-shape pointer-events-none" style={{ animationDelay: "-7s" }} />
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-72 h-72 bg-foreground/[0.02] rounded-full blur-2xl animate-pulse pointer-events-none" />
 
-        <div className="relative mx-auto max-w-7xl py-16 px-4 lg:py-24">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="relative mx-auto max-w-7xl pt-6 pb-12 px-4 lg:pt-10 lg:pb-16">
+          <div className="grid lg:grid-cols-2 gap-8 items-center">
             {/* Left: Text */}
             <div className="animate-fade-in-up">
               {/* Top Pill Badge with transition */}
-              <div className="inline-flex items-center gap-2 rounded-full border-2 border-foreground/20 bg-white/70 backdrop-blur-md px-5 py-2 text-sm font-bold text-foreground mb-5 shadow-xs hover:bg-white hover:border-foreground/40 transition-all duration-300 cursor-pointer animate-fade-in-up">
+              <div className="inline-flex items-center gap-2 rounded-full border-2 border-foreground/20 bg-white/70 backdrop-blur-md px-5 py-2 text-sm font-bold text-foreground mb-3 shadow-xs hover:bg-white hover:border-foreground/40 transition-all duration-300 cursor-pointer animate-fade-in-up">
                 <span>{settings.heroBadge || "تشكيلة 2026 وصلت الآن"}</span>
                 <Sparkles className="h-4 w-4 text-foreground/80" />
               </div>
 
               {/* Category quick-nav */}
               {settings.showCategories && rootCategories.length > 0 && (
-                <div className="relative mb-8">
+                <div className="relative mb-4">
                   <button
                     onClick={() => setCatMenuOpen((o) => !o)}
                     className="flex items-center gap-2 rounded-2xl border-2 border-foreground/12 bg-white px-5 py-3 shadow-sm hover:shadow-md hover:border-foreground/25 transition-all duration-300 group"
@@ -273,11 +273,11 @@ export default function Home() {
                 const line2 = words.slice(mid);
 
                 return (
-                  <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight mb-6 text-right dir-rtl leading-[1.2]">
+                  <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight mb-6 text-right dir-rtl leading-[1.3]">
                     {/* Line 1: heroFeaturedTitle */}
-                    <div className="flex flex-wrap items-center justify-start gap-x-3 mb-6 sm:mb-8">
+                    <div className="flex flex-wrap items-center justify-start gap-x-3 mb-4 sm:mb-6 pt-1">
                       <span
-                        className="inline-block animate-word-appear hero-letter-sheen text-6xl sm:text-7xl lg:text-8xl font-black tracking-tight select-none"
+                        className="inline-block animate-word-appear hero-letter-sheen text-6xl sm:text-7xl lg:text-8xl font-black tracking-tight select-none pb-3 pt-1 px-1"
                         style={{ animationDelay: "0.08s", animationFillMode: "both" }}
                       >
                         {settings.heroFeaturedTitle || "المهندس"}

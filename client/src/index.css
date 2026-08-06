@@ -643,6 +643,9 @@ input:focus, textarea:focus, select:focus {
   -webkit-text-fill-color: transparent !important;
   background-clip: text !important;
   display: inline-block !important;
+  line-height: 1.35 !important;
+  padding-bottom: 0.15em !important;
+  padding-top: 0.05em !important;
   animation: letterStrokeSheen 6.8s linear infinite !important;
 }
 
