@@ -12,9 +12,6 @@ import {
   Package,
   Check,
   Percent,
-  RefreshCw,
-  ExternalLink,
-  Layers,
 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -70,7 +67,8 @@ export default function AdminProducts() {
   const qc = useQueryClient();
   const { toast } = useToast();
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedRootCategory, setSelectedRootCategory] = useState("all");
+  const [selectedSubcategory, setSelectedSubcategory] = useState("all");
   const [qrProduct, setQrProduct] = useState<Product | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
 
@@ -79,12 +77,24 @@ export default function AdminProducts() {
     queryFn: () => apiRequest("GET", "/api/categories"),
   });
 
+  const rootCategories = categories.filter((c) => !c.parentId);
+  const subcategories = categories.filter(
+    (c) => selectedRootCategory !== "all" && c.parentId === selectedRootCategory
+  );
+
+  const activeCategoryParam =
+    selectedSubcategory !== "all"
+      ? selectedSubcategory
+      : selectedRootCategory !== "all"
+      ? selectedRootCategory
+      : "all";
+
   const { data, isLoading } = useQuery({
-    queryKey: ["/api/products/admin/all", search, selectedCategory],
+    queryKey: ["/api/products/admin/all", search, activeCategoryParam],
     queryFn: () => {
       const params = new URLSearchParams();
       if (search) params.set("search", search);
-      if (selectedCategory !== "all") params.set("category", selectedCategory);
+      if (activeCategoryParam !== "all") params.set("category", activeCategoryParam);
       return apiRequest<{ products: Product[]; total: number }>(
         "GET",
         `/api/products/admin/all?${params.toString()}`
@@ -110,15 +120,6 @@ export default function AdminProducts() {
       qc.invalidateQueries({ queryKey: ["/api/products/admin/all"] }),
   });
 
-  const regenerateQrMutation = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/products/admin/regenerate-qr"),
-    onSuccess: (res: any) => {
-      qc.invalidateQueries({ queryKey: ["/api/products/admin/all"] });
-      toast({ title: `✅ ${res?.message || "تم تحديث QR Codes بنجاح"}` });
-    },
-    onError: () => toast({ title: "فشل تحديث QR Codes", variant: "destructive" }),
-  });
-
   const activeProducts = products.filter((p) => p.isActive).length;
   const outOfStock = products.filter((p) => p.stock <= 0).length;
   const discounted = products.filter((p) => p.salePrice && p.salePrice < p.price).length;
@@ -126,23 +127,33 @@ export default function AdminProducts() {
   return (
     <AdminLayout title="إدارة المنتجات والمخزون" subtitle="عرض، إضافة، وتحديث كافة منتجات المتجر بأسلوب عصري">
       <div className="space-y-6 pb-12">
-        {/* Stats Grid */}
+        {/* Top Header Banner Card with Standalone Add Button */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-card p-6 rounded-3xl border shadow-xs">
+          <div>
+            <h1 className="text-2xl font-black flex items-center gap-2">
+              <Package className="h-6 w-6 text-foreground" /> إدارة المنتجات والمخزون
+            </h1>
+            <p className="text-xs text-muted-foreground mt-1">
+              إجمالي المنتجات المسجلة في المتجر: {data?.total || products.length} منتج
+            </p>
+          </div>
+          <Link href={`${ADMIN_BASE}/products/add`}>
+            <Button className="bg-black hover:bg-black/90 text-white font-bold rounded-2xl gap-2 px-5 shadow-md">
+              <Plus className="h-4 w-4" /> إضافة منتج جديد
+            </Button>
+          </Link>
+        </div>
+
+        {/* Clean Stats Grid (No overlapping buttons) */}
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <div className="p-5 rounded-2xl bg-card border shadow-xs flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-xl bg-foreground/5 text-foreground flex items-center justify-center shrink-0">
-                <Package className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground font-medium">إجمالي المنتجات</p>
-                <h3 className="text-2xl font-black">{data?.total || products.length}</h3>
-              </div>
+          <div className="p-5 rounded-2xl bg-card border shadow-xs flex items-center gap-4">
+            <div className="h-12 w-12 rounded-xl bg-foreground/5 text-foreground flex items-center justify-center shrink-0">
+              <Package className="h-6 w-6" />
             </div>
-            <Link href={`${ADMIN_BASE}/products/add`}>
-              <Button size="sm" className="rounded-xl font-bold gap-1 bg-black text-white hover:bg-black/90">
-                <Plus className="h-4 w-4" /> إضافة منتج
-              </Button>
-            </Link>
+            <div>
+              <p className="text-xs text-muted-foreground font-medium">إجمالي المنتجات</p>
+              <h3 className="text-2xl font-black">{data?.total || products.length}</h3>
+            </div>
           </div>
 
           <div className="p-5 rounded-2xl bg-card border shadow-xs flex items-center gap-4">
@@ -181,39 +192,53 @@ export default function AdminProducts() {
           <div className="flex items-center gap-3 flex-1">
             <Search className="h-5 w-5 text-muted-foreground shrink-0 ms-2" />
             <Input
-              placeholder="ابحث عن منتج..."
+              placeholder="ابحث عن منتج بالاسم أو الرمز..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="border-0 shadow-none focus-visible:ring-0 text-sm"
             />
           </div>
 
-          {/* Category Filter dropdown */}
-          <div className="flex items-center gap-2">
-            <FolderTree className="h-4 w-4 text-muted-foreground" />
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="h-10 rounded-xl border bg-background px-3 text-xs font-semibold focus:outline-none"
-            >
-              <option value="all">جميع الفئات</option>
-              {categories.map((c) => (
-                <option key={c._id} value={c._id}>
-                  {c.nameAr}
-                </option>
-              ))}
-            </select>
+          {/* 2-Level Cascading Category Filter */}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Level 1: Root Category */}
+            <div className="flex items-center gap-2">
+              <FolderTree className="h-4 w-4 text-muted-foreground shrink-0" />
+              <select
+                value={selectedRootCategory}
+                onChange={(e) => {
+                  setSelectedRootCategory(e.target.value);
+                  setSelectedSubcategory("all");
+                }}
+                className="h-10 rounded-xl border bg-background px-3 text-xs font-semibold focus:outline-none"
+              >
+                <option value="all">جميع الفئات الرئيسية</option>
+                {rootCategories.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.nameAr}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => regenerateQrMutation.mutate()}
-              disabled={regenerateQrMutation.isPending}
-              className="rounded-xl text-xs gap-1 font-bold"
-              title="إعادة توليد كافة رموز QR للمنتجات"
-            >
-              <RefreshCw className="h-3.5 w-3.5" /> QR Codes
-            </Button>
+            {/* Level 2: Subcategory (Shown dynamically if root category has subcategories) */}
+            {selectedRootCategory !== "all" && subcategories.length > 0 && (
+              <div className="flex items-center gap-2 animate-fade-in-up">
+                <span className="text-xs font-bold text-muted-foreground">الفئة الفرعية:</span>
+                <select
+                  value={selectedSubcategory}
+                  onChange={(e) => setSelectedSubcategory(e.target.value)}
+                  className="h-10 rounded-xl border bg-background px-3 text-xs font-semibold focus:outline-none"
+                >
+                  <option value="all">كافة الفئات الفرعية</option>
+                  {subcategories.map((sc) => (
+                    <option key={sc._id} value={sc._id}>
+                      {sc.nameAr}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
         </div>
 
